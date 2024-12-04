@@ -1,0 +1,1038 @@
+ <!DOCTYPE html>
+<html lang="en">
+	<meta charset="UTF-8">
+	<title>Materials & Drop Rate Table Generator</title>
+	<meta name="viewport" content="width=device-width,initial-scale=1">
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+	<script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+	<style>
+		body
+		{
+			--bs-body-color:white;
+			background-color:#202224;
+			--bs-body-bg:#202224!important;
+		}
+		.form-select
+		{
+			--bs-form-select-bg-img: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23fff' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
+		}
+		.card
+		{
+			background-color:#20252b;
+			border: solid 2px #393c40;
+			--bs-card-color:white;
+			--bs-card-cap-color:white;
+		}
+		.btn-primary, .btn-danger
+		{
+			--bs-btn-padding-x: 0.325rem;
+			--bs-btn-padding-y: 0.1725rem;
+			--bs-btn-bg:#393c40;
+			--bs-btn-border-width:2px;
+		}
+		.btn-link
+		{
+			padding: 0;
+		}
+		.btn-close
+		{
+			--bs-btn-close-bg: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23fff'%3e%3cpath d='M.293.293a1 1 0 0 1 1.414 0L8 6.586 14.293.293a1 1 0 1 1 1.414 1.414L9.414 8l6.293 6.293a1 1 0 0 1-1.414 1.414L8 9.414l-6.293 6.293a1 1 0 0 1-1.414-1.414L6.586 8 .293 1.707a1 1 0 0 1 0-1.414z'/%3e%3c/svg%3e")
+		}
+		
+		.item-list-warn
+		{
+			border: 1px solid #dc3545;
+			border-radius: 0.375rem;
+		}
+		
+		.scrollable-col 
+		{
+			max-height: 97vh;
+			overflow-y: auto;
+		}
+		
+		.table-holder 
+		{
+			border: solid 2px #393c40;
+			border-radius: 0.375rem;
+			padding: 0.375rem;
+		}
+		
+		.table > :not(caption) > * > *
+		{
+			padding: .5rem .25rem;
+		}
+	</style>
+	<body>
+		<div class="container-fluid" style="height: 97vh">
+			<div class="row pt-1 m-auto p-auto">
+				<div class="col-md-5 scrollable-col">
+					<div class="row py-1">
+						<div class="col-6">
+							<label for="txtMonsterName">Monster Name</label>
+							<input type="text" id="txtMonsterName" class="w-100 form-control" />
+						</div>
+						<div class="col m-auto">
+							<div class="float-end align-self-end form-group">
+								<button type="button" onclick="addRankCard();" class="btn btn-primary" title="Add new card that represents a new rank in the tabber.">Add New Rank</button>
+							</div>
+						</div>
+					</div>
+					<div class="row">
+						<div id="divCardContainer">
+							<div class="row py-1 card-holder" ondragend="dragend()" ondragover="card_dragover()" ondragstart="card_start()">
+								<div class="card" id="card_1">
+									<div class="card-header">
+										<div class="row">
+											<div class="col-2">
+												<button type="button" onmousedown="setCardDraggable('card_1', true);" class="btn btn-primary btn-drag-card" title="Drag this button to move this card."><i class="bi bi-arrows-move"></i></button>
+											</div>
+										</div>
+										<div class="row">
+											<div class="col-6">
+												<label class="label-rank-name" for="txtRankName">Rank</label>
+												<input type="text" id="txtRankName" class="w-100 form-control rank-name" />
+											</div>
+											<div class="col m-auto">
+												<div class="float-end">
+													<button type="button" onclick="addTableToRankCard('');" class="btn btn-primary btn-add-table" title="Add new table section to current card.">Add New Table</button>
+													<button type="button" onclick="deleteRankCard('');" class="btn btn-danger btn-delete-card" title="Delete this card."><i class="bi bi-trash"></i></button>
+												</div>
+											</div>
+										</div>
+									</div>
+									<div class="card-body" id="card-body_1">
+										<div class="row">
+											<div class="table-container">
+												<div id="divFirstHolder" class="table-holder" ondragend="dragend()" ondragover="table_dragover()" ondragstart="table_start()">
+													<div class="row table-row table-header-row">
+														<div class="col">
+															<div class="row">
+																<div class="col-2">
+																	<button type="button" onmousedown="setTableDraggable('', true);" class="btn btn-primary btn-drag-table" title="Drag this button to move this table."><i class="bi bi-arrows-move"></i></button>
+																</div>
+															</div>
+															<div class="row">
+																<div class="col-6">
+																	<label class="table-header-label" for="txtTableHeader">Table Header</label>
+																	<input type="text" id="txtTableHeader" class="w-100 form-control table-header" />
+																</div>
+																<div class="col m-auto">
+																	<div class="float-end">
+																		<button type="button" onclick="addItemToTable('');" class="btn btn-primary btn-add-item" title="Add new table section to current card.">Add New Item</button>
+																		<button type="button" onclick="deleteTable('');" class="btn btn-danger btn-delete-table" title="Delete this table."><i class="bi bi-trash"></i></button>
+																	</div>
+																</div>
+															</div>
+														</div>
+													</div>
+													<div class="row py-2 table-content">
+														<div class="col">
+															<table class="table table-striped table-dark item-table">
+																<thead>
+																	<tr style="vertical-align:middle;">
+																		<th scope="col" style="width:5%">Move</th>
+																		<th scope="col" style="width:35%">Item</th>
+																		<th scope="col" style="width:15%">Chance %</th>
+																		<th scope="col" style="width:30%">Category</th>
+																		<th scope="col" style="width:3%">Quantity</th>
+																		<th scope="col" style="width:5%">Delete</th>
+																	</tr>
+																</thead>
+																<tbody id="tbody_1">
+																	<tr id="trFirstRow" style="vertical-align:middle;" class="table-content-row" ondragend="dragend()" ondragover="row_dragover()" ondragstart="row_start()">
+																		<td style="text-align:center">
+																			<button type="button" onmousedown="setRowDraggable('', true);" class="btn btn-primary btn-drag-row" title="Drag this button to move this item."><i class="bi bi-arrows-move"></i></button>
+																		</td>
+																		<td>
+																			<select class="form-control form-select item-name-input">
+																				<option value=""></option>
+																			</select>
+																		</td>
+																		<td>
+																			<input class="form-control item-chance-input" type="number" />
+																		</td>
+																		<td>
+																			<input class="form-control item-category-input" type="text" />
+																		</td>
+																		<td>
+																			<input class="form-control item-quantity-input" type="text" value="1" />
+																		</td>
+																		<td style="text-align:center">
+																			<button type="button" onclick="deleteRow('');" class="btn btn-danger btn-delete-row" title="Delete this item."><i class="bi bi-trash"></i></button>
+																		</td>
+																	</tr>
+																</tbody>
+															</table>
+														</div>
+													</div>
+												</div>
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="col ps-3 scrollable-col">
+					<div class="row py-1">
+						<div id="divWarning" class="col-9 d-none">
+							<span class="text-danger"><i class="bi bi-exclamation-triangle-fill"></i> Your item list contains duplicate item names! You only need to define an item once.</span>
+						</div>
+						<div class="col">
+							<div class="float-end">
+								<button type="button" onclick="generateTables();" class="btn btn-primary" title="When finished, click here to generate the final product.">Generate Drop Tables</button>
+								<button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#mdlChangeLog" title="Help"><i class="bi bi-question-circle"></i></button>
+								<button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#mdlChangeLog" title="View Change Log"><i class="bi bi-info-circle"></i></button>
+							</div>
+						</div>
+					</div>
+					<div class="row pt-2">
+						<div id="divItemList" class="col p-1">
+							<label for="tblGlobalItems">Item List</label>
+							<button type="button" onclick="addGlobalRow();" class="btn btn-primary float-end mb-1" title="Add row to the item list.">Add New Item</button>
+							<table id="tblGlobalItems" class="table table-striped table-dark global-item-table">
+								<thead>
+									<tr class="text-center" style="vertical-align:middle">
+										<th scope="col" style="width:5%">Include in Materials?</th>
+										<th scope="col" style="width: 22.5%">Item Name</th>
+										<th scope="col" style="width: 13.5%">Icon Type</th>
+										<th scope="col" style="width: 13.5%">Icon Color</th>
+										<th scope="col" style="width: 22.5%">Description</th>
+										<th scope="col" style="width:8%">Rarity</th>
+										<th scope="col" style="width:10%">Price</th>
+										<th scope="col" style="width:5%">Delete</th>
+									</tr>
+								</thead>
+								<tbody>
+									<tr style="vertical-align:middle;">
+										<td>
+											<div class="form-check">
+												<input class="form-check-input global-item-include-input m-auto" onchange="setItemArray();" style="font-size:1.5rem;" type="checkbox" value="" checked>
+											</div>
+										</td>
+										<td>
+											<input class="form-control global-item-name-input" onblur="setItemArray();" type="text" />
+										</td>
+										<td>
+											<select class="form-control form-select global-item-icon-input" onchange="setItemArray();">
+												<option value=""></option>
+												<option value="Armor Sphere">Armor Sphere</option>
+												<option value="Ball">Ball</option>
+												<option value="Bone">Bone</option>
+												<option value="Bug">Bug</option>
+												<option value="Charm">Charm</option>
+												<option value="Claw">Claw</option>
+												<option value="Dung">Dung</option>
+												<option value="Decoration">Decoration</option>
+												<option value="Head">Head</option>
+												<option value="Hide">Hide</option>
+												<option value="Meat">Meat</option>
+												<option value="Medicine">Medicine</option>
+												<option value="Monster Part">Monster Part</option>
+												<option value="Ore">Ore</option>
+												<option value="Pallium">Pallium</option>
+												<option value="Plate">Plate</option>
+												<option value="Sac">Sac</option>
+												<option value="Scale">Scale</option>
+												<option value="Shell">Shell</option>
+												<option value="Streamstone">Streamstone</option>
+												<option value="Tail">Tail</option>
+												<option value="Webbing">Webbing</option>
+												<option value="Wing">Wing</option>
+											</select>
+										</td>
+										<td>
+											<select class="form-control form-select global-item-color-input" onchange="setItemArray();">
+												<option value=""></option>
+												<option value="Blue">Blue</option>
+												<option value="Brown">Brown</option>
+												<option value="Dark Blue">Dark Blue</option>
+												<option value="Dark Purple">Dark Purple</option>
+												<option value="Emerald">Emerald</option>
+												<option value="Gray">Gray</option>
+												<option value="Green">Green</option>
+												<option value="Lemon">Lemon</option>
+												<option value="Light Blue">Light Blue</option>
+												<option value="Light Green">Light Green</option>
+												<option value="Moss">Moss</option>
+												<option value="Orange">Orange</option>
+												<option value="Pink">Pink</option>
+												<option value="Purple">Purple</option>
+												<option value="Red">Red</option>
+												<option value="Rose">Rose</option>
+												<option value="Tan">Tan</option>
+												<option value="Vermilion">Vermilion</option>
+												<option value="Violet">Violet</option>
+												<option value="White">White</option>
+												<option value="Yellow">Yellow</option>
+											</select>
+										</td>
+										<td>
+											<textarea class="form-control global-item-description-input" onblur="setItemArray();" rows="1"></textarea>
+										</td>
+										<td>
+											<input class="form-control global-item-rarity-input" onblur="setItemArray();" type="number" />
+										</td>
+										<td>
+											<input class="form-control global-item-price-input" onblur="setItemArray();" type="number" />
+										</td>
+										<td style="text-align:center">
+											<button type="button" onclick="deleteGlobalRow('');" class="btn btn-danger btn-delete-global-row" title="Delete this item."><i class="bi bi-trash"></i></button>
+										</td>
+									</tr>
+								</tbody>
+							</table>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="modal fade" id="mdlHelp" tabindex="-1" aria-labelledby="helpModalLabel" aria-hidden="true">
+			<div class="modal-dialog modal-xl">
+				<div class="modal-content">
+					<div class="modal-header">
+						<h5 class="modal-title" id="helpModalLabel">Help</h5>
+						<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+					</div>
+					<div class="modal-body">
+						This tool creates both the Materials and Drop Rates sections of a monster's page for the <a target="_blank" href="https://monsterhunterwiki.org/wiki/Main_Page">Monster Hunter wiki</a>. <br> <br>
+						To generate this data, start by adding the monster's name in the top left. <br> <br>
+						After that, you must add every item for the monster that you plan to use in the Item List on the right side of the page. Enter the item's name, what kind of icon the item should use, and what color the icon should be. If you want to enter a description, rarity, and price for the item, you can. Otherwise, placeholders will be used. If you want the item to be included in the materials list, check the checkbox on the left side of the row.<br><br>
+						Then, for each rank that the monster appears in for the game, add a rank card by clicking "Add New Rank" at the middle right. <br> <br>
+						For each rank card, enter the name of that rank (Low, High, Master, God, etc.) in the Rank box at the top of the card. <br> <br>
+						Once that's complete, determine how many tables you'll have for that rank. Each table will render as a column in the monster's page. <br> <br>
+						Finally, for each item that should appear in that section, select the item in the dropdown under the Item column, how you get that item (things like Investigation (Gold) or Carves) under the Category column, and how many of that item you get under the Quantity column. <br> <br>
+						Once every item has been filled out accordingly, click "Generate Drop Tables" on the top right, and your completed template will appear in a popup textbox. You can click the clipboard (<span class="bi bi-clipboard"></span>) icon in the top-right of the popup to automatically copy the contents of the results box to your device's clipboard.<br> <br>
+						Simply paste that data into the appropriate area of the monster page, and you're done!<br> <br>
+						If, at any point, you need to reorder any of the tables, ranks, or items, you can click and hold on the drag handles (<span class="bi bi-arrows-move"></span>) on the top-left of each of them and drag them to the appropriate place.
+					</div>
+					<div class="modal-footer">
+						<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="modal fade" id="mdlGenerate" tabindex="-1" aria-labelledby="generateModalLabel" aria-hidden="true">
+			<div class="modal-dialog modal-xl">
+				<div class="modal-content">
+					<div class="modal-header">
+						<h5 class="modal-title" id="generateModalLabel">Generated Table</h5>
+						<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+					</div>
+					<div class="modal-body">
+						<div class="row py-1">
+							<div class="col">
+								<label for="txtResults" class="text-bottom">Complete Materials & Drop Rates Table Sources</label>
+								<button class="btn btn-primary bi bi-clipboard float-end" title="Copy contents of table results." onclick="copyToClipboard();"></button>
+							</div>
+						</div>
+						<div class="row">
+							<div class="col">
+								<textarea id="txtResults" style="height:200px;" class="w-100 form-control"></textarea>
+							</div>
+						</div>
+					</div>
+					<div class="modal-footer">
+						<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="modal fade" id="mdlChangeLog" tabindex="-1" aria-labelledby="changeLogModalLabel" aria-hidden="true">
+			<div class="modal-dialog modal-lg">
+				<div class="modal-content">
+					<div class="modal-header">
+						<h5 class="modal-title" id="changeLogModalLabel">ChangeLog</h5>
+						<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+					</div>
+					<div class="modal-body" style="max-height: 78vh; overflow-y:auto;">
+						<div class="row">
+							<div class="col">
+								<p>Ping or message @rampagerobot on Discord if you have any issues.</p>
+							</div>
+						</div>
+						<div class="row py-2">
+							<div class="col">
+								<div class="card">
+									<div class="card-header">
+										<h4>v1.3.2</h4>
+									</div>
+									<div class="card-body">
+										<h6>Added Include in Materials checkbox to item list.</h6>
+										<h6>Organized Materials list by rarity, then by price, then by name ascending.</h6>
+										<h6>Added some missing icon types.</h6>
+									</div>
+								</div>
+							</div>
+						</div>
+						<div class="row py-2">
+							<div class="col">
+								<div class="card">
+									<div class="card-header">
+										<h4>v1.3.1</h4>
+									</div>
+									<div class="card-body">
+										<h6>Added change log.</h6>
+										<h6>Fixed a bug where dragging highlighted text allowed the user to move an input out of its container.</h6>
+									</div>
+								</div>
+							</div>
+						</div>
+						<div class="row py-2">
+							<div class="col">
+								<div class="card">
+									<div class="card-header">
+										<h4>v1.3.0</h4>
+									</div>
+									<div class="card-body">
+										<h6>Added description, rarity, and price to the item list table.</h6>
+										<h6>Fixed a bug where dragging a row would sometimes move the row out of its table.</h6>
+										<h6>Added border to tables inside rank cards.</h6>
+										<h6>Resized left-side column to provide more room for the item list table.</h6>
+										<h6>Made the left and right columns scroll and resize independently to allow for easier data entry.</h6>
+										<h6>Item names in Item selects are now alphabetized.</h6>
+										<h6>Color names and icon types are now alphabetized.</h6>
+										<h6>Added warning to the item list table if the user has duplicate item names in their item list.</h6>
+									</div>
+								</div>
+							</div>
+						</div>
+						<div class="row py-2">
+							<div class="col">
+								<div class="card">
+									<div class="card-header">
+										<h4>v1.2.0</h4>
+									</div>
+									<div class="card-body">
+										<h6>Added the item list table.</h6>
+										<h6>Made items in the left column (table data) require selecting from the item list table, instead of redefining the items every time.</h6>
+										<h6>Rank cards, item tables, and items can now be dragged to reorder them on the page.</h6>
+										<h6>Trimmed down some excessive JavaScript.</h6>
+									</div>
+								</div>
+							</div>
+						</div>
+						<div class="row py-2">
+							<div class="col">
+								<div class="card">
+									<div class="card-header">
+										<h4>v1.1.0</h4>
+									</div>
+									<div class="card-body">
+										<h6>Added some missing material types and colors.</h6>
+									</div>
+								</div>
+							</div>
+						</div>
+						<div class="row py-2">
+							<div class="col">
+								<div class="card">
+									<div class="card-header">
+										<h4>v1.0.0</h4>
+									</div>
+									<div class="card-body">
+										<h6>Initial release. Allows for basic materials/drop rates table generation with line-by-line item definitions.</h6>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+					<div class="modal-footer">
+						<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+					</div>
+				</div>
+			</div>
+		</div>
+	</body>
+	<script type="text/javascript">
+		var mdlGenerate;
+		var rootEl = {};
+		var rootItemEl = {};
+		var itemArray = [];
+		$(window).on("load", function () {
+			$(".item-table").attr("id", crypto.randomUUID());
+			rootEl = $($(".card")[0]).parent().clone(true);
+			var rowEl = $($("#tblGlobalItems tbody tr")[0]);
+			rootItemEl = rowEl.clone(true);
+			var rowId = crypto.randomUUID();
+			$(rowEl).attr('id', rowId);
+			$(rowEl).find(".btn-delete-global-row").attr("onclick", "deleteGlobalRow('" + rowId + "');");
+		});
+		function addGlobalRow()
+		{
+			var newRow = rootItemEl.clone(true);
+			var rowId = crypto.randomUUID();
+			$("#tblGlobalItems tbody").append(newRow);
+			$(newRow).attr('id', rowId);
+			$(newRow).find(".btn-delete-global-row").attr("onclick", "deleteGlobalRow('" + rowId + "');");
+		}
+		function deleteGlobalRow(rowId)
+		{
+			$("#" + rowId).remove();
+			setItemArray();
+		}
+		function setItemArray()
+		{
+			itemArray = [];
+			$("#tblGlobalItems tbody tr").each(function () {
+				var itemName = $($($(this).children()[1]).children()[0]).val();
+				if (itemName != '')
+				{
+					itemArray.push({
+						"Include": $($($($(this).children()[0]).children()[0]).children()[0]).prop("checked"),
+						"ItemName": itemName,
+						"IconType": $($($(this).children()[2]).children()[0]).val(),
+						"IconColor": $($($(this).children()[3]).children()[0]).val(),
+						"Description": $($($(this).children()[4]).children()[0]).val(),
+						"Rarity": $($($(this).children()[5]).children()[0]).val(),
+						"Price": $($($(this).children()[6]).children()[0]).val()
+					});
+				}
+			});
+			$(".item-name-input").each(function () {
+				var lastVal = $(this).val();
+				$(this)
+					.find('option')
+					.remove()
+					.end()
+					.append("<option value=''></option>");
+				itemArray.map(function (item) { return item.ItemName; }).sort(function (a, b) { return a > b ? 1 : -1;}).forEach((x) => $(this).append("<option value='" + x + "'>" + x + "</option>"));
+				$(this).val(lastVal);
+			});
+			if (itemArray.map(function (item) {return item.ItemName;}).filter((item, index) => itemArray.map(function (item) {return item.ItemName;}).indexOf(item) !== index).length > 0)
+			{
+				$("#divItemList").addClass("item-list-warn");
+				$("#divWarning").removeClass("d-none");
+			}
+			else
+			{
+				$("#divItemList").removeClass("item-list-warn");
+				$("#divWarning").addClass("d-none");
+			}
+		}
+		function copyToClipboard()
+		{
+			var copyText = document.getElementById("txtResults");
+			  copyText.select();
+			  copyText.setSelectionRange(0, 99999);
+			  navigator.clipboard.writeText(copyText.value);
+			  alert("Copied!");
+		}
+		function dragend()
+		{
+			$("[draggable=true]").removeAttr("draggable");
+			draggedCard = undefined;
+			draggedRow = undefined;
+			draggedTable = undefined;
+			$(".card-holder").each(function() {
+				var cardId = $($(this).find("div.card-body")).attr("id");
+				$($(this).children()[0]).attr("id", "card_" + cardId);
+				$($(this).find("button.btn-drag-card")).attr("onmousedown", "setCardDraggable('card_" + cardId + "');");
+				$($(this).find("button.btn-add-table")).attr("onclick", "addTableToRankCard('" + cardId + "');");
+				$($(this).find("button.btn-delete-card")).attr("onclick", "deleteRankCard('" + cardId + "');");
+				$(this).find(".table-holder").each(function () {
+					var tableId = $($(this).find("table")).attr("id");
+					$($(this).find("button.btn-add-item")).attr("onclick", "addItemToTable('" + tableId + "');");
+					$($(this).find("button.btn-delete-table")).attr("onclick", "deleteTable('" + tableId + "');");
+					$($(this).find("button.btn-drag-table")).attr("onmousedown", "setTableDraggable('" + tableId + "');");
+					$(this).find("tbody tr").each(function() {
+						var rowId = $(this).attr("id");
+						$($(this).find("button.btn-delete-row")).attr("onclick", "deleteRow('" + rowId + "');");
+						$($(this).find("button.btn-drag-row")).attr("onmousedown", "setRowDraggable('" + rowId + "');");
+					});
+				});
+			});
+		}
+		function setRowDraggable(rowId) {
+			if (rowId === '')
+			{
+				el = $("#trFirstRow");
+			}
+			else
+			{
+				el = $("#" + rowId);
+			}
+			$(el).attr("draggable", true);
+		}
+		function setTableDraggable(tableId) {
+			if (tableId === '')
+			{
+				el = $("#divFirstHolder");
+			}
+			else
+			{
+				el = $("#" + tableId).parent().parent().parent();
+			}
+			$(el).attr("draggable", true);
+		}
+		function setCardDraggable(cardId) {
+			$("#" + cardId).attr("draggable", true);
+		}
+		function onlyUnique(value, index, array) {
+			return array.indexOf(value) === index;
+		}
+		
+		function onlyUnique(value, index, array) {
+			return array.indexOf(value) === index;
+		}
+		
+		function addRankCard()
+		{
+			let cardId = crypto.randomUUID();
+			let tableId = crypto.randomUUID();
+			let rowId = crypto.randomUUID();
+			let rankCard = rootEl.clone(true);
+			$(rankCard.children()[0]).attr("id", "card_" + cardId);
+			$(rankCard.find("button.btn-drag-card")).attr("onmousedown", "setCardDraggable('card_" + cardId + "');");
+			$(rankCard.find("label.label-rank-name")).attr("for", "txtRankName_" + cardId);
+			$(rankCard.find("input.rank-name")).attr("id", "txtRankName_" + cardId);
+			$(rankCard.find("button.btn-add-table")).attr("onclick", "addTableToRankCard('" + cardId + "');");
+			$(rankCard.find("button.btn-delete-card")).attr("onclick", "deleteRankCard('" + cardId + "');");
+			$(rankCard.find("div.card-body")).attr("id", cardId);
+			$(rankCard.find(".table-holder")).attr("id", "holder_" + tableId);
+			$(rankCard.find("div.table-header-row")).attr("id", "row_" + tableId);
+			$(rankCard.find("label.label-table-header")).attr("for", "txtTableHeader_" + tableId);
+			$(rankCard.find("input.table-header")).attr("id", "txtTableHeader_" + tableId);
+			$(rankCard.find("button.btn-add-item")).attr("onclick", "addItemToTable('" + tableId + "');");
+			$(rankCard.find("button.btn-delete-table")).attr("onclick", "deleteTable('" + tableId + "');");
+			$(rankCard.find("button.btn-drag-table")).attr("onmousedown", "setTableDraggable('" + tableId + "');");
+			$(rankCard.find("table")).attr("id", tableId);
+			$(rankCard.find("tbody")).attr("id", "body_" + tableId);
+			$(rankCard.find("tr.table-content-row")).attr("id", rowId);
+			$(rankCard.find("button.btn-delete-row")).attr("onclick", "deleteRow('" + rowId + "');");
+			$(rankCard.find("button.btn-drag-row")).attr("onmousedown", "setRowDraggable('" + rowId + "');");
+			$("#divCardContainer").append(rankCard);
+			setItemArray();
+		}
+		
+		function addTableToRankCard(cardId)
+		{
+			let tableId = crypto.randomUUID();
+			let rowId = crypto.randomUUID();
+			var el = {};
+			if (cardId === '')
+			{
+				el = $(".card-body")[0];
+			}
+			else
+			{
+				el = $("#" + cardId);
+			}
+			let newTable = $($(rootEl.find(".table-container")[0]).children()[0]).clone(true);
+			$($(el).children().children(".table-container")[0]).append(newTable);
+			$(newTable).attr("id", "holder_" + tableId);
+			$(newTable.find("div.table-header-row")).attr("id", "row_" + tableId);
+			$(newTable.find("label.label-table-header")).attr("for", "txtTableHeader_" + tableId);
+			$(newTable.find("input.table-header")).attr("id", "txtTableHeader_" + tableId);
+			$(newTable.find("button.btn-add-item")).attr("onclick", "addItemToTable('" + tableId + "');");
+			$(newTable.find("button.btn-delete-table")).attr("onclick", "deleteTable('" + tableId + "');");
+			$(newTable.find("button.btn-drag-table")).attr("onmousedown", "setTableDraggable('" + tableId + "');");
+			$(newTable.find("table")).attr("id", tableId);
+			$(newTable.find("tbody")).attr("id", "body_" + tableId);
+			$(newTable.find("tr.table-content-row")).attr("id", rowId);
+			$(newTable.find("button.btn-delete-row")).attr("onclick", "deleteRow('" + rowId + "');");
+			$(newTable.find("button.btn-drag-row")).attr("onmousedown", "setRowDraggable('" + rowId + "');");
+			setItemArray();
+		}
+		
+		function addItemToTable(tableId)
+		{
+			let rowId = crypto.randomUUID();
+			var el = {};
+			if (tableId === '')
+			{
+				el = $(".item-table")[0];
+			}
+			else
+			{
+				el = $("#" + tableId);
+			}
+			let newRow = $(rootEl.find("tr.table-content-row")[0]).clone(true);
+			$($(el).children("tbody")[0]).append(newRow);
+			$(newRow).attr("id", rowId);
+			$(newRow.find("button.btn-delete-row")).attr("onclick", "deleteRow('" + rowId + "');");
+			$(newRow.find("button.btn-drag-row")).attr("onmousedown", "setRowDraggable('" + rowId + "');");
+			setItemArray();
+		}
+		
+		function deleteRankCard(cardId)
+		{
+			var el = {};
+			if (cardId === '')
+			{
+				el = $("#card_1");
+			}
+			else
+			{
+				el = $("#card_" + cardId);
+			}
+			$(el).remove();
+		}
+		
+		function deleteTable(tableId)
+		{
+			if (tableId === '')
+			{
+				$($(".table-row")[0]).remove();
+				$($(".table-content")[0]).remove();
+			}
+			else
+			{
+				$("#" + tableId).remove();
+				$("#row_" + tableId).remove();
+			}
+		}
+		
+		function deleteRow(rowId)
+		{
+			if (rowId === '')
+			{
+				$($(".table-content-row")[0]).remove();
+			}
+			else
+			{
+				$("#" + rowId).remove();
+			}
+		}
+		
+		function generateTables()
+		{
+			var finalData = [];
+			let ranks = $("#divCardContainer").find("div.card").toArray();
+			for (var i = 0; i < ranks.length; i++)
+			{
+				var thisData = {
+					"Rank": $(ranks[i]).find(".rank-name").val(),
+					"Tables": []
+				};
+				let tables = $(ranks[i]).find(".table-holder").toArray();
+				for (var i2 = 0; i2 < tables.length; i2++)
+				{
+					var thisTable = {
+						"Header": $(tables[i2]).find(".table-header").val(),
+						"Items": []
+					};
+					let rows = $(tables[i2]).find(".table-content-row").toArray();
+					for (var i3 = 0; i3 < rows.length; i3++)
+					{
+						let row = $(rows[i3]);
+						var itemName = $($(row.children()[1]).children()[0]).val();
+						if (itemName != '')
+						{
+							var item = itemArray.filter(function (item)
+							{
+								return item.ItemName == itemName;
+							})[0];
+							thisTable["Items"].push({
+								"Include": item.Include,
+								"ItemName": item.ItemName,
+								"Chance": $($(row.children()[2]).children()[0]).val(),
+								"Icon": item.IconType,
+								"IconColor": item.IconColor,
+								"Description": ((item.Description == '' || typeof(item.Description) === 'undefined') ? '[DESCRIPTION]' : item.Description),
+								"Rarity": ((item.Rarity == '' || typeof(item.Rarity) === 'undefined') ? '[RARITY]' : item.Rarity),
+								"Price": ((item.Price == '' || typeof(item.Price) === 'undefined') ? '[PRICE]' : (item.Price.toString() + "z")),
+								"Category": $($(row.children()[3]).children()[0]).val(),
+								"Quantity": $($(row.children()[4]).children()[0]).val()
+							});
+						}
+					}
+					thisData["Tables"].push(thisTable);
+				}
+				finalData.push(thisData);
+			}
+			allItems = itemArray.slice().filter(function (item) 
+			{
+				return item.Include == true;
+			}).sort(function (a, b) 
+            {
+                if (a.Rarity > b.Rarity) {
+                    return 1;
+                } else if (a.Rarity < b.Rarity) { 
+                    return -1;
+                }
+                else if (a.Price > b.Price) {
+                    return 1;
+                } else if (a.Price < b.Price) { 
+                    return -1;
+                }
+                else if (a.ItemName > b.ItemName)
+                {
+                    return 1;
+                }
+                else if (a.ItemName < b.ItemName)
+                {
+                    return -1;
+                }
+                else
+                {
+                    return 0;
+                }
+            });
+			var elementData = '== Materials == \n\
+			<div> \n\
+			{| class="wikitable mw-collapsible mw-collapsed" \n\
+			!colspan="3" style="width:800px"| <big>' + $("#txtMonsterName").val() + ' Materials</big> \n\
+			|- \n\
+			!style="width:400px;text-align:left" | Item \n\
+			!style="width:65px;text-align:left" | Rarity \n\
+			!style="width:200px;text-align:left" | Price \n';
+			for (var itemI = 0; itemI < allItems.length; itemI++)
+			{
+				var item = allItems[itemI];
+				if (typeof(item.ItemName) !== 'undefined' && typeof(item.IconType) !== 'undefined' && typeof(item.IconColor) !== 'undefined')
+				{
+					elementData += '|- \n \
+							|{{MHWIItemLink|' + item.ItemName + '|' + item.IconType + '|' + item.IconColor + '}} \n \
+							|Rarity ' + item.Rarity + ' \n\
+							|' + item.Price + ' \n\
+							|- \n\
+							| colspan="3" |' + item.Description + '\n';
+				}
+			}
+			elementData += '|} \n\
+			=== Drop Rates === \n \
+			<tabber> \n';
+			for (var i4 = 0; i4 < finalData.length; i4++)
+			{
+				var rank = finalData[i4];
+				elementData += '|-| ' + rank.Rank + ' Rank = \n \
+					<div class = "' + (convert(rank.Tables.length)) + (rank.Tables.length == 3 ? "cen" : "col") + '"> \n';
+				for (var i5 = 0; i5 < rank.Tables.length; i5++)
+				{
+					var table = rank.Tables[i5];
+					elementData += '<div> \n \
+						{| class="wikitable itemtable mw-collapsible" \n \
+						!colspan="2" | <big>' + table.Header + '</big> \n \
+						|- \n \
+						!Item \n \
+						!Chance \n';
+					var cats = table.Items.map(function (item) { return item.Category; }).filter(onlyUnique);
+					for (var i6 = 0; i6 < cats.length; i6++)
+					{
+						elementData += '|- \n \
+						! colspan="2" |' + cats[i6] + ' \n';
+						var items = table.Items.filter(function (item) { return item.Category == cats[i6]; });
+						for (var i7 = 0; i7 < items.length; i7++)
+						{
+							var item = items[i7];
+							if (item.ItemName != '' && item.Icon != "" && item.IconColor != "")
+							{
+								elementData += '|- \n \
+								|{{MHWIItemLink|' + item.ItemName + '|' + item.Icon + '|' + item.IconColor + '}}' + (item.Quantity > 1 ? " x" + item.Quantity : "") + ' \n \
+								|' + (item.Chance != '' ? item.Chance + "%" : "") + ' \n';
+							}
+						}
+					}
+					elementData += '|} \n\
+					</div> \n'
+				}
+				elementData += '</div> \n'
+			}
+			elementData += "</tabber>";
+			$("#txtResults").val(elementData.replaceAll('\t', '').replaceAll('\n ', '\n'));
+			if (typeof(mdlGenerate) === 'undefined')
+			{
+				mdlGenerate = new bootstrap.Modal(document.getElementById('mdlGenerate'));
+			}
+			mdlGenerate.show();
+		}
+		
+		function convert(num) {
+			return ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten"][parseInt(num)];
+		}
+		
+		var draggedRow;
+		var initRowIndex = -1;
+		function row_start(){
+			if (event.target.tagName == "TR")
+			{
+				draggedRow = event.target;
+				initRowIndex = Array.from(draggedRow.parentNode.children).indexOf(draggedRow);
+			}
+		}
+		function row_dragover(){
+			var e = event;
+			if (typeof(draggedRow) !== 'undefined')
+			{
+				if (matchRowAncestor(e.target, draggedRow.parentNode.id))
+				{
+					if(getRowIndex(e.target)>=initRowIndex)
+						getRowNode(e.target).after(getRowNode(draggedRow));
+					else
+						getRowNode(e.target).before(getRowNode(draggedRow));
+				}
+			}
+		}
+		
+		function getRowNode(eventTarget)
+		{
+			while (eventTarget.tagName != "TR")
+			{
+				eventTarget = eventTarget.parentNode;
+			}
+			return eventTarget;
+		}
+		
+		function getRowIndex(eventTarget)
+		{
+			var rowNode;
+			var parentNode = eventTarget.parentNode;
+			while (parentNode.tagName != "TBODY" && parentNode.tagName != "THEAD")
+			{
+				if (parentNode.tagName == "TR")
+				{
+					rowNode = parentNode;
+				}
+				parentNode = parentNode.parentNode;
+			}
+			if (parentNode.tagName == "THEAD")
+			{
+				return -1;
+			}
+			else
+			{
+				return Array.from(parentNode.children).indexOf(rowNode);
+			}
+		}
+		
+		function matchRowAncestor(node, targetId)
+		{
+			while (node.tagName != "TBODY" && node.tagName != 'BODY')
+			{
+				node = node.parentNode;
+			}
+			return node.id == targetId;
+		}
+		
+		function matchTableAncestor(node, targetId)
+		{
+			while (node.className != "table-container" && node.tagName != 'BODY')
+			{
+				node = node.parentNode;
+			}
+			return node.id == targetId;
+		}
+		
+		var draggedTable;
+		function table_start(){
+			if (event.target.className == "table-holder")
+			{
+				draggedTable = event.target;
+			}
+		}
+		function table_dragover(){
+			var e = event;
+			if (typeof(draggedTable) !== 'undefined')
+			{
+				if (matchTableAncestor(e.target, draggedTable.parentNode.id))
+				{
+					let children= Array.from(draggedTable.parentNode.children);
+					if(getTableIndex(e.target)>children.indexOf(draggedTable))
+						getTableNode(e.target).after(draggedTable);
+					else
+						getTableNode(e.target).before(draggedTable);
+				}
+			}
+		}
+		
+		function getTableNode(eventTarget)
+		{
+			while (eventTarget.className != "table-holder")
+			{
+				eventTarget = eventTarget.parentNode;
+			}
+			return eventTarget;
+		}
+		
+		function getTableIndex(eventTarget)
+		{
+			var tableNode;
+			var parentNode = eventTarget.parentNode;
+			while (parentNode.className != "table-container")
+			{
+				if (parentNode.className == "table-holder")
+				{
+					tableNode = parentNode;
+				}
+				parentNode = parentNode.parentNode;
+			}
+			return Array.from(parentNode.children).indexOf(tableNode);
+		}
+		var draggedCard;
+		function card_start(){
+			if (event.target.className == 'card')
+			{
+				console.log(event.target);
+				draggedCard = event.target;
+			}
+		}
+		function card_dragover(){
+			var e = event;
+			if (typeof(draggedCard) !== 'undefined')
+			{
+				if (isCardAncestor(e.target))
+				{
+					let children= Array.from(getCardHolder(e.target).parentNode.children);
+					if(children.indexOf(getCardHolder(e.target))>children.indexOf(getCardHolder(draggedCard)))
+						getCardHolder(e.target).after(getCardHolder(draggedCard));
+					else
+						getCardHolder(e.target).before(getCardHolder(draggedCard));
+				}
+			}
+		}
+		
+		function getCardNode(eventTarget)
+		{
+			while (eventTarget.className != "table-holder")
+			{
+				eventTarget = eventTarget.parentNode;
+			}
+			return eventTarget;
+		}
+		
+		function getCardIndex(eventTarget)
+		{
+			var tableNode;
+			var parentNode = eventTarget.parentNode;
+			while (parentNode.className != "table-container")
+			{
+				if (parentNode.className == "table-holder")
+				{
+					tableNode = parentNode;
+				}
+				parentNode = parentNode.parentNode;
+			}
+			return Array.from(parentNode.children).indexOf(tableNode);
+		}
+		
+		function isCardAncestor(eventTarget)
+		{
+			while (eventTarget.className != "card" && eventTarget.tagName != "BODY")
+			{
+				eventTarget = eventTarget.parentNode;
+			}
+			return eventTarget.className == "card";
+		}
+		
+		function getCardHolder(node)
+		{
+			while (!node.className.includes("card-holder") && node.tagName != "BODY")
+			{
+				node = node.parentNode;
+			}
+			if (node.className.includes("card-holder"))
+			{
+				return node;
+			}
+			else
+			{
+				return null;
+			}
+		}
+	</script>
+</html> 
