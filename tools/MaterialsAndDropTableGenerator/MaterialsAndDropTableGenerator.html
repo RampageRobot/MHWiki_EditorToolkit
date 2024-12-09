@@ -33,6 +33,9 @@
 											<div class="col-2">
 												<button type="button" onmousedown="setCardDraggable('card_1', true);" class="btn btn-primary btn-drag-card" title="Drag this button to move this card."><i class="bi bi-arrows-move"></i></button>
 											</div>
+											<div class="col">
+												<button type="button" class="btn btn-primary btn-collapse-card float-end" data-is-collapsed="false" onmousedown="collapseCard($(this));" title="Collapse this card."><i class="bi bi-arrows-collapse"></i></button>
+											</div>
 										</div>
 										<div class="row">
 											<div class="col-6">
@@ -42,7 +45,7 @@
 											<div class="col m-auto">
 												<div class="float-end">
 													<button type="button" onclick="addTableToRankCard('');" class="btn btn-primary btn-add-table" title="Add new table section to current card.">Add New Table</button>
-													<button type="button" onclick="deleteRankCard('');" class="btn btn-danger btn-delete-card" title="Delete this card."><i class="bi bi-trash"></i></button>
+													<button type="button" onclick="$(this).parents('div.card-holder').first().remove();" class="btn btn-danger btn-delete-card" title="Delete this card."><i class="bi bi-trash"></i></button>
 												</div>
 											</div>
 										</div>
@@ -57,6 +60,9 @@
 																<div class="col-2">
 																	<button type="button" onmousedown="setTableDraggable('', true);" class="btn btn-primary btn-drag-table" title="Drag this button to move this table."><i class="bi bi-arrows-move"></i></button>
 																</div>
+																<div class="col">
+																	<button type="button" class="btn btn-primary btn-collapse-table float-end" data-is-collapsed="false" onmousedown="collapseTable($(this));" title="Collapse this table."><i class="bi bi-arrows-collapse"></i></button>
+																</div>
 															</div>
 															<div class="row">
 																<div class="col-6">
@@ -66,7 +72,7 @@
 																<div class="col m-auto">
 																	<div class="float-end">
 																		<button type="button" onclick="addItemToTable('');" class="btn btn-primary btn-add-item" title="Add new table section to current card.">Add New Item</button>
-																		<button type="button" onclick="deleteTable('');" class="btn btn-danger btn-delete-table" title="Delete this table."><i class="bi bi-trash"></i></button>
+																		<button type="button" onclick="$(this).parents('div.table-holder').first().remove();" class="btn btn-danger btn-delete-table" title="Delete this table."><i class="bi bi-trash"></i></button>
 																	</div>
 																</div>
 															</div>
@@ -105,7 +111,7 @@
 																			<input class="form-control item-quantity-input" type="text" value="1" />
 																		</td>
 																		<td style="text-align:center">
-																			<button type="button" onclick="deleteRow('');" class="btn btn-danger btn-delete-row" title="Delete this item."><i class="bi bi-trash"></i></button>
+																			<button type="button" onclick="$(this).parent().parent().remove();" class="btn btn-danger btn-delete-row" title="Delete this item."><i class="bi bi-trash"></i></button>
 																		</td>
 																	</tr>
 																</tbody>
@@ -297,6 +303,20 @@
 						<div class="row">
 							<div class="col">
 								<p>Ping or message @rampagerobot on Discord if you have any issues.</p>
+							</div>
+						</div>
+						<div class="row py-2">
+							<div class="col">
+								<div class="card">
+									<div class="card-header">
+										<h4>v1.3.3</h4>
+									</div>
+									<div class="card-body">
+										<h6>Fixed some formatting hiccups with table generation.</h6>
+										<h6>Added buttons to all tables and cards to allow for them to be collapsed and hidden when not being edited.</h6>
+										<h6>Fixed a bug that caused deleted tables to leave a remnant behind that messed up final generation.</h6>
+									</div>
+								</div>
 							</div>
 						</div>
 						<div class="row py-2">

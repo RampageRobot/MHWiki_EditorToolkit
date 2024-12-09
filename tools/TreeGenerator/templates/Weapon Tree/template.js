@@ -182,7 +182,6 @@ class WeaponTemplate
     <th scope="col" style="width:1rem">Forge?</th>
     <th scope="col" style="width:15rem;">Weapon</th>
     <th scope="col" style="width:15rem;">Upgraded From</th>
-    <th scope="col" style="width:7rem;">Icon Color</th>
     <th scope="col" style="width:10rem;">Icon Type</th>
     <th scope="col" style="width:4.5rem;">Rarity</th>
     <th scope="col" style="width:7.25rem;">Attack</th>
@@ -209,11 +208,6 @@ class WeaponTemplate
 	</td>
 	<td>
 		<select class="form-control form-select weapon-parent-input data-value" data-label="parent">
-			<option value=""></option>
-		</select>
-	</td>
-	<td>
-		<select class="form-control form-select weapon-icon-color-input data-value" data-label="icon-color">
 			<option value=""></option>
 		</select>
 	</td>
@@ -252,7 +246,7 @@ class WeaponTemplate
 		<input type="number" class="form-control weapon-affinity-input data-value" data-label="affinity">
 	</td>
 	<td style="text-align:center; align-content:center">
-		<input class="form-control weapon-decos-input data-value" value="test" hidden="hidden" type="text" data-label="decos"/>
+		<input class="form-control weapon-decos-input data-value" hidden="hidden" type="text" data-label="decos"/>
 		<button class="btn btn-primary" type="button" onclick="WeaponTemplate.modifyDecos($(this).parent().parent());">Modify</button>
 	</td>
 	<td style="text-align:center; align-content:center">
@@ -268,12 +262,54 @@ class WeaponTemplate
 	static modifySharpness(row)
 	{
 		WeaponTemplate.currentSharpnessRow = row;
+		var prevVal = null;
+		var prevValStr = $(WeaponTemplate.currentSharpnessRow).find(".weapon-sharpness-input").first().val();
+		if (prevValStr != '')
+		{
+			prevVal = JSON.parse(prevValStr);
+		}
+		var bars = ["Red", "Orange", "Yellow", "Green", "Blue", "White", "Purple"];
+		var colorHexes = ["E41700", "F36A01", "FBFF00", "49DD79", "3E6AFF", "E6E6E5", "E401C8"];
+		for (var i = 0; i < bars.length; i++)
+		{
+			for (var i2 = 1; i2 <= 2; i2++)
+			{
+				var val = "";
+				if (prevVal != null)
+				{
+					val = prevVal[i2 - 1][i];
+					if (val == "0")
+					{
+						val = "";
+					}
+				}
+				$("#txt" + bars[i] + "SharpnessHits" + i2).val(val);
+				$($("#divPreviewBar" + i2 + " div div")[i]).attr("style", "background-color:#" + colorHexes[i] + ";height: inherit;flex:0 0 " + (val == 0 ? "0" : (parseInt(val) / 4)) + "%");
+			}
+		}
 		new bootstrap.Modal($("#mdlModifySharpness")).show();
 	}
 	static modifyDecos(row)
 	{
-		$("#tblDecos tbody tr").remove();
 		WeaponTemplate.currentDecosRow = row;
+		var prevVal = null;
+		$("#tblDecos tbody tr").remove();
+		var prevValStr = $(WeaponTemplate.currentDecosRow).find(".weapon-decos-input").first().val();
+		if (prevValStr != '')
+		{
+			prevVal = JSON.parse(prevValStr);
+			if (prevVal != null)
+			{
+				for (var i = 0; i < prevVal.length; i++)
+				{
+					WeaponTemplate.addRowToTblDecos();
+					var row = $("#tblDecos tbody tr").last();
+					$(row).find(".decoration-level-input").val(prevVal[i].Level);
+					$(row).find(".decoration-qty-input").val(prevVal[i].Qty);
+					$(row).find(".decoration-rampage-input").prop("checked", prevVal[i].IsRampage == true);
+				}
+			}
+		}
 		new bootstrap.Modal($("#mdlModifyDecos")).show();
 	}
 	static updatePreviewBar(bar)
@@ -299,7 +335,7 @@ class WeaponTemplate
 		{
 			$(WeaponTemplate.currentSharpnessRow).find(".weapon-sharpness-input").first().val(JSON.stringify([
 				[ $("#txtRedSharpnessHits1").val(), $("#txtOrangeSharpnessHits1").val(), $("#txtYellowSharpnessHits1").val(), $("#txtGreenSharpnessHits1").val(), $("#txtBlueSharpnessHits1").val(), $("#txtWhiteSharpnessHits1").val(), $("#txtPurpleSharpnessHits1").val() ],
-				[ $("#txtRedSharpnessHits1").val(), $("#txtOrangeSharpnessHits2").val(), $("#txtYellowSharpnessHits2").val(), $("#txtGreenSharpnessHits2").val(), $("#txtBlueSharpnessHits2").val(), $("#txtWhiteSharpnessHits2").val(), $("#txtPurpleSharpnessHits2").val() ]
+				[ $("#txtRedSharpnessHits2").val(), $("#txtOrangeSharpnessHits2").val(), $("#txtYellowSharpnessHits2").val(), $("#txtGreenSharpnessHits2").val(), $("#txtBlueSharpnessHits2").val(), $("#txtWhiteSharpnessHits2").val(), $("#txtPurpleSharpnessHits2").val() ]
 			]));
 		}
 	}
@@ -359,11 +395,9 @@ class WeaponTemplate
 	static updateIcons()
 	{
 		var icons = '';
-		var colors = '';
 		switch ($("#ddlGameSelect").val())
 		{
 			case "MHG":
-				colors = `<option value="">Use Rarity</option>`;
 				icons = `<option value=""></option>
 					<option value="GS">Great Sword</option>
 					<option value="LS">Long Sword</option>
@@ -377,28 +411,6 @@ class WeaponTemplate
 					<option value="HBG">Heavy Bowgun</option>`;
 				break;
 			case "MHWI":
-				colors = `<option value=""></option>
-					<option value="Blue">Blue</option>
-					<option value="Brown">Brown</option>
-					<option value="Dark Blue">Dark Blue</option>
-					<option value="Dark Purple">Dark Purple</option>
-					<option value="Emerald">Emerald</option>
-					<option value="Gray">Gray</option>
-					<option value="Green">Green</option>
-					<option value="Lemon">Lemon</option>
-					<option value="Light Blue">Light Blue</option>
-					<option value="Light Green">Light Green</option>
-					<option value="Moss">Moss</option>
-					<option value="Orange">Orange</option>
-					<option value="Pink">Pink</option>
-					<option value="Purple">Purple</option>
-					<option value="Red">Red</option>
-					<option value="Rose">Rose</option>
-					<option value="Tan">Tan</option>
-					<option value="Vermilion">Vermilion</option>
-					<option value="Violet">Violet</option>
-					<option value="White">White</option>
-					<option value="Yellow">Yellow</option>`;
 				icons = `<option value=""></option>
 					<option value="GS">Great Sword</option>
 					<option value="LS">Long Sword</option>
@@ -415,21 +427,6 @@ class WeaponTemplate
 					<option value="HBG">Heavy Bowgun</option>`;
 				break;
 			case "MHRS":
-				colors = `<option value=""></option>
-					<option value="Blue">Blue</option>
-					<option value="Brown">Brown</option>
-					<option value="Dark Blue">Dark Blue</option>
-					<option value="Dark Purple">Dark Purple</option>
-					<option value="Gray">Gray</option>
-					<option value="Green">Green</option>
-					<option value="Light Blue">Light Blue</option>
-					<option value="Orange">Orange</option>
-					<option value="Pink">Pink</option>
-					<option value="Purple">Purple</option>
-					<option value="Red">Red</option>
-					<option value="Vermilion">Vermilion</option>
-					<option value="White">White</option>
-					<option value="Yellow">Yellow</option>`;
 				icons = `<option value=""></option>
 					<option value="GS">Great Sword</option>
 					<option value="LS">Long Sword</option>
@@ -455,13 +452,6 @@ class WeaponTemplate
 			var oldVal = $(this).val();
 			$(this).children("option").remove();
 			$(this).append(icons);
-			$(this).val(oldVal);
-		});
-		$(".weapon-icon-color-input option").remove();
-		$(".weapon-icon-color-input").each(function () {
-			var oldVal = $(this).val();
-			$(this).children("option").remove();
-			$(this).append(colors);
 			$(this).val(oldVal);
 		});
 	}
@@ -508,12 +498,12 @@ class WeaponTemplate
 				break;
 		}
 		var elementData = `==` + $("#txtPathName").val() + ` == 
-			{| class="wikitable center wide mw-collapsible mw-collapsed"
-			! colspan=8 | ${$("#txtPathName").val()} Path
-			|-
-			!Name 
-			!Rarity!! [[File:UI-Attack Up.png|24x24px|link=]] !! [[File:UI-Blastblight.png|24x24px|link=]] !! [[File:UI-Affinity Up.png|24x24px|link=]] !! [[File:2ndGen-Whetstone Icon Yellow.png|24x24px|link=]] !! [[File:2ndGen-Decoration Icon Blue.png|24x24px|link=]] !! [[File:UI-Defense Up.png|24x24px|link=]]
-			`;
+{| class="wikitable center wide mw-collapsible mw-collapsed"
+! colspan=8 | ${$("#txtPathName").val()} Path
+|-
+!Name 
+!Rarity!! [[File:UI-Attack Up.png|24x24px|link=]] !! [[File:UI-Blastblight.png|24x24px|link=]] !! [[File:UI-Affinity Up.png|24x24px|link=]] !! [[File:2ndGen-Whetstone Icon Yellow.png|24x24px|link=]] !! [[File:2ndGen-Decoration Icon Blue.png|24x24px|link=]] !! [[File:UI-Defense Up.png|24x24px|link=]]
+`;
 		for (var i = 0; i < WeaponTemplate.finalData.length; i++)
 		{
 			var dataObj = WeaponTemplate.finalData[i];
@@ -575,15 +565,15 @@ class WeaponTemplate
 				}
 			}
 			elementData += `|-
-			| style="text-align:left" | ${prefix}${dataObj["can-forge"] == true ? "'''" : ""}{{${weaponLink}|${dataObj["name"]}|${iconType}|${dataObj["rarity"]}}}${dataObj["can-forge"] == true ? "'''" : ""}
-			| ` + dataObj["rarity"] + `
-			| ` + dataObj["attack"] + `
-			| ${(dataObj["element"] == '' ? "-" : `{{Element|${dataObj["element"]}|${dataObj["element-damage"]}}}`)}
-			| ${(dataObj["affinity"] == '' ? " 0% " : dataObj["affinity"] + "%")}
-			| ${sharpness}
-			| ${decos}
-			| ${(dataObj["defense"] == '' ? "-" : dataObj["defense"])}
-			`;
+| style="text-align:left" | ${prefix}${dataObj["can-forge"] == true ? "'''" : ""}{{${weaponLink}|${dataObj["name"]}|${iconType}|${dataObj["rarity"]}}}${dataObj["can-forge"] == true ? "'''" : ""}
+| ` + dataObj["rarity"] + `
+| ` + dataObj["attack"] + `
+| ${(dataObj["element"] == '' ? "-" : `{{Element|${dataObj["element"]}|${dataObj["element-damage"]}}}`)}
+| ${(dataObj["affinity"] == '' ? " 0% " : dataObj["affinity"] + "%")}
+| ${sharpness}
+| ${decos}
+| ${(dataObj["defense"] == '' ? "-" : dataObj["defense"])}
+`;
 		}
 		elementData += '|}';
 		$("#txtResults").val(elementData.replaceAll('\t', '').replaceAll('\n ', '\n'));

@@ -82,15 +82,15 @@ function dragend()
         $($(this).children()[0]).attr("id", "card_" + cardId);
         $($(this).find("button.btn-drag-card")).attr("onmousedown", "setCardDraggable('card_" + cardId + "');");
         $($(this).find("button.btn-add-table")).attr("onclick", "addTableToRankCard('" + cardId + "');");
-        $($(this).find("button.btn-delete-card")).attr("onclick", "deleteRankCard('" + cardId + "');");
+        $($(this).find("button.btn-delete-card")).attr("onclick", "$(this).parents('div.card-holder').first().remove();");
         $(this).find(".table-holder").each(function () {
             var tableId = $($(this).find("table")).attr("id");
             $($(this).find("button.btn-add-item")).attr("onclick", "addItemToTable('" + tableId + "');");
-            $($(this).find("button.btn-delete-table")).attr("onclick", "deleteTable('" + tableId + "');");
+            $($(this).find("button.btn-delete-table")).attr("onclick", "$(this).parents('div.table-holder').first().remove();");
             $($(this).find("button.btn-drag-table")).attr("onmousedown", "setTableDraggable('" + tableId + "');");
             $(this).find("tbody tr").each(function() {
                 var rowId = $(this).attr("id");
-                $($(this).find("button.btn-delete-row")).attr("onclick", "deleteRow('" + rowId + "');");
+                $($(this).find("button.btn-delete-row")).attr("onclick", "$(this).parent().parent().remove();");
                 $($(this).find("button.btn-drag-row")).attr("onmousedown", "setRowDraggable('" + rowId + "');");
             });
         });
@@ -137,19 +137,19 @@ function addRankCard()
     $(rankCard.find("label.label-rank-name")).attr("for", "txtRankName_" + cardId);
     $(rankCard.find("input.rank-name")).attr("id", "txtRankName_" + cardId);
     $(rankCard.find("button.btn-add-table")).attr("onclick", "addTableToRankCard('" + cardId + "');");
-    $(rankCard.find("button.btn-delete-card")).attr("onclick", "deleteRankCard('" + cardId + "');");
+    $(rankCard.find("button.btn-delete-card")).attr("onclick", "$(this).parents('div.card-holder').first().remove();");
     $(rankCard.find("div.card-body")).attr("id", cardId);
     $(rankCard.find(".table-holder")).attr("id", "holder_" + tableId);
     $(rankCard.find("div.table-header-row")).attr("id", "row_" + tableId);
     $(rankCard.find("label.label-table-header")).attr("for", "txtTableHeader_" + tableId);
     $(rankCard.find("input.table-header")).attr("id", "txtTableHeader_" + tableId);
     $(rankCard.find("button.btn-add-item")).attr("onclick", "addItemToTable('" + tableId + "');");
-    $(rankCard.find("button.btn-delete-table")).attr("onclick", "deleteTable('" + tableId + "');");
+    $(rankCard.find("button.btn-delete-table")).attr("onclick", "$(this).parents('div.table-holder').first().remove();");
     $(rankCard.find("button.btn-drag-table")).attr("onmousedown", "setTableDraggable('" + tableId + "');");
     $(rankCard.find("table")).attr("id", tableId);
     $(rankCard.find("tbody")).attr("id", "body_" + tableId);
     $(rankCard.find("tr.table-content-row")).attr("id", rowId);
-    $(rankCard.find("button.btn-delete-row")).attr("onclick", "deleteRow('" + rowId + "');");
+    $(rankCard.find("button.btn-delete-row")).attr("onclick", "$(this).parent().parent().remove();");
     $(rankCard.find("button.btn-drag-row")).attr("onmousedown", "setRowDraggable('" + rowId + "');");
     $("#divCardContainer").append(rankCard);
     setItemArray();
@@ -175,12 +175,12 @@ function addTableToRankCard(cardId)
     $(newTable.find("label.label-table-header")).attr("for", "txtTableHeader_" + tableId);
     $(newTable.find("input.table-header")).attr("id", "txtTableHeader_" + tableId);
     $(newTable.find("button.btn-add-item")).attr("onclick", "addItemToTable('" + tableId + "');");
-    $(newTable.find("button.btn-delete-table")).attr("onclick", "deleteTable('" + tableId + "');");
+    $(newTable.find("button.btn-delete-table")).attr("onclick", "$(this).parents('div.table-holder').first().remove();");
     $(newTable.find("button.btn-drag-table")).attr("onmousedown", "setTableDraggable('" + tableId + "');");
     $(newTable.find("table")).attr("id", tableId);
     $(newTable.find("tbody")).attr("id", "body_" + tableId);
     $(newTable.find("tr.table-content-row")).attr("id", rowId);
-    $(newTable.find("button.btn-delete-row")).attr("onclick", "deleteRow('" + rowId + "');");
+    $(newTable.find("button.btn-delete-row")).attr("onclick", "$(this).parent().parent().remove();");
     $(newTable.find("button.btn-drag-row")).attr("onmousedown", "setRowDraggable('" + rowId + "');");
     setItemArray();
 }
@@ -200,48 +200,44 @@ function addItemToTable(tableId)
     let newRow = $(rootEl.find("tr.table-content-row")[0]).clone(true);
     $($(el).children("tbody")[0]).append(newRow);
     $(newRow).attr("id", rowId);
-    $(newRow.find("button.btn-delete-row")).attr("onclick", "deleteRow('" + rowId + "');");
+    $(newRow.find("button.btn-delete-row")).attr("onclick", "$(this).parent().parent().remove();");
     $(newRow.find("button.btn-drag-row")).attr("onmousedown", "setRowDraggable('" + rowId + "');");
     setItemArray();
 }
 
-function deleteRankCard(cardId)
+function collapseTable(button)
 {
-    var el = {};
-    if (cardId === '')
+    if ($(button).attr("data-is-collapsed") == "true")
     {
-        el = $("#card_1");
+        $(button).parents("div.table-holder").first().children().find("table", true).first().removeClass("d-none");
+        $(button).attr("data-is-collapsed", "false");
+        $(button).children().first().attr("class", "bi bi-arrows-collapse");
+        $(button).attr("title", "Collapse this table.");
     }
     else
     {
-        el = $("#card_" + cardId);
-    }
-    $(el).remove();
-}
-
-function deleteTable(tableId)
-{
-    if (tableId === '')
-    {
-        $($(".table-row")[0]).remove();
-        $($(".table-content")[0]).remove();
-    }
-    else
-    {
-        $("#" + tableId).remove();
-        $("#row_" + tableId).remove();
+        $(button).parents("div.table-holder").first().children().find("table", true).first().addClass("d-none");
+        $(button).attr("data-is-collapsed", "true");
+        $(button).children().first().attr("class", "bi bi-arrows-expand");
+        $(button).attr("title", "Expand this table.");
     }
 }
 
-function deleteRow(rowId)
+function collapseCard(button)
 {
-    if (rowId === '')
+    if ($(button).attr("data-is-collapsed") == "true")
     {
-        $($(".table-content-row")[0]).remove();
+        $(button).parents("div.card-holder").first().find("div.card div.card-body", true).first().removeClass("d-none");
+        $(button).attr("data-is-collapsed", "false");
+        $(button).children().first().attr("class", "bi bi-arrows-collapse");
+        $(button).attr("title", "Collapse this card.");
     }
     else
     {
-        $("#" + rowId).remove();
+        $(button).parents("div.card-holder").first().find("div.card div.card-body", true).first().addClass("d-none");
+        $(button).attr("data-is-collapsed", "true");
+        $(button).children().first().attr("class", "bi bi-arrows-expand");
+        $(button).attr("title", "Expand this card.");
     }
 }
 
@@ -320,43 +316,43 @@ function generateTables()
         }
     });
     var elementData = '== Materials == \n\
-    <div> \n\
-    {| class="wikitable mw-collapsible mw-collapsed" \n\
-    !colspan="3" style="width:800px"| <big>' + $("#txtMonsterName").val() + ' Materials</big> \n\
-    |- \n\
-    !style="width:400px;text-align:left" | Item \n\
-    !style="width:65px;text-align:left" | Rarity \n\
-    !style="width:200px;text-align:left" | Price \n';
+<div> \n\
+{| class="wikitable mw-collapsible mw-collapsed" \n\
+!colspan="3" style="width:800px"| <big>' + $("#txtMonsterName").val() + ' Materials</big> \n\
+|- \n\
+!style="width:400px;text-align:left" | Item \n\
+!style="width:65px;text-align:left" | Rarity \n\
+!style="width:200px;text-align:left" | Price \n';
     for (var itemI = 0; itemI < allItems.length; itemI++)
     {
         var item = allItems[itemI];
         if (typeof(item.ItemName) !== 'undefined' && typeof(item.IconType) !== 'undefined' && typeof(item.IconColor) !== 'undefined')
         {
             elementData += '|- \n \
-                    |{{MHWIItemLink|' + item.ItemName + '|' + item.IconType + '|' + item.IconColor + '}} \n \
-                    |Rarity ' + item.Rarity + ' \n\
-                    |' + item.Price + ' \n\
-                    |- \n\
-                    | colspan="3" |' + item.Description + '\n';
+|{{MHWIItemLink|' + item.ItemName + '|' + item.IconType + '|' + item.IconColor + '}} \n \
+|Rarity ' + item.Rarity + ' \n\
+|' + item.Price + ' \n\
+|- \n\
+| colspan="3" |' + item.Description + '\n';
         }
     }
     elementData += '|} \n\
-    === Drop Rates === \n \
-    <tabber> \n';
+=== Drop Rates === \n \
+<tabber> \n';
     for (var i4 = 0; i4 < finalData.length; i4++)
     {
         var rank = finalData[i4];
         elementData += '|-| ' + rank.Rank + ' Rank = \n \
-            <div class = "' + (convert(rank.Tables.length)) + (rank.Tables.length == 3 ? "cen" : "col") + '"> \n';
+<div class = "' + (convert(rank.Tables.length)) + (rank.Tables.length == 3 ? "cen" : "col") + '"> \n';
         for (var i5 = 0; i5 < rank.Tables.length; i5++)
         {
             var table = rank.Tables[i5];
             elementData += '<div> \n \
-                {| class="wikitable itemtable mw-collapsible" \n \
-                !colspan="2" | <big>' + table.Header + '</big> \n \
-                |- \n \
-                !Item \n \
-                !Chance \n';
+{| class="wikitable itemtable mw-collapsible" \n \
+!colspan="2" | <big>' + table.Header + '</big> \n \
+|- \n \
+!Item \n \
+!Chance \n';
             var cats = table.Items.map(function (item) { return item.Category; }).filter(onlyUnique);
             for (var i6 = 0; i6 < cats.length; i6++)
             {
@@ -375,7 +371,7 @@ function generateTables()
                 }
             }
             elementData += '|} \n\
-            </div> \n'
+</div> \n'
         }
         elementData += '</div> \n'
     }

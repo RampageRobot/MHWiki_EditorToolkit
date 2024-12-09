@@ -75,9 +75,12 @@
 					</div>
 					<div class="modal-body">
 						This tool creates weapon trees for the <a target="_blank" href="https://monsterhunterwiki.org/wiki/Main_Page">Monster Hunter wiki</a>. <br> <br>
-						You can click the clipboard (<span class="bi bi-clipboard"></span>) icon in the top-right of the popup to automatically copy the contents of the results box to your device's clipboard.<br> <br>
-						Simply paste that data into the appropriate area of the monster page, and you're done!<br> <br>
-						If, at any point, you need to reorder any of the weapons, you can click and hold on the drag handles (<span class="bi bi-arrows-move"></span>) on the left of each of them and drag them to the appropriate place.
+						To generate this data, start by adding the tree's path name in the top left. Next, select what type of tree you want to generate (currently, only weapon trees are supported). <br> <br>
+						Then, select which game you want to generate the tree for (only MHWI and MHRS are supported so far). Finally, select what type of icon you want to use as default. Note that you can override an individual row's icon, if necessary.<br> <br>
+						Once the tree information is populated, you can begin filling out entries for each item in the tree by entering the appropriate data in each cell. If a cell has a button in it, the button will launch a special editor for more complicated data (such as sharpness values).<br> <br>
+						Once every item has been filled out accordingly, click "Generate Tree" on the top right, and your completed template will appear in a popup textbox. You can click the clipboard (<span class="bi bi-clipboard"></span>) icon in the top-right of the popup to automatically copy the contents of the results box to your device's clipboard.<br> <br>
+						Simply paste that data into the appropriate area of the page, and you're done!<br> <br>
+						If, at any point, you need to reorder any of the items, you can click and hold on the drag handles (<span class="bi bi-arrows-move"></span>) on the left of each of them and drag them to the appropriate place.
 					</div>
 					<div class="modal-footer">
 						<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
@@ -128,10 +131,23 @@
 							<div class="col">
 								<div class="card">
 									<div class="card-header">
+										<h4>v1.1</h4>
+									</div>
+									<div class="card-body">
+										<h6>Made decoration and sharpness modals show current row data, if any exists, on load.</h6>
+										<h6>Removed redundant Item Color column from Weapon Tree.</h6>
+									</div>
+								</div>
+							</div>
+						</div>
+						<div class="row py-2">
+							<div class="col">
+								<div class="card">
+									<div class="card-header">
 										<h4>v1.0.0</h4>
 									</div>
 									<div class="card-body">
-										<h6>Initial release. Allows for weapon tree generation with line-by-line weapon definitions.</h6>
+										<h6>Initial release. Allows for tree generation with line-by-line weapon definitions.</h6>
 									</div>
 								</div>
 							</div>
