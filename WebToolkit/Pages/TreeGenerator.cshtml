@@ -1,0 +1,184 @@
+﻿@page
+@model WebToolkit.Pages.TreeGeneratorModel
+@{
+	ViewData["Title"] = "Tree Generator";
+}
+@section Scripts
+{
+	<script src="~/js/treeTemplates/weapon.js" type="text/javascript"></script>
+	<script src="~/js/TreeGenerator.js" type="text/javascript"></script>
+	<script type="text/javascript">
+		function callGenerator(finalData, sharpnessBase, weaponLink, maxSharpnessCount, pathName) {
+			$.ajax({
+				url: '@(Url.Action("GenerateTree", "WeaponTree"))/',
+				data: { 
+					json: JSON.stringify(finalData), 
+					sharpnessBase: sharpnessBase, 
+					weaponLink: weaponLink, 
+					maxSharpnessCount: maxSharpnessCount, 
+					pathName: pathName, 
+					defaultIcon: typeof($("#ddlIconSelect").val()) !== 'undefined' ? $("#ddlIconSelect").val() : "" 
+				},
+				type: "POST",
+				dataType: "json",
+				statusCode: {
+					200: function (result) {
+						$("#txtResults").val(result.responseText);
+						if (typeof (mdlGenerate) === 'undefined') {
+							mdlGenerate = new bootstrap.Modal(document.getElementById('mdlGenerate'));
+						}
+						mdlGenerate.show();
+					}
+				}
+			});
+		}
+	</script>
+}
+<div class="container-fluid" style="height: 97vh">
+	<div class="row pt-1 m-auto p-auto">
+		<div class="col">
+			<div class="row py-1">
+				<div class="col-2">
+					<label for="txtPathName">Path Name</label>
+					<input type="text" id="txtPathName" class="w-100 form-control" />
+				</div>
+				<div class="col-2">
+					<label for="ddlTemplateSelect">Tree Type</label>
+					<select class="form-control form-select" onchange="loadTemplate()" id="ddlTemplateSelect">
+						<option value="Weapon">Weapon Tree</option>
+					</select>
+				</div>
+				<div class="col-2">
+					<label for="ddlGameSelect">Game</label>
+					<select class="form-control form-select" onchange="updateIcons()" id="ddlGameSelect">
+						<option value="MHWI">Monster Hunter World: Iceborne</option>
+						<option value="MHRS">Monster Hunter Rise: Sunbreak</option>
+					</select>
+				</div>
+				<div class="col-2" title="Will be used if item does not have one selected.">
+					<label for="ddlIconSelect">Default Icon Type</label>
+					<select class="form-control form-select" id="ddlIconSelect">
+						<option value="">Select a Game and Tree Type</option>
+					</select>
+				</div>
+				<div class="col">
+					<div class="float-end">
+						<button type="button" onclick="generateTree();" class="btn btn-primary" title="When finished, click here to generate the final product.">Generate Tree</button>
+						<button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#mdlHelp" title="Help"><i class="bi bi-question-circle"></i></button>
+						<button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#mdlChangeLog" title="View Change Log"><i class="bi bi-info-circle"></i></button>
+					</div>
+				</div>
+			</div>
+			<div class="row">
+				<div class="col m-auto">
+					<div class="align-self-end float-end form-group">
+						<button type="button" onclick="addRow();" class="btn btn-primary" title="Add new row that represents a weapon in the tree.">Add New Weapon</button>
+					</div>
+				</div>
+			</div>
+			<div class="row">
+				<div class="col">
+					<table class="table table-striped table-dark" id="tblTree">
+						<thead>
+						</thead>
+						<tbody>
+						</tbody>
+					</table>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+<div class="modal fade" id="mdlHelp" tabindex="-1" aria-labelledby="helpModalLabel" aria-hidden="true">
+	<div class="modal-dialog modal-xl">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title" id="helpModalLabel">Help</h5>
+				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+			</div>
+			<div class="modal-body">
+				This tool creates weapon trees for the <a target="_blank" href="https://monsterhunterwiki.org/wiki/Main_Page">Monster Hunter wiki</a>. <br> <br>
+				To generate this data, start by adding the tree's path name in the top left. Next, select what type of tree you want to generate (currently, only weapon trees are supported). <br> <br>
+				Then, select which game you want to generate the tree for (only MHWI and MHRS are supported so far). Finally, select what type of icon you want to use as default. Note that you can override an individual row's icon, if necessary.<br> <br>
+				Once the tree information is populated, you can begin filling out entries for each item in the tree by entering the appropriate data in each cell. If a cell has a button in it, the button will launch a special editor for more complicated data (such as sharpness values).<br> <br>
+				Once every item has been filled out accordingly, click "Generate Tree" on the top right, and your completed template will appear in a popup textbox. You can click the clipboard (<span class="bi bi-clipboard"></span>) icon in the top-right of the popup to automatically copy the contents of the results box to your device's clipboard.<br> <br>
+				Simply paste that data into the appropriate area of the page, and you're done!<br> <br>
+				If, at any point, you need to reorder any of the items, you can click and hold on the drag handles (<span class="bi bi-arrows-move"></span>) on the left of each of them and drag them to the appropriate place.
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+			</div>
+		</div>
+	</div>
+</div>
+<div class="modal fade" id="mdlGenerate" tabindex="-1" aria-labelledby="generateModalLabel" aria-hidden="true">
+	<div class="modal-dialog modal-xl">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title" id="generateModalLabel">Generated Table</h5>
+				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+			</div>
+			<div class="modal-body">
+				<div class="row py-1">
+					<div class="col">
+						<label for="txtResults" class="text-bottom">Complete Weapon Tree Source</label>
+						<button class="btn btn-primary bi bi-clipboard float-end" title="Copy contents of table results." onclick="copyToClipboard();"></button>
+					</div>
+				</div>
+				<div class="row">
+					<div class="col">
+						<textarea id="txtResults" style="height:200px;" class="w-100 form-control"></textarea>
+					</div>
+				</div>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+			</div>
+		</div>
+	</div>
+</div>
+<div class="modal fade" id="mdlChangeLog" tabindex="-1" aria-labelledby="changeLogModalLabel" aria-hidden="true">
+	<div class="modal-dialog modal-lg">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title" id="changeLogModalLabel">Change Log</h5>
+				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+			</div>
+			<div class="modal-body" style="max-height: 78vh; overflow-y:auto;">
+				<div class="row">
+					<div class="col">
+						<p>Ping or message @@rampagerobot on Discord if you have any issues.</p>
+					</div>
+				</div>
+				<div class="row py-2">
+					<div class="col">
+						<div class="card">
+							<div class="card-header">
+								<h4>v1.1</h4>
+							</div>
+							<div class="card-body">
+								<h6>Made decoration and sharpness modals show current row data, if any exists, on load.</h6>
+								<h6>Removed redundant Item Color column from Weapon Tree.</h6>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="row py-2">
+					<div class="col">
+						<div class="card">
+							<div class="card-header">
+								<h4>v1.0.0</h4>
+							</div>
+							<div class="card-body">
+								<h6>Initial release. Allows for tree generation with line-by-line weapon definitions.</h6>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+			</div>
+		</div>
+	</div>
+</div>
