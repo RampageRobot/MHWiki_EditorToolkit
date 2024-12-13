@@ -8,7 +8,17 @@ namespace WebToolkit.Controllers
 		[HttpPost("GenerateTables")]
 		public string GenerateTables(string json)
 		{
-			return MediawikiTranslator.Generators.MaterialsAndDropTables.ParseJson(json);
+			try
+			{
+				return MediawikiTranslator.Generators.MaterialsAndDropTables.ParseJson(json);
+			}
+			catch (Exception ex)
+			{
+				Response.Clear();
+				Response.StatusCode = 500;
+				Response.WriteAsync(ex.Message);
+				return string.Empty;
+			}
 		}
 	}
 }

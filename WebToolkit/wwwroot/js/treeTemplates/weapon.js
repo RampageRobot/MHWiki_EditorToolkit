@@ -1,7 +1,11 @@
 class WeaponTemplate
 {
 	static currentSharpnessRow;
+	static currentSharpnessCallback;
+	static currentSharpnessCallbackArgs;
 	static currentDecosRow;
+	static currentDecosCallback;
+	static currentDecosCallbackArgs;
 	static finalData = [];
     static initTemplate()
     {
@@ -22,37 +26,37 @@ class WeaponTemplate
 						<div class="row">
 							<div class="col-6">
 								<label>Red Sharpness Hits</label>
-								<input type="number" class="form-control" onchange="WeaponTemplate.updatePreviewBar('1');" id="txtRedSharpnessHits1" />
+								<input type="number" onblur="validateInput(this);" class="form-control" onchange="WeaponTemplate.updatePreviewBar('1');" id="txtRedSharpnessHits1" />
 							</div>
 							<div class="col-6">
 								<label>Orange Sharpness Hits</label>
-								<input type="number" class="form-control" onchange="WeaponTemplate.updatePreviewBar('1');" id="txtOrangeSharpnessHits1" />
+								<input type="number" onblur="validateInput(this);" class="form-control" onchange="WeaponTemplate.updatePreviewBar('1');" id="txtOrangeSharpnessHits1" />
 							</div>
 						</div>
 						<div class="row">
 							<div class="col-6">
 								<label>Yellow Sharpness Hits</label>
-								<input type="number" class="form-control" onchange="WeaponTemplate.updatePreviewBar('1');" id="txtYellowSharpnessHits1" />
+								<input type="number" onblur="validateInput(this);" class="form-control" onchange="WeaponTemplate.updatePreviewBar('1');" id="txtYellowSharpnessHits1" />
 							</div>
 							<div class="col-6">
 								<label>Green Sharpness Hits</label>
-								<input type="number" class="form-control" onchange="WeaponTemplate.updatePreviewBar('1');" id="txtGreenSharpnessHits1" />
+								<input type="number" onblur="validateInput(this);" class="form-control" onchange="WeaponTemplate.updatePreviewBar('1');" id="txtGreenSharpnessHits1" />
 							</div>
 						</div>
 						<div class="row">
 							<div class="col-6">
 								<label>Blue Sharpness Hits</label>
-								<input type="number" class="form-control" onchange="WeaponTemplate.updatePreviewBar('1');" id="txtBlueSharpnessHits1" />
+								<input type="number" onblur="validateInput(this);" class="form-control" onchange="WeaponTemplate.updatePreviewBar('1');" id="txtBlueSharpnessHits1" />
 							</div>
 							<div class="col-6">
 								<label>White Sharpness Hits</label>
-								<input type="number" class="form-control" onchange="WeaponTemplate.updatePreviewBar('1');" id="txtWhiteSharpnessHits1" />
+								<input type="number" onblur="validateInput(this);" class="form-control" onchange="WeaponTemplate.updatePreviewBar('1');" id="txtWhiteSharpnessHits1" />
 							</div>
 						</div>
 						<div class="row">
 							<div class="col-6">
 								<label>Purple Sharpness Hits</label>
-								<input type="number" class="form-control" onchange="WeaponTemplate.updatePreviewBar('1');" id="txtPurpleSharpnessHits1" />
+								<input type="number" onblur="validateInput(this);" class="form-control" onchange="WeaponTemplate.updatePreviewBar('1');" id="txtPurpleSharpnessHits1" />
 							</div>
 						</div>
 						<div class="row">
@@ -80,37 +84,37 @@ class WeaponTemplate
 						<div class="row">
 							<div class="col-6">
 								<label>Red Sharpness Hits</label>
-								<input type="number" class="form-control" onchange="WeaponTemplate.updatePreviewBar('2');" id="txtRedSharpnessHits2" />
+								<input type="number" onblur="validateInput(this);" class="form-control" onchange="WeaponTemplate.updatePreviewBar('2');" id="txtRedSharpnessHits2" />
 							</div>
 							<div class="col-6">
 								<label>Orange Sharpness Hits</label>
-								<input type="number" class="form-control" onchange="WeaponTemplate.updatePreviewBar('2');" id="txtOrangeSharpnessHits2" />
+								<input type="number" onblur="validateInput(this);" class="form-control" onchange="WeaponTemplate.updatePreviewBar('2');" id="txtOrangeSharpnessHits2" />
 							</div>
 						</div>
 						<div class="row">
 							<div class="col-6">
 								<label>Yellow Sharpness Hits</label>
-								<input type="number" class="form-control" onchange="WeaponTemplate.updatePreviewBar('2');" id="txtYellowSharpnessHits2" />
+								<input type="number" onblur="validateInput(this);" class="form-control" onchange="WeaponTemplate.updatePreviewBar('2');" id="txtYellowSharpnessHits2" />
 							</div>
 							<div class="col-6">
 								<label>Green Sharpness Hits</label>
-								<input type="number" class="form-control" onchange="WeaponTemplate.updatePreviewBar('2');" id="txtGreenSharpnessHits2" />
+								<input type="number" onblur="validateInput(this);" class="form-control" onchange="WeaponTemplate.updatePreviewBar('2');" id="txtGreenSharpnessHits2" />
 							</div>
 						</div>
 						<div class="row">
 							<div class="col-6">
 								<label>Blue Sharpness Hits</label>
-								<input type="number" class="form-control" onchange="WeaponTemplate.updatePreviewBar('2');" id="txtBlueSharpnessHits2" />
+								<input type="number" onblur="validateInput(this);" class="form-control" onchange="WeaponTemplate.updatePreviewBar('2');" id="txtBlueSharpnessHits2" />
 							</div>
 							<div class="col-6">
 								<label>White Sharpness Hits</label>
-								<input type="number" class="form-control" onchange="WeaponTemplate.updatePreviewBar('2');" id="txtWhiteSharpnessHits2" />
+								<input type="number" onblur="validateInput(this);" class="form-control" onchange="WeaponTemplate.updatePreviewBar('2');" id="txtWhiteSharpnessHits2" />
 							</div>
 						</div>
 						<div class="row">
 							<div class="col-6">
 								<label>Purple Sharpness Hits</label>
-								<input type="number" class="form-control" onchange="WeaponTemplate.updatePreviewBar('2');" id="txtPurpleSharpnessHits2" />
+								<input type="number" onblur="validateInput(this);" class="form-control" onchange="WeaponTemplate.updatePreviewBar('2');" id="txtPurpleSharpnessHits2" />
 							</div>
 						</div>
 						<div class="row">
@@ -217,13 +221,13 @@ class WeaponTemplate
 		</select>
 	</td>
 	<td>
-		<input type="number" class="form-control weapon-rarity-input data-value" data-label="rarity">
+		<input type="number" onblur="validateInput(this);" class="form-control weapon-rarity-input data-value" data-label="rarity">
 	</td>
 	<td>
 		<input type="text" class="form-control weapon-attack-input data-value" data-label="attack">
 	</td>
 	<td>
-		<input type="number" class="form-control weapon-defense-input data-value" data-label="defense">
+		<input type="number" onblur="validateInput(this);" class="form-control weapon-defense-input data-value" data-label="defense">
 	</td>
 	<td>
 		<select class="form-control form-select weapon-element-input data-value" data-label="element">
@@ -243,23 +247,22 @@ class WeaponTemplate
 		<input class="form-control weapon-element-damage-input data-value" type="text" data-label="element-damage">
 	</td>
 	<td>
-		<input type="number" class="form-control weapon-affinity-input data-value" data-label="affinity">
+		<input type="number" onblur="validateInput(this);" class="form-control weapon-affinity-input data-value" data-label="affinity">
 	</td>
 	<td style="text-align:center; align-content:center">
 		<input class="form-control weapon-decos-input data-value" hidden="hidden" type="text" data-label="decos"/>
-		<button class="btn btn-primary" type="button" onclick="WeaponTemplate.modifyDecos($(this).parent().parent());">Modify</button>
+		<button class="btn btn-primary" type="button" onclick="WeaponTemplate.modifyDecos($(this).parent().parent(), validateComplexData, this, $(this).parent().children().first(), WeaponTemplate.validateDecos);">Modify</button>
 	</td>
 	<td style="text-align:center; align-content:center">
 		<input class="form-control weapon-sharpness-input data-value" hidden="hidden" type="text" data-label="sharpness"/>
-		<button class="btn btn-primary" type="button" onclick="WeaponTemplate.modifySharpness($(this).parent().parent());">Modify</button>
-	</td>
+		<button class="btn btn-primary" type="button" onclick="WeaponTemplate.modifySharpness($(this).parent().parent(), validateComplexData, this, $(this).parent().children().first(), WeaponTemplate.validateSharpness);">Modify</button>
 	</td>
 	<td class="ignore-generate" style="text-align:center">
 		<button type="button" onclick="$(this).parent().parent().remove();" class="btn btn-danger btn-delete-row" title="Delete this weapon."><i class="bi bi-trash"></i></button>
 	</td>
 </tr>`;
     }
-	static modifySharpness(row)
+	static modifySharpness(row, sharpnessCallback, arg1, arg2, arg3)
 	{
 		WeaponTemplate.currentSharpnessRow = row;
 		var prevVal = null;
@@ -288,8 +291,10 @@ class WeaponTemplate
 			}
 		}
 		new bootstrap.Modal($("#mdlModifySharpness")).show();
+		WeaponTemplate.currentSharpnessCallbackArgs = [arg1, arg2, arg3];
+		WeaponTemplate.currentSharpnessCallback = sharpnessCallback;
 	}
-	static modifyDecos(row)
+	static modifyDecos(row, decoCallback, arg1, arg2, arg3)
 	{
 		WeaponTemplate.currentDecosRow = row;
 		var prevVal = null;
@@ -311,6 +316,8 @@ class WeaponTemplate
 			}
 		}
 		new bootstrap.Modal($("#mdlModifyDecos")).show();
+		WeaponTemplate.currentDecosCallbackArgs = [arg1, arg2, arg3];
+		WeaponTemplate.currentDecosCallback = decoCallback;
 	}
 	static updatePreviewBar(bar)
 	{
@@ -338,15 +345,18 @@ class WeaponTemplate
 				[ $("#txtRedSharpnessHits2").val(), $("#txtOrangeSharpnessHits2").val(), $("#txtYellowSharpnessHits2").val(), $("#txtGreenSharpnessHits2").val(), $("#txtBlueSharpnessHits2").val(), $("#txtWhiteSharpnessHits2").val(), $("#txtPurpleSharpnessHits2").val() ]
 			]));
 		}
+		if (typeof (WeaponTemplate.currentSharpnessCallback) !== 'undefined') {
+			return WeaponTemplate.currentSharpnessCallback(WeaponTemplate.currentSharpnessCallbackArgs[0], WeaponTemplate.currentSharpnessCallbackArgs[1], WeaponTemplate.currentSharpnessCallbackArgs[2]);
+		}
 	}
 	static addRowToTblDecos()
 	{
 		$("#tblDecos tbody").append(`<tr style="vertical-align:middle;">
 			<td>
-				<input type="number" class="form-control decoration-level-input" data-label="level" />
+				<input type="number" onblur="validateInput(this);" class="form-control decoration-level-input" data-label="level" />
 			</td>
 			<td>
-				<input type="number" class="form-control decoration-qty-input" data-label="qty" />
+				<input type="number" onblur="validateInput(this);" class="form-control decoration-qty-input" data-label="qty" />
 			</td>
 			<td style="text-align:center; align-content:center">
 				<input style="font-size:1.5rem;" class="form-check-input decoration-rampage-input data-value m-auto" data-label="rampage" type="checkbox" value="">
@@ -372,6 +382,44 @@ class WeaponTemplate
 			}
 			$(WeaponTemplate.currentDecosRow).find(".weapon-decos-input").first().val(JSON.stringify(vals));
 		}
+		if (typeof (WeaponTemplate.currentDecosCallback) !== 'undefined') {
+
+			return WeaponTemplate.currentDecosCallback(WeaponTemplate.currentDecosCallbackArgs[0], WeaponTemplate.currentDecosCallbackArgs[1], WeaponTemplate.currentDecosCallbackArgs[2]);
+		}
+	}
+	static validateDecos(value)
+	{
+		var valid = true;
+		try {
+			var obj = JSON.parse(value);
+			for (var i = 0; i < obj.length; i++) {
+				if (obj[i].Level == '' || obj[i].Qty == '' || /\D/.test(obj[i].Level) || /\D/.test(obj[i].Qty) || typeof obj[i].IsRampage != "boolean") {
+					valid = false;
+				}
+			}
+		}
+		catch {
+			valid = false;
+		}
+		return valid;
+	}
+	static validateSharpness(value)
+	{
+		var valid = true;
+		try {
+			var obj = JSON.parse(value);
+			for (var i = 0; i < obj.length; i++) {
+				for (var i2 = 0; i2 < obj[i].length; i2++) {
+					if (obj[i][i2] == '' || /\D/.test(obj[i][i2])) {
+						valid = false;
+					}
+				}
+			}
+		}
+		catch {
+			valid = false;
+		}
+		return valid;
 	}
     static initRow()
     {
@@ -447,7 +495,6 @@ class WeaponTemplate
 		$("#ddlIconSelect option").remove();
 		$("#ddlIconSelect").append(icons);
 		$("#ddlIconSelect").val(oldIcon);
-		$(".weapon-icon-type-input option").remove();
 		$(".weapon-icon-type-input").each(function () {
 			var oldVal = $(this).val();
 			$(this).children("option").remove();
@@ -455,18 +502,58 @@ class WeaponTemplate
 			$(this).val(oldVal);
 		});
 	}
-    static generateTree()
-    {
+	static pageLoadData(loadedData) {
+		$("#txtPathName").val(loadedData.pathName);
+		if (typeof (loadedData.treeType) !== 'undefined') {
+			$("#ddlTemplateSelect").val(loadedData.treeType);
+		}
+		if (typeof (loadedData.game) !== 'undefined') {
+			$("#ddlGameSelect").val(loadedData.game);
+		}
+		if (typeof (loadedData.defaultIconType) !== 'undefined') {
+			$("#ddlIconSelect").val(loadedData.defaultIconType);
+		}
+		for (var i = 0; i < loadedData.data.length; i++) {
+			var dataObj = loadedData.data[i];
+			if ($("#tblTree tbody tr").length < (i + 1)) {
+				addRow();
+			}
+			var row = $($("#tblTree tbody tr")[i]);
+			var classes = [".weapon-parent-input", ".weapon-name-input", ".weapon-icon-type-input", ".weapon-rarity-input", ".weapon-affinity-input", ".weapon-attack-input", ".weapon-defense-input", ".weapon-element-input", ".weapon-element-damage-input", ".weapon-sharpness-input", ".weapon-decos-input"];
+			for (var i2 = 0; i2 < classes.length; i2++) {
+				var thisClass = classes[i2];
+				var el = row.find("td " + thisClass);
+				var value = dataObj[thisClass.substring(thisClass.indexOf(".weapon-") + 8, thisClass.indexOf("-input"))];
+				el.val(value);
+				if (el.attr("type") == "number") {
+					validateInput(el[0]);
+				}
+			}
+			var decosInput = $($(".weapon-decos-input")[i]);
+			validateComplexData($(decosInput.parent().children()[1]), decosInput[0], WeaponTemplate.validateDecos);
+			var sharpnessInput = $($(".weapon-sharpness-input")[i]);
+			validateComplexData($(sharpnessInput.parent().children()[1]), sharpnessInput[0], WeaponTemplate.validateSharpness);
+			$($(".weapon-can-forge-input")[i]).prop("checked", dataObj["can-forge"] == true);
+		}
+	}
+	static getSaveData() {
+		return {
+			"data": getFinalData(),
+			"pathName": $("#txtPathName").val(),
+			"treeType": $("#ddlTemplateSelect").val(),
+			"game": $("#ddlGameSelect").val(),
+			"defaultIconType": $("#ddlIconSelect").val()
+		};
+	}
+	static getFinalData() {
 		WeaponTemplate.finalData = [];
 		$("#tblTree tbody tr").each(function () {
 			var dataObj = {};
 			$(this).find("td:not(.ignore-generate)").children().each(function () {
-				if ($(this).hasClass("form-check-input"))
-				{
+				if ($(this).hasClass("form-check-input")) {
 					dataObj[$(this).attr("data-label")] = $(this).prop("checked");
 				}
-				else
-				{
+				else {
 					dataObj[$(this).attr("data-label")] = $(this).val();
 				}
 			});
@@ -475,8 +562,7 @@ class WeaponTemplate
 		var sharpnessBase = '';
 		var weaponLink = '';
 		var maxSharpnessCount = -1;
-		switch ($("#ddlGameSelect").val())
-		{
+		switch ($("#ddlGameSelect").val()) {
 			case "MHG":
 				{
 					sharpnessBase = "MHGSharpnessBase";
@@ -497,6 +583,11 @@ class WeaponTemplate
 				}
 				break;
 		}
+		return WeaponTemplate.finalData;
+	}
+    static generateTree()
+    {
+		getFinalData();
 		callGenerator(WeaponTemplate.finalData, sharpnessBase, weaponLink, maxSharpnessCount, $("#txtPathName").val());
     }
 }

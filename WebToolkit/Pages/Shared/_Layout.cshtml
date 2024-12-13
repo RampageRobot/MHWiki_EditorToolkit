@@ -10,11 +10,129 @@
 </head>
 <body>
     @RenderBody()
-
+    <div class="modal fade" id="mdlLoad" tabindex="-1" aria-labelledby="loadModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="loadModalLabel">Load</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-10">
+                            <label for="iptLoadFile" class="form-label">Save File</label>
+                            <input class="form-control" type="file" id="iptLoadFile" />
+                        </div>
+                        <div class="col" style="align-content:end;">
+                            <button class="btn btn-success" onclick="load()" type="button">Load File</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
-
+    <script type="text/javascript">
+        function dragend() {
+            $("[draggable=true]").removeAttr("draggable");
+        }
+        function copyToClipboard() {
+            var copyText = document.getElementById("txtResults");
+            copyText.select();
+            copyText.setSelectionRange(0, 99999);
+            navigator.clipboard.writeText(copyText.value);
+            alert("Copied!");
+        }
+        function save() {
+            var link = document.createElement("a");
+            var date = new Date();
+            var dateStr = (date.getMonth() + 1) + "-" + date.getDate() + "-" + date.getFullYear() + "-" + date.getHours() + "-" + date.getMinutes() + "-" + date.getSeconds();
+            link.download = window.location.pathname.substr(1) + '_Save_' + dateStr + ".json";
+            link.href = 'data:text/plain;charset=utf-8,' + encodeURIComponent(JSON.stringify(getSaveData()));
+            link.click();
+            link.remove();
+        }
+        function load() {
+            bootstrap.Modal.getInstance($("#mdlLoad")).hide();
+            var rdr = new FileReader();
+            rdr.readAsText($("#iptLoadFile").prop("files")[0]); 
+            rdr.onload = function (evt) {
+                var loadedData = JSON.parse(evt.target.result);
+                pageLoadData(loadedData);
+            }
+            rdr.onerror = function (evt) {
+                alert("There was an error with your save file!");
+            }
+        }
+        function blockGenerate() {
+            if ($(".input-number-invalid").length > 0 || $(".complex-value-invalid").length > 0) {
+                $(".btn-generate-wiki-data").each(function () {
+                    $(this).attr("disabled", "disabled");
+                    $(this).attr("title", "At least one field is invalid. Please look for red borders to identify and fix any improper values.");
+                    $(this).css("pointer-events", "auto");
+                });
+            }
+            else {
+                $(".btn-generate-wiki-data").each(function () {
+                    $(this).removeAttr("disabled");
+                    $(this).removeAttr("title");
+                });
+            }
+        }
+        function validateInput(element) {
+            if (element.validity.badInput) {
+                $(element).addClass("input-number-invalid");
+                $(element).attr("data-oldTitle", $(element).attr("title"));
+                $(element).attr("title", "This field should only be a number [0-9]. Do not include decimals, thousands separators, or percent signs.");
+            }
+            else { 
+                $(element).removeClass("input-number-invalid");
+                if (typeof ($(element).attr("data-oldTitle")) !== 'undefined') {
+                    $(element).attr("title", $(element).attr("data-oldTitle"));
+                }
+                else { 
+                    $(element).removeAttr("title");
+                }
+            }
+            blockGenerate();
+        }    
+        function validateComplexData(element, valueElement, testFunction) {
+            if ($(valueElement).val() != '') {
+                $(element).attr("data-oldTitle", $(element).attr("title"));
+                if (testFunction($(valueElement).val())) {
+                    $(element).removeClass("btn-primary");
+                    $(element).removeClass("btn-danger");
+                    $(element).removeClass("complex-value-invalid");
+                    $(element).addClass("btn-success");
+                    $(element).attr("title", "This field is populated successfully. Click this button to repopulate it.");
+                } else {
+                    $(element).removeClass("btn-primary");
+                    $(element).removeClass("btn-success");
+                    $(element).addClass("btn-danger");
+                    $(element).addClass("complex-value-invalid");
+                    $(element).attr("title", "This field is invalid. Click this button to repopulate it.");
+                }
+            }
+            else {
+                $(element).removeClass("btn-primary");
+                $(element).removeClass("btn-danger");
+                $(element).removeClass("complex-value-invalid");
+                $(element).addClass("btn-primary");
+                if (typeof ($(element).attr("data-oldTitle")) !== 'undefined') {
+                    $(element).attr("title", $(element).attr("data-oldTitle"));
+                }
+                else {
+                    $(element).removeAttr("title");
+                }
+            }
+            blockGenerate();
+        }
+    </script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

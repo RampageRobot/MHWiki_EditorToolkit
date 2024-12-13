@@ -10,7 +10,7 @@ namespace MediawikiTranslator.Generators
 			return Generate(WebToolkitData.FromJson(json), sharpnessBase, weaponLink, maxSharpnessCount, pathName, defaultIcon).Result;
 		}
 
-		public static async Task<string> Generate(WebToolkitData[] srcData, string sharpnessBase, string weaponLink, int maxSharpnessCount, string pathName, string defaultIcon)
+		public static async Task<string> Generate(Models.WeaponTree.WebToolkitData[] srcData, string sharpnessBase, string weaponLink, int maxSharpnessCount, string pathName, string defaultIcon)
 		{
 			return await Task.Run(() =>
 			{
@@ -22,7 +22,7 @@ namespace MediawikiTranslator.Generators
 !Name 
 !Rarity!! [[File:UI-Attack Up.png|24x24px|link=]] !! [[File:UI-Blastblight.png|24x24px|link=]] !! [[File:UI-Affinity Up.png|24x24px|link=]] !! [[File:2ndGen-Whetstone Icon Yellow.png|24x24px|link=]] !! [[File:2ndGen-Decoration Icon Blue.png|24x24px|link=]] !! [[File:UI-Defense Up.png|24x24px|link=]]");
 				int cntr = 0;
-				foreach (WebToolkitData dataObj in srcData)
+				foreach (Models.WeaponTree.WebToolkitData dataObj in srcData)
 				{
 					string iconType = dataObj.IconType;
 					if (string.IsNullOrEmpty(iconType))
@@ -79,12 +79,12 @@ namespace MediawikiTranslator.Generators
 			});
 		}
 
-		private static string GetPrefix(WebToolkitData dataObj, WebToolkitData[] src, int i)
+		private static string GetPrefix(Models.WeaponTree.WebToolkitData dataObj, Models.WeaponTree.WebToolkitData[] src, int i)
 		{
 			string[] dataNames = src.Select(x => x.Name).ToArray();
-			WebToolkitData? iterAncestor = dataObj;
+			Models.WeaponTree.WebToolkitData? iterAncestor = dataObj;
 			List<int> ancestors = [];
-			WebToolkitData ancestor = src[0];
+			Models.WeaponTree.WebToolkitData ancestor = src[0];
 			while (iterAncestor != null)
 			{
 				iterAncestor = src.FirstOrDefault(x => x.Name == iterAncestor.Parent);
@@ -97,7 +97,7 @@ namespace MediawikiTranslator.Generators
 			ancestors.Reverse();
 			for (var i2 = 1; i2 < ancestors.Count; i2++)
 			{
-				WebToolkitData thisAncestor = src[ancestors[i2]];
+				Models.WeaponTree.WebToolkitData thisAncestor = src[ancestors[i2]];
 				int thisIndex = Array.IndexOf(dataNames, thisAncestor.Name);
 				if (src.Select((x,y) => new { Item = x, Index = y })
 					.Any(x => x.Item.Name != thisAncestor.Name && x.Item.Parent == thisAncestor.Parent && x.Index > thisIndex))

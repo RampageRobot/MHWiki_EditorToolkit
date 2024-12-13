@@ -243,31 +243,94 @@ function collapseCard(button)
 
 function generateTables()
 {
+    callGenerator(getFinalData());
+}
+
+function getSaveData() {
+    setItemArray();
+    return {
+        "monster": $("#txtMonsterName").val(),
+        "data": getFinalData(),
+        "itemData": itemArray
+    };
+    var finalData = getFinalData();
+}
+
+function pageLoadData(loadedData) {
+    $("#txtMonsterName").val(loadedData.monster);
+    for (var i = 0; i < loadedData.itemData.length; i++) {
+        if ($("#tblGlobalItems tbody tr").length < (i + 1)) {
+            addGlobalRow();
+        }
+        var row = $("#tblGlobalItems tbody tr").last();
+        var itemObj = loadedData.itemData[i];
+        row.find(".global-item-include-input").prop("checked", itemObj.Include == true)
+        row.find(".global-item-name-input").val(itemObj.ItemName);
+        row.find(".global-item-icon-input").val(itemObj.IconType);
+        row.find(".global-item-color-input").val(itemObj.IconColor);
+        row.find(".global-item-description-input").val(itemObj.Description);
+        var rarityEl = row.find(".global-item-rarity-input");
+        rarityEl.val(itemObj.Rarity);
+        validateInput(rarityEl[0]);
+        var priceEl = row.find(".global-item-price-input");
+        priceEl.val(itemObj.Price);
+        validateInput(priceEl[0]);
+    }
+    setItemArray();
+    for (var i = 0; i < loadedData.data.length; i++) {
+        var rankObj = loadedData.data[i];
+        if ($("#divCardContainer .card-holder").length < (i + 1)) {
+            addRankCard();
+        }
+        var rankCard = $("#divCardContainer .card-holder").last();
+        rankCard.find("input.rank-name").val(rankObj.Rank);
+        for (var i2 = 0; i2 < rankObj.Tables.length; i2++) {
+            var tableObj = rankObj.Tables[i2];
+            if (rankCard.find(".table-container .table-holder").length < (i2 + 1)) {
+                addTableToRankCard(rankCard.find("div.card-body").attr("id"));
+            }
+            var table = rankCard.find(".table-container .table-holder").last();
+            table.find("input.table-header").val(tableObj.Header);
+            for (var i3 = 0; i3 < tableObj.Items.length; i3++) {
+                var itemObj = tableObj.Items[i3];
+                if (table.find(".table-content table tbody tr").length < (i3 + 1)) {
+                    addItemToTable(table.find(".table-content table").attr("id"));
+                }
+                var row = table.find(".table-content table tbody tr").last();
+                row.find(".item-name-input").val(itemObj.ItemName);
+                var chanceCol = row.find(".item-chance-input");
+                chanceCol.val(itemObj.Chance);
+                validateInput(chanceCol[0]);
+                row.find(".item-category-input").val(itemObj.Category);
+                var quantityCol = row.find(".item-quantity-input");
+                quantityCol.val(itemObj.Quantity);
+                validateInput(quantityCol[0]);
+            }
+        }
+    }
+}
+
+function getFinalData() {
     var finalData = [];
     let ranks = $("#divCardContainer").find("div.card").toArray();
-    for (var i = 0; i < ranks.length; i++)
-    {
+    for (var i = 0; i < ranks.length; i++) {
         var thisData = {
             "Rank": $(ranks[i]).find(".rank-name").val(),
             "Monster": $("#txtMonsterName").val(),
             "Tables": []
         };
         let tables = $(ranks[i]).find(".table-holder").toArray();
-        for (var i2 = 0; i2 < tables.length; i2++)
-        {
+        for (var i2 = 0; i2 < tables.length; i2++) {
             var thisTable = {
                 "Header": $(tables[i2]).find(".table-header").val(),
                 "Items": []
             };
             let rows = $(tables[i2]).find(".table-content-row").toArray();
-            for (var i3 = 0; i3 < rows.length; i3++)
-            {
+            for (var i3 = 0; i3 < rows.length; i3++) {
                 let row = $(rows[i3]);
                 var itemName = $($(row.children()[1]).children()[0]).val();
-                if (itemName != '')
-                {
-                    var item = itemArray.filter(function (item)
-                    {
+                if (itemName != '') {
+                    var item = itemArray.filter(function (item) {
                         return item.ItemName == itemName;
                     })[0];
                     thisTable["Items"].push({
@@ -276,9 +339,9 @@ function generateTables()
                         "Chance": $($(row.children()[2]).children()[0]).val(),
                         "Icon": item.IconType,
                         "IconColor": item.IconColor,
-                        "Description": ((item.Description == '' || typeof(item.Description) === 'undefined') ? '[DESCRIPTION]' : item.Description),
-                        "Rarity": ((item.Rarity == '' || typeof(item.Rarity) === 'undefined') ? '[RARITY]' : item.Rarity),
-                        "Price": ((item.Price == '' || typeof(item.Price) === 'undefined') ? '[PRICE]' : (item.Price.toString() + "z")),
+                        "Description": ((item.Description == '' || typeof (item.Description) === 'undefined') ? '[DESCRIPTION]' : item.Description),
+                        "Rarity": ((item.Rarity == '' || typeof (item.Rarity) === 'undefined') ? '[RARITY]' : item.Rarity),
+                        "Price": ((item.Price == '' || typeof (item.Price) === 'undefined') ? '[PRICE]' : (item.Price.toString() + "z")),
                         "Category": $($(row.children()[3]).children()[0]).val(),
                         "Quantity": $($(row.children()[4]).children()[0]).val()
                     });
@@ -288,7 +351,7 @@ function generateTables()
         }
         finalData.push(thisData);
     }
-    callGenerator(finalData);
+    return finalData;
 }
 
 function convert(num) {

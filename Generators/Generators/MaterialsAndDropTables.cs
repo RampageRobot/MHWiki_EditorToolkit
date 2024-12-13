@@ -12,7 +12,7 @@ namespace MediawikiTranslator.Generators
 			return Generate(WebToolkitData.FromJson(json)).Result;
 		}
 
-		public static async Task<string> Generate(WebToolkitData[] srcData)
+		public static async Task<string> Generate(Models.MaterialsAndDropTables.WebToolkitData[] srcData)
 		{
 			return await Task.Run(() =>
 			{
@@ -50,7 +50,7 @@ namespace MediawikiTranslator.Generators
 === Drop Rates ===
 <tabber>
 ");
-				foreach (WebToolkitData data in srcData)
+				foreach (Models.MaterialsAndDropTables.WebToolkitData data in srcData)
 				{
 					ret.AppendLine($@"|-| {data.Rank} Rank = 
 <div class=""{numWords[data.Tables.Length - 1] + (data.Tables.Length == 3 ? "cen" : "col")}"">

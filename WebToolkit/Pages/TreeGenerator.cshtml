@@ -28,6 +28,9 @@
 							mdlGenerate = new bootstrap.Modal(document.getElementById('mdlGenerate'));
 						}
 						mdlGenerate.show();
+					},
+					500: function (jqXHR) {
+						alert(jqXHR.responseText);
 					}
 				}
 			});
@@ -63,7 +66,9 @@
 				</div>
 				<div class="col">
 					<div class="float-end">
-						<button type="button" onclick="generateTree();" class="btn btn-primary" title="When finished, click here to generate the final product.">Generate Tree</button>
+						<button type="button" onclick="save()" class="btn btn-success" title="Save your progress to your local machine to reload later."><i class="bi bi-floppy"></i></button>
+						<button type="button" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#mdlLoad" title="Load previously saved progress."><i class="bi bi-upload"></i></button>
+						<button type="button" onclick="generateTree();" class="btn btn-primary btn-generate-wiki-data" title="When finished, click here to generate the final product.">Generate Tree</button>
 						<button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#mdlHelp" title="Help"><i class="bi bi-question-circle"></i></button>
 						<button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#mdlChangeLog" title="View Change Log"><i class="bi bi-info-circle"></i></button>
 					</div>
@@ -103,7 +108,8 @@
 				Once the tree information is populated, you can begin filling out entries for each item in the tree by entering the appropriate data in each cell. If a cell has a button in it, the button will launch a special editor for more complicated data (such as sharpness values).<br> <br>
 				Once every item has been filled out accordingly, click "Generate Tree" on the top right, and your completed template will appear in a popup textbox. You can click the clipboard (<span class="bi bi-clipboard"></span>) icon in the top-right of the popup to automatically copy the contents of the results box to your device's clipboard.<br> <br>
 				Simply paste that data into the appropriate area of the page, and you're done!<br> <br>
-				If, at any point, you need to reorder any of the items, you can click and hold on the drag handles (<span class="bi bi-arrows-move"></span>) on the left of each of them and drag them to the appropriate place.
+				If, at any point, you need to reorder any of the items, you can click and hold on the drag handles (<span class="bi bi-arrows-move"></span>) on the left of each of them and drag them to the appropriate place.<br /><br />
+				If you need to take a break, feel free to click the green save (<span class="bi bi-floppy"></span>) button in the top right. A file will be downloaded with your save data in it. When you come back, click the yellow load (<span class="bi bi-upload"></span>) button in the top right and navigate to your file. Click "Load", then you're ready to go!
 			</div>
 			<div class="modal-footer">
 				<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
@@ -148,6 +154,30 @@
 				<div class="row">
 					<div class="col">
 						<p>Ping or message @@rampagerobot on Discord if you have any issues.</p>
+					</div>
+				</div>
+				<div class="row py-2">
+					<div class="col">
+						<div class="card">
+							<div class="card-header">
+								<h4>v1.3</h4>
+							</div>
+							<div class="card-body">
+								<h6>Implemented saving/loading.</h6>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="row py-2">
+					<div class="col">
+						<div class="card">
+							<div class="card-header">
+								<h4>v1.2</h4>
+							</div>
+							<div class="card-body">
+								<h6>Moved to ASP.Net Core app.</h6>
+							</div>
+						</div>
 					</div>
 				</div>
 				<div class="row py-2">

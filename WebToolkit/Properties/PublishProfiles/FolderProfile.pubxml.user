@@ -4,8 +4,8 @@ https://go.microsoft.com/fwlink/?LinkID=208121.
 -->
 <Project>
   <PropertyGroup>
-    <_PublishTargetUrl>D:\MHWiki_EditorToolkit\MHWiki_EditorToolkit\WebApp</_PublishTargetUrl>
-    <History>True|2024-12-10T09:00:37.7528649Z||;True|2024-12-10T02:57:38.2431149-06:00||;True|2024-12-10T02:56:57.1177108-06:00||;True|2024-12-10T02:55:22.2836161-06:00||;True|2024-12-10T02:33:03.5997294-06:00||;True|2024-12-10T02:26:06.5038721-06:00||;True|2024-12-10T02:21:11.8285563-06:00||;</History>
+    <_PublishTargetUrl>D:\MHWiki_EditorToolkit_Releases\WebApp</_PublishTargetUrl>
+    <History>True|2024-12-10T17:09:20.5135284Z||;True|2024-12-10T03:00:37.7528649-06:00||;True|2024-12-10T02:57:38.2431149-06:00||;True|2024-12-10T02:56:57.1177108-06:00||;True|2024-12-10T02:55:22.2836161-06:00||;True|2024-12-10T02:33:03.5997294-06:00||;True|2024-12-10T02:26:06.5038721-06:00||;True|2024-12-10T02:21:11.8285563-06:00||;</History>
     <LastFailureDetails />
   </PropertyGroup>
 </Project>

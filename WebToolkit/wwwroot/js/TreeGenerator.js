@@ -16,6 +16,15 @@ function updateIcons()
 {
 
 }
+function getSaveData() {
+
+}
+function getFinalData() {
+
+}
+function pageLoadData(loadedData) {
+
+}
 function copyToClipboard()
 {
     var copyText = document.getElementById("txtResults");
@@ -42,6 +51,9 @@ function loadTemplate()
             initTemplate = WeaponTemplate.initTemplate;
             generateTree = WeaponTemplate.generateTree;
             updateIcons = WeaponTemplate.updateIcons;
+            getFinalData = WeaponTemplate.getFinalData;
+            pageLoadData = WeaponTemplate.pageLoadData;
+            getSaveData = WeaponTemplate.getSaveData;
             addRow();
             break;
     }

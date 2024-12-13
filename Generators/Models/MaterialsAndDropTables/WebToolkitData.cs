@@ -96,7 +96,7 @@ namespace MediawikiTranslator.Models.MaterialsAndDropTables
 			{
 				return l;
 			}
-			throw new Exception("Cannot unmarshal type long");
+			throw new Exception("An integer value you have provided is not a number.");
 		}
 
 		public override void WriteJson(JsonWriter writer, object? untypedValue, JsonSerializer serializer)

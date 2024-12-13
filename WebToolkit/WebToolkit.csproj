@@ -19,11 +19,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Pages\tools\MaterialsAndDropTableGenerator\" />
-    <Folder Include="Pages\tools\TreeGenerator\" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\Generators\MediawikiTranslator.csproj" />
   </ItemGroup>
 

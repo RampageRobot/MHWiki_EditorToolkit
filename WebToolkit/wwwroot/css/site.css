@@ -21,6 +21,16 @@ html {
   }
 }
 
+.input-complex-success {
+    border-color: var(--bs-success);
+    background-color: rgba(var(--bs-success), 0.15)!important;
+}
+
+.input-number-invalid, .input-complex-invalid {
+    border-color: red !important;
+    background-color: rgba(255, 0, 0, 0.15) !important;
+}
+
 .form-select {
     background-image: var(--bs-form-select-bg-img),var(--bs-form-select-bg-icon,none);
 }
@@ -94,12 +104,13 @@ body {
     --bs-card-cap-color: white;
 }
 
-.btn-primary, .btn-danger {
+.btn-primary, .btn-danger, .btn-success, btn-secondary, .btn-warning, .btn-info, .btn-light, .btn-dark {
     --bs-btn-padding-x: 0.325rem;
     --bs-btn-padding-y: 0.1725rem;
     --bs-btn-bg: #393c40;
     --bs-btn-border-width: 2px;
     background-color: var(--bs-btn-bg);
+    color: white;
 }
 
 .btn-link {

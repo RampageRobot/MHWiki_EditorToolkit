@@ -71,7 +71,7 @@ namespace MediawikiTranslator.Models.WeaponTree
 
 	internal static class Converter
 	{
-		public static readonly JsonSerializerSettings Settings = new JsonSerializerSettings
+		public static readonly JsonSerializerSettings Settings = new()
 		{
 			MetadataPropertyHandling = MetadataPropertyHandling.Ignore,
 			DateParseHandling = DateParseHandling.None,
@@ -95,7 +95,7 @@ namespace MediawikiTranslator.Models.WeaponTree
 			{
 				return l;
 			}
-			throw new Exception("Cannot unmarshal type long");
+			throw new Exception("An integer value you have provided is not a number.");
 		}
 
 		public override void WriteJson(JsonWriter writer, object? untypedValue, JsonSerializer serializer)
@@ -110,7 +110,7 @@ namespace MediawikiTranslator.Models.WeaponTree
 			return;
 		}
 
-		public static readonly ParseStringConverter Singleton = new ParseStringConverter();
+		public static readonly ParseStringConverter Singleton = new();
 	}
 
 	internal class ElementConverter : JsonConverter
@@ -144,7 +144,7 @@ namespace MediawikiTranslator.Models.WeaponTree
 				case "Blast":
 					return Element.Blast;
 			}
-			throw new Exception("Cannot unmarshal type Element");
+			throw new Exception("Element type is not valid.");
 		}
 
 		public override void WriteJson(JsonWriter writer, object? untypedValue, JsonSerializer serializer)
@@ -189,9 +189,9 @@ namespace MediawikiTranslator.Models.WeaponTree
 					return;
 
 			}
-			throw new Exception("Cannot marshal type Element");
+			throw new Exception("Element type is not valid.");
 		}
 
-		public static readonly ElementConverter Singleton = new ElementConverter();
+		public static readonly ElementConverter Singleton = new();
 	}
 }
