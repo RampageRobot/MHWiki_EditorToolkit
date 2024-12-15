@@ -38,7 +38,7 @@ namespace MediawikiTranslator.Models.ArmorSets
 
         [JsonProperty("rarity")]
         [JsonConverter(typeof(ParseStringConverter))]
-        public long Rarity { get; set; }
+        public long? Rarity { get; set; }
 
         [JsonProperty("pieces")]
         public Piece[] Pieces { get; set; } = [];
@@ -57,10 +57,10 @@ namespace MediawikiTranslator.Models.ArmorSets
 
         [JsonProperty("rarity")]
         [JsonConverter(typeof(ParseStringConverter))]
-        public long Rarity { get; set; }
+        public long? Rarity { get; set; }
         [JsonProperty("forging-cost")]
         [JsonConverter(typeof(ParseStringConverter))]
-        public long ForgingCost { get; set; }
+        public long? ForgingCost { get; set; }
 
         [JsonProperty("icon-type")]
         public string IconType { get; set; } = string.Empty;
@@ -75,50 +75,54 @@ namespace MediawikiTranslator.Models.ArmorSets
         public string Description { get; set; } = string.Empty;
 
         [JsonProperty("defense")]
-        public string Defense { get; set; } = string.Empty;
+        [JsonConverter(typeof(ParseStringConverter))]
+        public long? Defense { get; set; }
+
+        [JsonProperty("max-defense")]
+        [JsonConverter(typeof(ParseStringConverter))]
+        public long? MaxDefense { get; set; }
 
         [JsonProperty("fire-res")]
         [JsonConverter(typeof(ParseStringConverter))]
-        public long FireRes { get; set; }
+        public long? FireRes { get; set; }
 
         [JsonProperty("water-res")]
         [JsonConverter(typeof(ParseStringConverter))]
-        public long WaterRes { get; set; }
+        public long? WaterRes { get; set; }
 
         [JsonProperty("thunder-res")]
         [JsonConverter(typeof(ParseStringConverter))]
-        public long ThunderRes { get; set; }
+        public long? ThunderRes { get; set; }
 
         [JsonProperty("ice-res")]
         [JsonConverter(typeof(ParseStringConverter))]
-        public long IceRes { get; set; }
+        public long? IceRes { get; set; }
 
         [JsonProperty("dragon-res")]
         [JsonConverter(typeof(ParseStringConverter))]
-        public long DragonRes { get; set; }
+        public long? DragonRes { get; set; }
 
         [JsonProperty("decos-1")]
         [JsonConverter(typeof(ParseStringConverter))]
-        public long Decos1 { get; set; }
+        public long? Decos1 { get; set; }
 
         [JsonProperty("decos-2")]
         [JsonConverter(typeof(ParseStringConverter))]
-        public long Decos2 { get; set; }
+        public long? Decos2 { get; set; }
 
         [JsonProperty("decos-3")]
         [JsonConverter(typeof(ParseStringConverter))]
-        public long Decos3 { get; set; }
+        public long? Decos3 { get; set; }
 
         [JsonProperty("decos-4")]
         [JsonConverter(typeof(ParseStringConverter))]
-        public long Decos4 { get; set; }
+        public long? Decos4 { get; set; }
     }
 
     public partial class Material
     {
         [JsonProperty("name")]
-        [JsonConverter(typeof(ParseStringConverter))]
-        public long Name { get; set; }
+        public string Name { get; set; } = string.Empty;
 
         [JsonProperty("icon")]
         public string Icon { get; set; } = string.Empty;
@@ -128,18 +132,17 @@ namespace MediawikiTranslator.Models.ArmorSets
 
         [JsonProperty("quantity")]
         [JsonConverter(typeof(ParseStringConverter))]
-        public long Quantity { get; set; }
+        public long? Quantity { get; set; }
     }
 
     public partial class Skill
     {
         [JsonProperty("name")]
-        [JsonConverter(typeof(ParseStringConverter))]
-        public long Name { get; set; }
+        public string Name { get; set; } = string.Empty;
 
         [JsonProperty("level")]
         [JsonConverter(typeof(ParseStringConverter))]
-        public long Level { get; set; }
+        public long? Level { get; set; }
     }
 
     public partial class WebToolkitData
@@ -178,6 +181,10 @@ namespace MediawikiTranslator.Models.ArmorSets
             {
                 return l;
             }
+            if (string.IsNullOrEmpty(value))
+            {
+                return null;
+            }
             throw new Exception("An integer value you have provided is not a number.");
         }
 
@@ -193,6 +200,6 @@ namespace MediawikiTranslator.Models.ArmorSets
             return;
         }
 
-        public static readonly ParseStringConverter Singleton = new ParseStringConverter();
+        public static readonly ParseStringConverter Singleton = new();
     }
 }

@@ -25,7 +25,7 @@ namespace MediawikiTranslator.Models.WeaponTree
 
 		[JsonProperty("rarity")]
 		[JsonConverter(typeof(ParseStringConverter))]
-		public long Rarity { get; set; }
+		public long? Rarity { get; set; }
 
 		[JsonProperty("attack")]
 		public string Attack { get; set; } = string.Empty;
@@ -41,7 +41,7 @@ namespace MediawikiTranslator.Models.WeaponTree
 
 		[JsonProperty("affinity")]
 		[JsonConverter(typeof(ParseStringConverter))]
-		public long Affinity { get; set; }
+		public long? Affinity { get; set; }
 
 		[JsonProperty("decos")]
 		public string Decos { get; set; } = string.Empty;

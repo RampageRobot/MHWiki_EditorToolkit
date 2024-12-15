@@ -12,7 +12,7 @@ namespace MediawikiTranslator.Generators
         public static void ParseZip(string zipFile, string destPath)
         {
             byte[] fileBytes = File.ReadAllBytes(zipFile);
-            SourceData[] sources = Parsers.DamageTable.FromGameSource(fileBytes).Result;
+            SourceData[] sources = SourceData.FromGameSource(fileBytes).Result;
             foreach (SourceData source in sources)
             {
                 string table = Generate(source).Result;

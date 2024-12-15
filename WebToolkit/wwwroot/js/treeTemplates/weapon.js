@@ -559,6 +559,10 @@ class WeaponTemplate
 			});
 			WeaponTemplate.finalData.push(dataObj);
 		});
+		return WeaponTemplate.finalData;
+	}
+    static generateTree()
+    {
 		var sharpnessBase = '';
 		var weaponLink = '';
 		var maxSharpnessCount = -1;
@@ -583,10 +587,6 @@ class WeaponTemplate
 				}
 				break;
 		}
-		return WeaponTemplate.finalData;
-	}
-    static generateTree()
-    {
 		getFinalData();
 		callGenerator(WeaponTemplate.finalData, sharpnessBase, weaponLink, maxSharpnessCount, $("#txtPathName").val());
     }

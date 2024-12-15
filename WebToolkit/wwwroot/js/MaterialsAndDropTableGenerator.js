@@ -340,8 +340,8 @@ function getFinalData() {
                         "Icon": item.IconType,
                         "IconColor": item.IconColor,
                         "Description": ((item.Description == '' || typeof (item.Description) === 'undefined') ? '[DESCRIPTION]' : item.Description),
-                        "Rarity": ((item.Rarity == '' || typeof (item.Rarity) === 'undefined') ? '[RARITY]' : item.Rarity),
-                        "Price": ((item.Price == '' || typeof (item.Price) === 'undefined') ? '[PRICE]' : (item.Price.toString() + "z")),
+                        "Rarity": ((item.Rarity == '' || typeof (item.Rarity) === 'undefined') ? '1' : item.Rarity),
+                        "Price": ((item.Price == '' || typeof (item.Price) === 'undefined') ? '0' : (item.Price.toString() + "z")),
                         "Category": $($(row.children()[3]).children()[0]).val(),
                         "Quantity": $($(row.children()[4]).children()[0]).val()
                     });
@@ -417,7 +417,7 @@ function matchRowAncestor(node, targetId)
     {
         node = node.parentNode;
     }
-    return node.id == targetId;
+    return node.tagName == "TBODY";
 }
 
 function matchTableAncestor(node, targetId)
@@ -426,7 +426,7 @@ function matchTableAncestor(node, targetId)
     {
         node = node.parentNode;
     }
-    return node.id == targetId;
+    return node.className == "table-container";
 }
 
 var draggedTable;

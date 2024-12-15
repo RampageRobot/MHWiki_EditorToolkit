@@ -20,6 +20,21 @@ namespace WebToolkit.Controllers
 				Response.WriteAsync(ex.Message);
 				return string.Empty;
 			}
-		}
-	}
+        }
+        [HttpPost("MassGenerateSet")]
+        public async Task<string> MassGenerateSet(string data, string game)
+        {
+            try
+            {
+                return await ArmorSets.GenerateFromXlsx(data, game);
+            }
+            catch (Exception ex)
+            {
+                Response.Clear();
+                Response.StatusCode = 500;
+                Response.WriteAsync(ex.Message).RunSynchronously();
+                return string.Empty;
+            }
+        }
+    }
 }

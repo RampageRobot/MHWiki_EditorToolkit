@@ -14,7 +14,12 @@ namespace MediawikiTranslator.Models.MaterialsAndDropTables
 
 		[JsonProperty(nameof(Tables))]
 		public Table[] Tables { get; set; } = [];
-	}
+
+        internal static WebToolkitData[] FromWebUI(string json)
+        {
+            return FromJson(json);
+        }
+    }
 
 	public partial class Table
 	{
@@ -48,7 +53,7 @@ namespace MediawikiTranslator.Models.MaterialsAndDropTables
 
 		[JsonProperty(nameof(Rarity))]
 		[JsonConverter(typeof(ParseStringConverter))]
-		public long Rarity { get; set; }
+		public long? Rarity { get; set; }
 
 		[JsonProperty(nameof(Price))]
 		public string Price { get; set; } = string.Empty;
@@ -58,7 +63,7 @@ namespace MediawikiTranslator.Models.MaterialsAndDropTables
 
 		[JsonProperty(nameof(Quantity))]
 		[JsonConverter(typeof(ParseStringConverter))]
-		public long Quantity { get; set; }
+		public long? Quantity { get; set; }
 	}
 
 	public partial class WebToolkitData

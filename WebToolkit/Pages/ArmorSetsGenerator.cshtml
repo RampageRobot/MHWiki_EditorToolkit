@@ -8,6 +8,7 @@
     <script src="~/js/ArmorSetsGenerator.js" type="text/javascript"></script>
     <script type="text/javascript">
         function callGenerator(finalData) {
+            $("body").css("cursor", "progress");
             $.ajax({
                 url: '@(Url.Action("GenerateSet", "ArmorSets"))/',
                 data: { json: JSON.stringify(finalData) },
@@ -15,6 +16,7 @@
                 dataType: "json",
                 statusCode: {
                     200: function (result) {
+                        $("body").css("cursor", "default");
                         $("#txtResults").val(result.responseText);
                         if (typeof (mdlGenerate) === 'undefined') {
                             mdlGenerate = new bootstrap.Modal(document.getElementById('mdlGenerate'));
@@ -22,10 +24,51 @@
                         mdlGenerate.show();
                     },
                     500: function (jqXHR) {
+                        $("body").css("cursor", "default");
                         alert(jqXHR.responseText);
                     }
                 }
             });
+        }
+        function _arrayBufferToBase64(buffer) {
+            var binary = '';
+            var bytes = new Uint8Array(buffer);
+            var len = bytes.byteLength;
+            for (var i = 0; i < len; i++) {
+                binary += String.fromCharCode(bytes[i]);
+            }
+            return window.btoa(binary);
+        }
+        function massGenerate() {
+            $("body").css("cursor", "progress"); 
+            var rdr = new FileReader();
+            rdr.readAsArrayBuffer($("#iptLoadXlsxFile").prop("files")[0]);
+            rdr.onload = function (evt) {
+                var loadedData = _arrayBufferToBase64(evt.target.result);
+                $.ajax({
+                    url: '@(Url.Action("MassGenerateSet", "ArmorSets"))/',
+                    data: { data: loadedData, game: $("#ddlGameSelect").val() },
+                    type: "POST",
+                    dataType: "json",
+                    statusCode: {
+                        200: function (result) {
+                            $("body").css("cursor", "default");
+                            var link = document.createElement("a");
+                            link.download = "ArmorSetExport.zip";
+                            link.href = 'data:application/zip;base64,' + encodeURIComponent(result.responseText);
+                            link.click();
+                            link.remove();
+                        },
+                            500: function (jqXHR) {
+                                $("body").css("cursor", "default");
+                                alert(jqXHR.responseText);
+                            }
+                    }
+                        });
+            }
+            rdr.onerror = function (evt) {
+                alert("There was an error with your ZIP file!");
+            }
         }
     </script>
 }
@@ -50,6 +93,7 @@
                 </div>
                 <div class="col">
                     <div class="float-end">
+                        <button type="button" class="btn btn-info" data-bs-toggle="modal" data-bs-target="#mdlXlsxUpload" title="Upload an Excel file for mass-processing."><i class="bi bi-file-earmark-spreadsheet"></i></button>
                         <button type="button" onclick="save()" class="btn btn-success" title="Save your progress to your local machine to reload later."><i class="bi bi-floppy"></i></button>
                         <button type="button" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#mdlLoad" title="Load previously saved progress."><i class="bi bi-upload"></i></button>
                         <button type="button" onclick="generateSet();" class="btn btn-primary btn-generate-wiki-data" title="When finished, click here to generate the final product.">Generate Set</button>
@@ -116,34 +160,38 @@
                                                 <option value=""></option>
                                                 <option value="Helmet">Helmet</option>
                                                 <option value="Chestplate">Chestplate</option>
-                                                <option value="Gauntlets">Gauntlets</option>
+                                                <option value="Armguard">Armguard</option>
                                                 <option value="Waist">Waist</option>
                                                 <option value="Leggings">Leggings</option>
                                             </select>
                                         </div>
                                     </div>
                                     <div class="row pt-2">
-                                        <div class="col-2">
-                                            <label title="The defense score of this armor piece, formatted as '[Level 1 Defense] - [Max Level Defense]'.">Defense</label>
-                                            <input type="text" class="form-control piece-defense-input piece-data data-value" data-label="defense" />
+                                        <div class="col">
+                                            <label>Defense</label>
+                                            <input type="number" onblur="validateInput(this);" class="form-control piece-defense-input piece-data data-value" data-label="defense" />
                                         </div>
-                                        <div class="col-2">
+                                        <div class="col">
+                                            <label>Max Defense</label>
+                                            <input type="number" onblur="validateInput(this);" class="form-control piece-max-defense-input piece-data data-value" data-label="max-defense" />
+                                        </div>
+                                        <div class="col">
                                             <label>Fire Res.</label>
                                             <input type="number" onblur="validateInput(this);" class="form-control piece-fire-res-input piece-data data-value" data-label="fire-res" />
                                         </div>
-                                        <div class="col-2">
+                                        <div class="col">
                                             <label>Water Res.</label>
                                             <input type="number" onblur="validateInput(this);" class="form-control piece-water-res-input piece-data data-value" data-label="water-res" />
                                         </div>
-                                        <div class="col-2">
+                                        <div class="col">
                                             <label>Thunder Res.</label>
                                             <input type="number" onblur="validateInput(this);" class="form-control piece-thunder-res-input piece-data data-value" data-label="thunder-res" />
                                         </div>
-                                        <div class="col-2">
+                                        <div class="col">
                                             <label>Ice Res.</label>
                                             <input type="number" onblur="validateInput(this);" class="form-control piece-ice-res-input piece-data data-value" data-label="ice-res" />
                                         </div>
-                                        <div class="col-2">
+                                        <div class="col">
                                             <label>Dragon Res.</label>
                                             <input type="number" onblur="validateInput(this);" class="form-control piece-dragon-res-input piece-data data-value" data-label="dragon-res" />
                                         </div>
@@ -317,6 +365,30 @@
         </div>
     </div>
 </div>
+<div class="modal fade extra-modals" id="mdlXlsxUpload" tabindex="-1" aria-labelledby="mdlXlsxUpload" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="mdlXlsxUpload">Mass Generate</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" style="max-height: 78vh; overflow-y:auto;">
+                <div class="row">
+                    <div class="col-10">
+                        <label for="iptLoadXlsxFile" class="form-label">Load File</label>
+                        <input class="form-control" type="file" id="iptLoadXlsxFile" />
+                    </div>
+                    <div class="col" style="align-content:end;">
+                        <button class="btn btn-success" onclick="massGenerate()" type="button">Load File</button>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
 <div class="modal fade extra-modals" id="mdlModifySetData" tabindex="-1" aria-labelledby="mdlModifySetDataLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -433,6 +505,18 @@
                 <div class="row">
                     <div class="col">
                         <p>Ping or message @@rampagerobot on Discord if you have any issues.</p>
+                    </div>
+                </div>
+                <div class="row py-2">
+                    <div class="col">
+                        <div class="card">
+                            <div class="card-header">
+                                <h4>v1.1.0</h4>
+                            </div>
+                            <div class="card-body">
+                                <h6>Added excel translate. Must follow Evilo's armor set format. Click the light-blue spreadsheet (<span class="bi bi-file-earmark-spreadsheet"></span>) button to access this feature.</h6>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <div class="row py-2">
