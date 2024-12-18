@@ -1,4 +1,7 @@
-﻿using MediawikiTranslator.Models.DamageTable;
+﻿using DocumentFormat.OpenXml.Bibliography;
+using DocumentFormat.OpenXml.Wordprocessing;
+using MediawikiTranslator.Models.DamageTable;
+using MediawikiTranslator.Models.DamageTable.PartsData;
 using Newtonsoft.Json;
 using System.Text;
 
@@ -9,15 +12,33 @@ namespace MediawikiTranslator.Generators
         private static readonly string Boilerplate = @"{{MHWIDamageData";
         private static readonly string Endcap = @"}}";
 
-        public static void ParseZip(string zipFile, string destPath)
+        public static void ParseFolder(string folder, string destPath)
         {
-            byte[] fileBytes = File.ReadAllBytes(zipFile);
-            SourceData[] sources = SourceData.FromGameSource(fileBytes).Result;
-            foreach (SourceData source in sources)
+            foreach (DirectoryInfo dir in Directory.GetDirectories(folder).Select(x => new DirectoryInfo(x)).Where(x => x.Name.StartsWith("em")))
             {
-                string table = Generate(source).Result;
-                Directory.CreateDirectory(destPath);
-                File.WriteAllText(Path.Combine(destPath, source.FileName + ".txt"), table);
+                DirectoryInfo activePath = new(Path.Combine(dir.FullName, "00/data"));
+                string partsPath = Path.Combine(activePath.FullName, dir.Name + "_00_param_parts.user.3.json");
+                if (File.Exists(partsPath))
+                {
+                    SourceData data = SourceData.FromJson(File.ReadAllText(partsPath));
+                    string table = Generate(data).Result;
+                    Directory.CreateDirectory(destPath);
+                    File.WriteAllText(Path.Combine(destPath, Path.GetFileNameWithoutExtension(partsPath) + ".txt"), table);
+                }
+            }
+        }
+
+        private static string FindPartName(string partsType)
+        {
+            if (!string.IsNullOrEmpty(partsType))
+            {
+                PartsData partData = PartsData.FromJson(Encoding.UTF8.GetString(Properties.Resources.MHWilds_PartTypeData_json))!;
+                Dictionary<string, dynamic> partNames = JsonConvert.DeserializeObject<Dictionary<string, dynamic>>(Encoding.UTF8.GetString(Properties.Resources.MHWilds_PartNames_json))!;
+                return partNames[partData.Struct!.Values.First(x => x.EmPartsType == partsType).EmPartsName.ToString()].content.ToObject<string[]>()[1];
+            }
+            else
+            {
+                return "";
             }
         }
 
@@ -27,19 +48,20 @@ namespace MediawikiTranslator.Generators
             {
                 StringBuilder ret = new();
                 ret.AppendLine(Boilerplate);
-                if (srcData.Struct?.MeatArray?.DataArray != null)
+                if (srcData.AppUserDataEmParamParts?.MeatArray?.DataArray != null)
                 {
                     int cntr = 1;
-                    foreach (MeatArrayDataArray data in srcData.Struct.MeatArray.DataArray)
+                    foreach (MeatArrayDataArray data in srcData.AppUserDataEmParamParts?.MeatArray?.DataArray ?? [])
                     {
                         if (cntr > 1)
                         {
                             ret.AppendLine();
                         }
+                        string partName = FindPartName(srcData.AppUserDataEmParamParts?.PartsArray?.DataArray?.FirstOrDefault(x => x.MeatGuidNormal == data.InstanceGuid)?.PartsType ?? "");
                         int slashTndr = Convert.ToInt32(Math.Floor(data.Slash * .75d) + 25);
                         int blowTndr = Convert.ToInt32(Math.Floor(data.Blow * .75d) + 25);
                         int shotTndr = Convert.ToInt32(Math.Floor(data.Shot * .75d) + 25);
-                        ret.AppendLine($"|Part {cntr}             = {data.InstanceGuid}");
+                        ret.AppendLine($"|Part {cntr}             = {partName}");
                         ret.AppendLine($"|Part {cntr} sever       = {(data.Slash >= 45 ? "'''" + data.Slash + "'''" : data.Slash)}");
                         ret.AppendLine($"|Part {cntr} sever tndrz = {(slashTndr >= 45 ? "'''" + slashTndr + "'''" : slashTndr)}");
                         ret.AppendLine($"|Part {cntr} blunt       = {(data.Blow >= 45 ? "'''" + data.Blow + "'''" : data.Blow)}");

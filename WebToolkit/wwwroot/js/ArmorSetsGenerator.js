@@ -51,7 +51,6 @@ function getFinalData() {
             dataObj.skills.push(skillObj);
         });
         $(this).find(".material-table tbody tr").each(function () {
-
             var materialObj = {};
             $(this).find("td:not(.ignore-generate)").children().each(function () {
                 if ($(this).hasClass("form-check-input")) {

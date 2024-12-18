@@ -471,6 +471,7 @@ class WeaponTemplate
 					<option value="SA">Switch Axe</option>
 					<option value="CB">Charge Blade</option>
 					<option value="IG">Insect Glaive</option>
+					<option value="Bo">Bow</option>
 					<option value="LBG">Light Bowgun</option>
 					<option value="HBG">Heavy Bowgun</option>`;
 				break;
@@ -487,6 +488,7 @@ class WeaponTemplate
 					<option value="SA">Switch Axe</option>
 					<option value="CB">Charge Blade</option>
 					<option value="IG">Insect Glaive</option>
+					<option value="Bo">Bow</option>
 					<option value="LBG">Light Bowgun</option>
 					<option value="HBG">Heavy Bowgun</option>`;
 				break;

@@ -6,11 +6,11 @@ namespace WebToolkit.Controllers
 	public class MaterialsAndDropRatesTablesController : Controller
 	{
 		[HttpPost("GenerateTables")]
-		public string GenerateTables(string json)
+		public string GenerateTables(string json, string game, bool escapeTabbers)
 		{
 			try
 			{
-				return MediawikiTranslator.Generators.MaterialsAndDropTables.ParseJson(json);
+				return MediawikiTranslator.Generators.MaterialsAndDropTables.ParseJson(json, game, escapeTabbers);
 			}
 			catch (Exception ex)
 			{

@@ -11,7 +11,7 @@
 		{
 			$.ajax({
 				url: '@(Url.Action("GenerateTables", "MaterialsAndDropRatesTablesController"))/',
-				data: { json: JSON.stringify(finalData) },
+				data: { json: JSON.stringify(finalData), game: $("#ddlGameSelect").val(), escapeTabbers: $("#chkEscapeTabbers").prop("checked") },
 				type: "POST",
 				dataType: "json",
 				statusCode: {
@@ -35,10 +35,24 @@
 	<div class="row pt-1 m-auto p-auto">
 		<div class="col-5 scrollable-col">
 			<div class="row py-1">
-				<div class="col-6">
+				<div class="col">
 					<label for="txtMonsterName">Monster Name</label>
 					<input type="text" id="txtMonsterName" class="w-100 form-control" />
 				</div>
+				<div class="col">
+					<label for="ddlGameSelect">Game</label>
+					<select class="form-control form-select" onchange="updateColors()" id="ddlGameSelect">
+						<option value="MHWI">Monster Hunter World: Iceborne</option>
+						<option value="MHRS">Monster Hunter Rise: Sunbreak</option>
+						<option value="MHWilds">Monster Hunter Wilds</option>
+					</select>
+				</div>
+				<div class="col-3 pt-4">
+					<input class="form-check-input m-auto" style="font-size:1.5rem;" type="checkbox" value="" id="chkEscapeTabbers">
+					<label for="chkEscapeTabbers">Escape Tabbers?</label>
+				</div>
+			</div>
+			<div class="row py-1">
 				<div class="col m-auto">
 					<div class="float-end align-self-end form-group">
 						<button type="button" onclick="addRankCard();" class="btn btn-primary" title="Add new card that represents a new rank in the tabber.">Add New Rank</button>
@@ -327,6 +341,20 @@
 				<div class="row">
 					<div class="col">
 						<p>Ping or message @@rampagerobot on Discord if you have any issues.</p>
+					</div>
+				</div>
+				<div class="row py-2">
+					<div class="col">
+						<div class="card">
+							<div class="card-header">
+								<h4>v1.3.7</h4>
+							</div>
+							<div class="card-body">
+								<h6>Fixed duplicates in materials row.</h6>
+								<h6>Added "Escape Tabbers" checkbox for use with tabbers that will be nested inside other tabbers.</h6>
+								<h6>Added game compatibility for MHWilds and MHRS.</h6>
+							</div>
+						</div>
 					</div>
 				</div>
 				<div class="row py-2">

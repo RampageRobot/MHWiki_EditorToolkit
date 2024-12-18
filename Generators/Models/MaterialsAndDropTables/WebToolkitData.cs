@@ -31,7 +31,7 @@ namespace MediawikiTranslator.Models.MaterialsAndDropTables
 	}
 
 	public partial class Item
-	{
+    {
 		[JsonProperty(nameof(Include))]
 		public bool Include { get; set; }
 
@@ -64,7 +64,7 @@ namespace MediawikiTranslator.Models.MaterialsAndDropTables
 		[JsonProperty(nameof(Quantity))]
 		[JsonConverter(typeof(ParseStringConverter))]
 		public long? Quantity { get; set; }
-	}
+    }
 
 	public partial class WebToolkitData
 	{

@@ -13,7 +13,7 @@
                 switch (args[0])
                 {
                     case "DamageTable":
-                        MediawikiTranslator.Generators.DamageTable.ParseZip(args[1], args[2]);
+                        MediawikiTranslator.Generators.DamageTable.ParseFolder(args[1], args[2]);
                         Console.WriteLine("Done!");
                         break;
                 }
