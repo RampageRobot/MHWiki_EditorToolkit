@@ -179,7 +179,7 @@ namespace MediawikiTranslator.Models.Weapon
         public string? Next3Materials { get; set; }
     }
 
-    public partial class WebToolkitData
+	public partial class WebToolkitData
     {
         public static WebToolkitData FromJson(string json) => JsonConvert.DeserializeObject<WebToolkitData>(json, Converter.Settings)!;
     }

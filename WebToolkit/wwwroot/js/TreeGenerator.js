@@ -1,4 +1,5 @@
 var srcTreeRow = {};
+var srcTreeCard = {};
 var mdlGenerate;
 function initRow()
 {
@@ -46,7 +47,8 @@ function loadTemplate()
     {
         case "Weapon":
             srcTreeRow = WeaponTemplate.getRow();
-            $("#tblTree thead").append($(WeaponTemplate.getHeader()).clone(true));
+            $(".card .table-tree thead").append($(WeaponTemplate.getHeader()).clone(true));
+            srcTreeCard = $(".card-holder").first().clone(true);
             initRow = WeaponTemplate.initRow;
             initTemplate = WeaponTemplate.initTemplate;
             generateTree = WeaponTemplate.generateTree;
@@ -54,15 +56,39 @@ function loadTemplate()
             getFinalData = WeaponTemplate.getFinalData;
             pageLoadData = WeaponTemplate.pageLoadData;
             getSaveData = WeaponTemplate.getSaveData;
-            addRow();
+            addRow($(".card .table-tree tbody"));
             break;
     }
     initTemplate();
 }
 
-function addRow()
+function addRow(table)
 {
-    $('#tblTree tbody').append($(srcTreeRow).clone(true));
+    $(table).append($(srcTreeRow).clone(true));
+    initRow();
+    updateIcons();
+}
+
+function collapseCard(button) {
+    if ($(button).attr("data-is-collapsed") == "true") {
+        $(button).parents("div.card-holder").first().find("div.card div.card-body", true).first().removeClass("d-none");
+        $(button).attr("data-is-collapsed", "false");
+        $(button).children().first().attr("class", "bi bi-arrows-collapse");
+        $(button).attr("title", "Collapse this card.");
+    }
+    else {
+        $(button).parents("div.card-holder").first().find("div.card div.card-body", true).first().addClass("d-none");
+        $(button).attr("data-is-collapsed", "true");
+        $(button).children().first().attr("class", "bi bi-arrows-expand");
+        $(button).attr("title", "Expand this card.");
+    }
+}
+
+function addTreeCard()
+{
+    var el = $(srcTreeCard).clone(true);
+    $("#divCardContainer").append(el);
+    $(el).find(".table-tree tbody").append($(srcTreeRow).clone(true));
     initRow();
     updateIcons();
 }
@@ -128,4 +154,61 @@ function matchRowAncestor(node, targetId)
         node = node.parentNode;
     }
     return node.id == targetId;
+}
+
+var draggedCard;
+function card_start(event) {
+    if (event.target.className == 'card') {
+        console.log(event.target);
+        draggedCard = event.target;
+    }
+}
+function card_dragover(e) {
+    if (typeof (draggedCard) !== 'undefined') {
+        if (isCardAncestor(e.target)) {
+            let children = Array.from(getCardHolder(e.target).parentNode.children);
+            if (children.indexOf(getCardHolder(e.target)) > children.indexOf(getCardHolder(draggedCard)))
+                getCardHolder(e.target).after(getCardHolder(draggedCard));
+            else
+                getCardHolder(e.target).before(getCardHolder(draggedCard));
+        }
+    }
+}
+
+function getCardNode(eventTarget) {
+    while (eventTarget.className != "table-holder") {
+        eventTarget = eventTarget.parentNode;
+    }
+    return eventTarget;
+}
+
+function getCardIndex(eventTarget) {
+    var tableNode;
+    var parentNode = eventTarget.parentNode;
+    while (parentNode.className != "table-container") {
+        if (parentNode.className == "table-holder") {
+            tableNode = parentNode;
+        }
+        parentNode = parentNode.parentNode;
+    }
+    return Array.from(parentNode.children).indexOf(tableNode);
+}
+
+function isCardAncestor(eventTarget) {
+    while (eventTarget.className != "card" && eventTarget.tagName != "BODY") {
+        eventTarget = eventTarget.parentNode;
+    }
+    return eventTarget.className == "card";
+}
+
+function getCardHolder(node) {
+    while (!node.className.includes("card-holder") && node.tagName != "BODY") {
+        node = node.parentNode;
+    }
+    if (node.className.includes("card-holder")) {
+        return node;
+    }
+    else {
+        return null;
+    }
 }

@@ -181,18 +181,19 @@ class WeaponTemplate
     }
     static getHeader()
     {
-        return `<tr style="vertical-align:middle;" data-template="header">
+		return `<tr style="vertical-align:middle;" data-template="header">
     <th scope="col" style="width:0.375rem">Move</th>
     <th scope="col" style="width:1rem">Forge?</th>
     <th scope="col" style="width:1rem">Rollback?</th>
     <th scope="col" style="width:15rem;">Weapon</th>
-    <th scope="col" style="width:15rem;">Upgraded From</th>
-    <th scope="col" style="width:10rem;">Icon Type</th>
+    <th scope="col" style="width:10rem;">Upgraded From</th>
+    <th scope="col" style="width:9rem;">Path Link</th>
+    <th scope="col" style="width:8rem;">Icon Type</th>
     <th scope="col" style="width:4.5rem;">Rarity</th>
     <th scope="col" style="width:7.25rem;">Attack</th>
     <th scope="col" style="width:4.5rem;">Defense</th>
     <th scope="col" style="width:7.35rem;">Element</th>
-    <th scope="col" style="width:6rem;">Element Dmg</th>
+    <th scope="col" style="width:6rem;">Elmnt Dmg</th>
     <th scope="col" style="width:4.5rem;">Affinity</th>
     <th scope="col" style="width:4rem;">Decos</th>
     <th scope="col" style="width:4rem;">Sharpness</th>
@@ -216,6 +217,11 @@ class WeaponTemplate
 	</td>
 	<td>
 		<select class="form-control form-select weapon-parent-input data-value" data-label="parent">
+			<option value=""></option>
+		</select>
+	</td>
+	<td>
+		<select class="form-control form-select weapon-path-link-input data-value" data-label="path-link">
 			<option value=""></option>
 		</select>
 	</td>
@@ -255,11 +261,11 @@ class WeaponTemplate
 	</td>
 	<td style="text-align:center; align-content:center">
 		<input class="form-control weapon-decos-input data-value" hidden="hidden" type="text" data-label="decos"/>
-		<button class="btn btn-primary" type="button" onclick="WeaponTemplate.modifyDecos($(this).parent().parent(), validateComplexData, this, $(this).parent().children().first(), WeaponTemplate.validateDecos);">Modify</button>
+		<button class="btn btn-primary ignore-generate" type="button" onclick="WeaponTemplate.modifyDecos($(this).parent().parent(), validateComplexData, this, $(this).parent().children().first(), WeaponTemplate.validateDecos);">Modify</button>
 	</td>
 	<td style="text-align:center; align-content:center">
 		<input class="form-control weapon-sharpness-input data-value" hidden="hidden" type="text" data-label="sharpness"/>
-		<button class="btn btn-primary" type="button" onclick="WeaponTemplate.modifySharpness($(this).parent().parent(), validateComplexData, this, $(this).parent().children().first(), WeaponTemplate.validateSharpness);">Modify</button>
+		<button class="btn btn-primary ignore-generate" type="button" onclick="WeaponTemplate.modifySharpness($(this).parent().parent(), validateComplexData, this, $(this).parent().children().first(), WeaponTemplate.validateSharpness);">Modify</button>
 	</td>
 	<td class="ignore-generate" style="text-align:center">
 		<button type="button" onclick="$(this).parent().parent().remove();" class="btn btn-danger btn-delete-row" title="Delete this weapon."><i class="bi bi-trash"></i></button>
@@ -442,7 +448,23 @@ class WeaponTemplate
             $(this).append('<option value=""></option');
             $(this).append(itemNames.concat("\n"));
             $(this).val(oldVal);
-        });
+		});
+		let pathNames = Array.from($(".weapon-path-name-input").map(function () {
+			return $(this).val();
+		})).filter(function (value, index, array) {
+			return value != '' && array.indexOf(value) === index;
+		}).sort(function (a, b) {
+			return a > b ? 1 : -1;
+		}).map(function (item) {
+			return `<option value="${item}">${item}</option>`;
+		});
+		$(".weapon-path-link-input").each(function () {
+			var oldVal = $(this).val();
+			$(this).find("option").remove();
+			$(this).append('<option value=""></option');
+			$(this).append(pathNames.concat("\n"));
+			$(this).val(oldVal);
+		});
     }
 	static updateIcons()
 	{
@@ -509,59 +531,87 @@ class WeaponTemplate
 		});
 	}
 	static pageLoadData(loadedData) {
-		$("#txtPathName").val(loadedData.pathName);
-		if (typeof (loadedData.treeType) !== 'undefined') {
-			$("#ddlTemplateSelect").val(loadedData.treeType);
-		}
-		if (typeof (loadedData.game) !== 'undefined') {
-			$("#ddlGameSelect").val(loadedData.game);
-		}
-		if (typeof (loadedData.defaultIconType) !== 'undefined') {
-			$("#ddlIconSelect").val(loadedData.defaultIconType);
-		}
-		for (var i = 0; i < loadedData.data.length; i++) {
-			var dataObj = loadedData.data[i];
-			if ($("#tblTree tbody tr").length < (i + 1)) {
-				addRow();
+		var pathLinkDict = [];
+		var parentNameDict = [];
+		for (var i2 = 0; i2 < loadedData.length; i2++) {
+			var pathData = loadedData[i2];
+			if ($(".card-holder").length < (i2 + 1)) {
+				addTreeCard();
 			}
-			var row = $($("#tblTree tbody tr")[i]);
-			var classes = [".weapon-parent-input", ".weapon-name-input", ".weapon-icon-type-input", ".weapon-rarity-input", ".weapon-affinity-input", ".weapon-attack-input", ".weapon-defense-input", ".weapon-element-input", ".weapon-element-damage-input", ".weapon-sharpness-input", ".weapon-decos-input"];
-			for (var i2 = 0; i2 < classes.length; i2++) {
-				var thisClass = classes[i2];
-				var el = row.find("td " + thisClass);
-				var value = dataObj[thisClass.substring(thisClass.indexOf(".weapon-") + 8, thisClass.indexOf("-input"))];
-				el.val(value);
-				if (el.attr("type") == "number") {
-					validateInput(el[0]);
+			var card = $($(".card-holder")[i2]);
+			$(card).find(".card .card-header .weapon-path-name-input").val(pathData.pathName);
+			if (typeof (pathData.treeType) !== 'undefined') {
+				$("#ddlTemplateSelect").val(pathData.treeType);
+			}
+			if (typeof (pathData.game) !== 'undefined') {
+				$("#ddlGameSelect").val(pathData.game);
+			}
+			if (typeof (pathData.defaultIconType) !== 'undefined') {
+				$("#ddlIconSelect").val(pathData.defaultIconType);
+			}
+			for (var i = 0; i < pathData.data.length; i++) {
+				var dataObj = pathData.data[i];
+				if ($(card).find(".card .card-body .table-tree tbody tr").length < (i + 1)) {
+					addRow($(card).find(".card .card-body .table-tree"));
 				}
+				var row = $($(card).find(".card .card-body .table-tree tbody tr")[i]);
+				var classes = [".weapon-parent-input", ".weapon-path-link-input", ".weapon-name-input", ".weapon-icon-type-input", ".weapon-rarity-input", ".weapon-affinity-input", ".weapon-attack-input", ".weapon-defense-input", ".weapon-element-input", ".weapon-element-damage-input", ".weapon-sharpness-input", ".weapon-decos-input"];
+				for (var i3 = 0; i3 < classes.length; i3++) {
+					var thisClass = classes[i3];
+					var el = row.find("td " + thisClass);
+					var value = dataObj[thisClass.substring(thisClass.indexOf(".weapon-") + 8, thisClass.indexOf("-input"))];
+					el.val(value);
+					if (el.attr("type") == "number") {
+						validateInput(el[0]);
+					}
+				}
+				var decosInput = $($(card).find(".card .card-body .table-tree tbody tr")[i]).find(".weapon-decos-input");
+				validateComplexData($(decosInput.parent().children()[1]), decosInput[0], WeaponTemplate.validateDecos);
+				var sharpnessInput = $($(card).find(".card .card-body .table-tree tbody tr")[i]).find(".weapon-sharpness-input");
+				validateComplexData($(sharpnessInput.parent().children()[1]), sharpnessInput[0], WeaponTemplate.validateSharpness);
+				$($(card).find(".card .card-body .table-tree tbody tr")[i]).find(".weapon-can-forge-input").prop("checked", dataObj["can-forge"] == true);
+				$($(card).find(".card .card-body .table-tree tbody tr")[i]).find(".weapon-can-rollback-input").prop("checked", dataObj["can-rollback"] == true);
+				parentNameDict.push({ el: $($(card).find(".card .card-body .table-tree tbody tr")[i]).find(".weapon-parent-input").first(), val: dataObj["parent"] });
+				pathLinkDict.push({ el: $($(card).find(".card .card-body .table-tree tbody tr")[i]).find(".weapon-path-link-input").first(), val: dataObj["path-link"]});
 			}
-			var decosInput = $($(".weapon-decos-input")[i]);
-			validateComplexData($(decosInput.parent().children()[1]), decosInput[0], WeaponTemplate.validateDecos);
-			var sharpnessInput = $($(".weapon-sharpness-input")[i]);
-			validateComplexData($(sharpnessInput.parent().children()[1]), sharpnessInput[0], WeaponTemplate.validateSharpness);
-			$($(".weapon-can-forge-input")[i]).prop("checked", dataObj["can-forge"] == true);
+		}
+		initRow();
+		for (var i = 0; i < pathLinkDict.length; i++) {
+			var pathLinkKvp = pathLinkDict[i];
+			pathLinkKvp.el.val(pathLinkKvp.val);
+		}
+		for (var i = 0; i < parentNameDict.length; i++) {
+			var parentNameKvp = parentNameDict[i];
+			parentNameKvp.el.val(parentNameKvp.val);
 		}
 	}
 	static getSaveData() {
-		return {
-			"data": getFinalData(),
-			"pathName": $("#txtPathName").val(),
-			"treeType": $("#ddlTemplateSelect").val(),
-			"game": $("#ddlGameSelect").val(),
-			"defaultIconType": $("#ddlIconSelect").val()
-		};
+		return getFinalData();
 	}
 	static getFinalData() {
 		WeaponTemplate.finalData = [];
-		$("#tblTree tbody tr").each(function () {
-			var dataObj = {};
-			$(this).find("td:not(.ignore-generate)").children().each(function () {
-				if ($(this).hasClass("form-check-input")) {
-					dataObj[$(this).attr("data-label")] = $(this).prop("checked");
-				}
-				else {
-					dataObj[$(this).attr("data-label")] = $(this).val();
-				}
+		$(".card-holder").each(function () {
+			var dataObj = {
+				pathName: $(this).find(".weapon-path-name-input").val(),
+				"treeType": $("#ddlTemplateSelect").val(),
+				"game": $("#ddlGameSelect").val(),
+				"defaultIconType": $("#ddlIconSelect").val(),
+				data: []
+			};
+			$(this).find(".card .card-body .table-tree tbody tr").each(function () {
+				var newObj = {};
+				$(this).find("td:not(.ignore-generate)").children().each(function ()
+				{
+					if (!$(this).hasClass("ignore-generate")) {
+						if ($(this).hasClass("form-check-input")) {
+							newObj[$(this).attr("data-label")] = $(this).prop("checked");
+						}
+						else {
+							newObj[$(this).attr("data-label")] = $(this).val();
+						}
+					}
+				});
+				dataObj.data.push(newObj);
 			});
 			WeaponTemplate.finalData.push(dataObj);
 		});
@@ -576,24 +626,21 @@ class WeaponTemplate
 			case "MHG":
 				{
 					sharpnessBase = "MHGSharpnessBase";
-					weaponLink = "2ndGenWeaponLink|MHG";
 					maxSharpnessCount = 6;
 				}
 				break;
 			case "MHWI":
 				{
 					sharpnessBase = "MHWISharpnessBase";
-					weaponLink = "MHWIWeaponLink";
 				}
 				break;
 			case "MHRS":
 				{
 					sharpnessBase = "MHRSSharpnessBase";
-					weaponLink = "MHRSWeaponLink";
 				}
 				break;
 		}
 		getFinalData();
-		callGenerator(WeaponTemplate.finalData, sharpnessBase, weaponLink, maxSharpnessCount, $("#txtPathName").val());
+		callGenerator(WeaponTemplate.finalData, sharpnessBase, maxSharpnessCount, $("#txtPathName").val());
     }
 }
