@@ -48,6 +48,8 @@ namespace MediawikiTranslator.Models.WeaponTree
 
 		[JsonProperty("sharpness")]
 		public string Sharpness { get; set; } = string.Empty;
+		[JsonProperty("can-rollback")]
+		public bool CanRollback { get; set; }
 	}
 
 	public class Decoration

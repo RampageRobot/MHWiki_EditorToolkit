@@ -15,7 +15,7 @@ namespace MediawikiTranslator.Generators
 			return await Task.Run(() =>
 			{
 				StringBuilder ret = new();
-				ret.AppendLine($@"=={pathName}== 
+				ret.AppendLine($@"=={pathName} Path== 
 {{| class=""wikitable center wide mw-collapsible mw-collapsed""
 ! colspan=8 | {pathName} Path
 |-
@@ -64,7 +64,7 @@ namespace MediawikiTranslator.Generators
 					}
 					ret.AppendLine($@"
 |-
-| style=""text-align:left"" | {prefix}{(dataObj.CanForge ? "'''" : "")}{{{{{weaponLink}|{dataObj.Name}|{iconType}|{dataObj.Rarity}}}}}{(dataObj.CanForge ? "'''" : "")}
+| style=""text-align:left"" | {prefix}{(dataObj.CanForge ? "'''" : "")}{{{{{weaponLink}|{dataObj.Name}|{iconType}|{dataObj.Rarity}}}}}{(dataObj.CanForge ? "'''" : "")}{(dataObj.CanRollback ? "<sup>R</sup>" : "")}
 | {dataObj.Rarity}
 | {dataObj.Attack}
 | {(dataObj.Element == Element.Empty ? "-" : $"{{{{Element|{dataObj.Element}|{dataObj.ElementDamage}}}}}")}

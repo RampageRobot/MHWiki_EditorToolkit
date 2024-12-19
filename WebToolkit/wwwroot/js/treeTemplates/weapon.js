@@ -184,6 +184,7 @@ class WeaponTemplate
         return `<tr style="vertical-align:middle;" data-template="header">
     <th scope="col" style="width:0.375rem">Move</th>
     <th scope="col" style="width:1rem">Forge?</th>
+    <th scope="col" style="width:1rem">Rollback?</th>
     <th scope="col" style="width:15rem;">Weapon</th>
     <th scope="col" style="width:15rem;">Upgraded From</th>
     <th scope="col" style="width:10rem;">Icon Type</th>
@@ -206,6 +207,9 @@ class WeaponTemplate
 	</td>
 	<td style="text-align:center; align-content:center">
 		<input style="font-size:1.5rem;" class="form-check-input weapon-can-forge-input data-value m-auto" data-label="can-forge" type="checkbox" value="">
+	</td>
+	<td style="text-align:center; align-content:center">
+		<input style="font-size:1.5rem;" class="form-check-input weapon-can-rollback-input data-value m-auto" data-label="can-rollback" type="checkbox" value="">
 	</td>
 	<td>
 		<input type="text" class="form-control weapon-name-input data-value" onchange="initRow()" data-label="name">
