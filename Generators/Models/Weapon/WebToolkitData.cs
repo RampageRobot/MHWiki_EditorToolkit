@@ -210,11 +210,12 @@ namespace MediawikiTranslator.Models.Weapon
         {
             if (reader.TokenType == JsonToken.Null) return null;
             var value = serializer.Deserialize<string>(reader);
-            if (long.TryParse(value, out long l))
+			if (string.IsNullOrEmpty(value)) return null;
+			if (long.TryParse(value, out long l))
             {
                 return l;
             }
-            throw new Exception("Cannot unmarshal type long");
+            throw new Exception("An integer value you have provided is not a number.");
         }
 
         public override void WriteJson(JsonWriter writer, object? untypedValue, JsonSerializer serializer)

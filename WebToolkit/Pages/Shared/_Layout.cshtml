@@ -85,7 +85,7 @@
             }
         }
         function validateInput(element) {
-            if (element.validity.badInput) {
+            if ($(element).val() != '' && element.validity.badInput) {
                 $(element).addClass("input-number-invalid");
                 $(element).attr("data-oldTitle", $(element).attr("title"));
                 $(element).attr("title", "This field should only be a number [0-9]. Do not include decimals, thousands separators, or percent signs.");

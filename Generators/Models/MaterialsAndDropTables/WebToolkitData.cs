@@ -97,6 +97,7 @@ namespace MediawikiTranslator.Models.MaterialsAndDropTables
 		{
 			if (reader.TokenType == JsonToken.Null) return null;
 			var value = serializer.Deserialize<string>(reader);
+			if (string.IsNullOrEmpty(value)) return null;
 			if (long.TryParse(value, out long l))
 			{
 				return l;

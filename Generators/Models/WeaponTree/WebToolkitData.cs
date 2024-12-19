@@ -53,7 +53,7 @@ namespace MediawikiTranslator.Models.WeaponTree
 	public class Decoration
 	{
 		public int Level { get; set; }
-		public int Quantity { get; set; }
+		public int Qty { get; set; }
 		public bool IsRampage { get; set; }
 	}
 
@@ -91,6 +91,7 @@ namespace MediawikiTranslator.Models.WeaponTree
 		{
 			if (reader.TokenType == JsonToken.Null) return null;
 			var value = serializer.Deserialize<string>(reader);
+			if (string.IsNullOrEmpty(value)) return null;
 			if (long.TryParse(value, out long l))
 			{
 				return l;

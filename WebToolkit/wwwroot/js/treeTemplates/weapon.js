@@ -26,37 +26,37 @@ class WeaponTemplate
 						<div class="row">
 							<div class="col-6">
 								<label>Red Sharpness Hits</label>
-								<input type="number" onblur="validateInput(this);" class="form-control" onchange="WeaponTemplate.updatePreviewBar('1');" id="txtRedSharpnessHits1" />
+								<input type="number" onblur="validateInput(this);" class="form-control" onchange="WeaponTemplate.updatePreviewBar('1');" value="0" id="txtRedSharpnessHits1" />
 							</div>
 							<div class="col-6">
 								<label>Orange Sharpness Hits</label>
-								<input type="number" onblur="validateInput(this);" class="form-control" onchange="WeaponTemplate.updatePreviewBar('1');" id="txtOrangeSharpnessHits1" />
+								<input type="number" onblur="validateInput(this);" class="form-control" onchange="WeaponTemplate.updatePreviewBar('1');" value="0" id="txtOrangeSharpnessHits1" />
 							</div>
 						</div>
 						<div class="row">
 							<div class="col-6">
 								<label>Yellow Sharpness Hits</label>
-								<input type="number" onblur="validateInput(this);" class="form-control" onchange="WeaponTemplate.updatePreviewBar('1');" id="txtYellowSharpnessHits1" />
+								<input type="number" onblur="validateInput(this);" class="form-control" onchange="WeaponTemplate.updatePreviewBar('1');" value="0" id="txtYellowSharpnessHits1" />
 							</div>
 							<div class="col-6">
 								<label>Green Sharpness Hits</label>
-								<input type="number" onblur="validateInput(this);" class="form-control" onchange="WeaponTemplate.updatePreviewBar('1');" id="txtGreenSharpnessHits1" />
+								<input type="number" onblur="validateInput(this);" class="form-control" onchange="WeaponTemplate.updatePreviewBar('1');" value="0" id="txtGreenSharpnessHits1" />
 							</div>
 						</div>
 						<div class="row">
 							<div class="col-6">
 								<label>Blue Sharpness Hits</label>
-								<input type="number" onblur="validateInput(this);" class="form-control" onchange="WeaponTemplate.updatePreviewBar('1');" id="txtBlueSharpnessHits1" />
+								<input type="number" onblur="validateInput(this);" class="form-control" onchange="WeaponTemplate.updatePreviewBar('1');" value="0" id="txtBlueSharpnessHits1" />
 							</div>
 							<div class="col-6">
 								<label>White Sharpness Hits</label>
-								<input type="number" onblur="validateInput(this);" class="form-control" onchange="WeaponTemplate.updatePreviewBar('1');" id="txtWhiteSharpnessHits1" />
+								<input type="number" onblur="validateInput(this);" class="form-control" onchange="WeaponTemplate.updatePreviewBar('1');" value="0" id="txtWhiteSharpnessHits1" />
 							</div>
 						</div>
 						<div class="row">
 							<div class="col-6">
 								<label>Purple Sharpness Hits</label>
-								<input type="number" onblur="validateInput(this);" class="form-control" onchange="WeaponTemplate.updatePreviewBar('1');" id="txtPurpleSharpnessHits1" />
+								<input type="number" onblur="validateInput(this);" class="form-control" onchange="WeaponTemplate.updatePreviewBar('1');" value="0" id="txtPurpleSharpnessHits1" />
 							</div>
 						</div>
 						<div class="row">
@@ -84,37 +84,37 @@ class WeaponTemplate
 						<div class="row">
 							<div class="col-6">
 								<label>Red Sharpness Hits</label>
-								<input type="number" onblur="validateInput(this);" class="form-control" onchange="WeaponTemplate.updatePreviewBar('2');" id="txtRedSharpnessHits2" />
+								<input type="number" onblur="validateInput(this);" class="form-control" onchange="WeaponTemplate.updatePreviewBar('2');" value="0" id="txtRedSharpnessHits2" />
 							</div>
 							<div class="col-6">
 								<label>Orange Sharpness Hits</label>
-								<input type="number" onblur="validateInput(this);" class="form-control" onchange="WeaponTemplate.updatePreviewBar('2');" id="txtOrangeSharpnessHits2" />
+								<input type="number" onblur="validateInput(this);" class="form-control" onchange="WeaponTemplate.updatePreviewBar('2');" value="0" id="txtOrangeSharpnessHits2" />
 							</div>
 						</div>
 						<div class="row">
 							<div class="col-6">
 								<label>Yellow Sharpness Hits</label>
-								<input type="number" onblur="validateInput(this);" class="form-control" onchange="WeaponTemplate.updatePreviewBar('2');" id="txtYellowSharpnessHits2" />
+								<input type="number" onblur="validateInput(this);" class="form-control" onchange="WeaponTemplate.updatePreviewBar('2');" value="0" id="txtYellowSharpnessHits2" />
 							</div>
 							<div class="col-6">
 								<label>Green Sharpness Hits</label>
-								<input type="number" onblur="validateInput(this);" class="form-control" onchange="WeaponTemplate.updatePreviewBar('2');" id="txtGreenSharpnessHits2" />
+								<input type="number" onblur="validateInput(this);" class="form-control" onchange="WeaponTemplate.updatePreviewBar('2');" value="0" id="txtGreenSharpnessHits2" />
 							</div>
 						</div>
 						<div class="row">
 							<div class="col-6">
 								<label>Blue Sharpness Hits</label>
-								<input type="number" onblur="validateInput(this);" class="form-control" onchange="WeaponTemplate.updatePreviewBar('2');" id="txtBlueSharpnessHits2" />
+								<input type="number" onblur="validateInput(this);" class="form-control" onchange="WeaponTemplate.updatePreviewBar('2');" value="0" id="txtBlueSharpnessHits2" />
 							</div>
 							<div class="col-6">
 								<label>White Sharpness Hits</label>
-								<input type="number" onblur="validateInput(this);" class="form-control" onchange="WeaponTemplate.updatePreviewBar('2');" id="txtWhiteSharpnessHits2" />
+								<input type="number" onblur="validateInput(this);" class="form-control" onchange="WeaponTemplate.updatePreviewBar('2');" value="0" id="txtWhiteSharpnessHits2" />
 							</div>
 						</div>
 						<div class="row">
 							<div class="col-6">
 								<label>Purple Sharpness Hits</label>
-								<input type="number" onblur="validateInput(this);" class="form-control" onchange="WeaponTemplate.updatePreviewBar('2');" id="txtPurpleSharpnessHits2" />
+								<input type="number" onblur="validateInput(this);" class="form-control" onchange="WeaponTemplate.updatePreviewBar('2');" value="0" id="txtPurpleSharpnessHits2" />
 							</div>
 						</div>
 						<div class="row">

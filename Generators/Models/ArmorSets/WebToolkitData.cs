@@ -176,14 +176,10 @@ namespace MediawikiTranslator.Models.ArmorSets
         {
             if (reader.TokenType == JsonToken.Null) return null;
             var value = serializer.Deserialize<string>(reader);
-            long l;
-            if (Int64.TryParse(value, out l))
+			if (string.IsNullOrEmpty(value)) return null;
+            if (long.TryParse(value, out long l))
             {
                 return l;
-            }
-            if (string.IsNullOrEmpty(value))
-            {
-                return null;
             }
             throw new Exception("An integer value you have provided is not a number.");
         }
