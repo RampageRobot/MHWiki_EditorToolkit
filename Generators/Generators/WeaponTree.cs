@@ -15,60 +15,7 @@ namespace MediawikiTranslator.Generators
 			return await Task.Run(() =>
 			{
 				StringBuilder ret = new();
-				string legendIconPrefix = $@"{srcData.FirstOrDefault()?.Game ?? "MHWI"}-{(WebToolkitData.GetWeaponName(string.IsNullOrEmpty(srcData.FirstOrDefault()?.Data?.FirstOrDefault()?.IconType) ? defaultIcon : srcData.FirstOrDefault()?.Data?.FirstOrDefault()?.IconType))}";
-				ret.AppendLine($@"==Legend==
-<div class=""threecol"">
-{{| class=""wikitable center wide""
-! colspan=3 | Element Legend
-|-
-| {{{{Element|Fire}}}} Fire
-| {{{{Element|Water}}}} Water
-|-
-| {{{{Element|Thunder}}}} Thunder
-| {{{{Element|Ice}}}} Ice
-|-
-| colspan=""2"" | {{{{Element|Dragon}}}} Dragon
-|}}
-{{| class=""wikitable center wide""
-! colspan=""2"" | Status Legend
-|-
-| {{{{Element|Poison}}}} Poison
-| {{{{Element|Paralysis}}}} Paralysis
-|-
-| {{{{Element|Sleep}}}} Sleep
-| {{{{Element|Blast}}}} Blast
-|-
-| {{{{Element|Bleeding}}}} Bleeding
-| {{{{Element|Stun}}}} Stun
-|-
-|}}
-{{| class=""wikitable center wide""
-! Other Legend
-|-
-| [[File:{legendIconPrefix} Icon Rare 1.png|class=craftmark|20x20px]] Craftable
-|-
-| [[File:UI-Rollback.png|Can Rollback Upgrade]] Can Rollback
-|}}
-</div>
-{{| class=""wikitable center""
-! colspan=3 | Rarity Legend
-|-
-| [[File:{legendIconPrefix} Icon Rare 1.png|20x20px|link=]] Rare 1
-| [[File:{legendIconPrefix} Icon Rare 2.png|20x20px|link=]] Rare 2
-| [[File:{legendIconPrefix} Icon Rare 3.png|20x20px|link=]] Rare 3
-|-
-| [[File:{legendIconPrefix} Icon Rare 4.png|20x20px|link=]] Rare 4
-| [[File:{legendIconPrefix} Icon Rare 5.png|20x20px|link=]] Rare 5
-| [[File:{legendIconPrefix} Icon Rare 6.png|20x20px|link=]] Rare 6
-|-
-| [[File:{legendIconPrefix} Icon Rare 7.png|20x20px|link=]] Rare 7
-| [[File:{legendIconPrefix} Icon Rare 8.png|20x20px|link=]] Rare 8
-| [[File:{legendIconPrefix} Icon Rare 9.png|20x20px|link=]] Rare 9
-|-
-| [[File:{legendIconPrefix} Icon Rare 10.png|20x20px|link=]] Rare 10
-| [[File:{legendIconPrefix} Icon Rare 11.png|20x20px|link=]] Rare 11
-| [[File:{legendIconPrefix} Icon Rare 12.png|20x20px|link=]] Rare 12
-|}}");
+				ret.AppendLine($@"{{{{WeaponTreeLegend|{srcData.FirstOrDefault()?.Game ?? "MHWI"}|{(WebToolkitData.GetWeaponName(string.IsNullOrEmpty(srcData.FirstOrDefault()?.Data?.FirstOrDefault()?.IconType) ? defaultIcon : srcData.FirstOrDefault()?.Data?.FirstOrDefault()?.IconType))}}}}}");
 				foreach (WebToolkitData dataArray in srcData)
 				{
 					int cntr = 0;

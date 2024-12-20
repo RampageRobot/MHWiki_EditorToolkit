@@ -70,8 +70,7 @@ namespace MediawikiTranslator.Models.WeaponTree
 		public long? Rarity { get; set; }
 
 		[JsonProperty("attack", NullValueHandling = NullValueHandling.Ignore)]
-		[JsonConverter(typeof(ParseStringConverter))]
-		public long? Attack { get; set; }
+		public string Attack { get; set; }
 
 		[JsonProperty("defense", NullValueHandling = NullValueHandling.Ignore)]
 		[JsonConverter(typeof(ParseStringConverter))]
