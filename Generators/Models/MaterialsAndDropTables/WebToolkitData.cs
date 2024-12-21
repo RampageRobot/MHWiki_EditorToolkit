@@ -39,8 +39,7 @@ namespace MediawikiTranslator.Models.MaterialsAndDropTables
 		public string ItemName { get; set; } = string.Empty;
 
 		[JsonProperty(nameof(Chance))]
-		[JsonConverter(typeof(ParseStringConverter))]
-		public long? Chance { get; set; }
+		public string Chance { get; set; } = string.Empty;
 
 		[JsonProperty(nameof(Icon))]
 		public string Icon { get; set; } = string.Empty;

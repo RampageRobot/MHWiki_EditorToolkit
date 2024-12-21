@@ -73,15 +73,34 @@ namespace MediawikiTranslator.Models.WeaponTree
 		public string Attack { get; set; }
 
 		[JsonProperty("defense", NullValueHandling = NullValueHandling.Ignore)]
-		[JsonConverter(typeof(ParseStringConverter))]
 		public string Defense { get; set; }
 
 		[JsonProperty("element", NullValueHandling = NullValueHandling.Ignore)]
 		public string Element { get; set; }
 
 		[JsonProperty("element-damage", NullValueHandling = NullValueHandling.Ignore)]
-		[JsonConverter(typeof(ParseStringConverter))]
-		public long? ElementDamage { get; set; }
+		public string ElementDamage { get; set; } = string.Empty;
+
+		[JsonProperty("element-2", NullValueHandling = NullValueHandling.Ignore)]
+		public string Element2 { get; set; }
+
+		[JsonProperty("element-damage-2", NullValueHandling = NullValueHandling.Ignore)]
+		public string ElementDamage2 { get; set; } = string.Empty;
+
+		[JsonProperty("elderseal", NullValueHandling = NullValueHandling.Ignore)]
+		public string Elderseal { get; set; } = string.Empty;
+
+		[JsonProperty("rampage-slots", NullValueHandling = NullValueHandling.Ignore)]
+		public string RampageSlots { get; set; } = string.Empty;
+
+		[JsonProperty("rampage-deco", NullValueHandling = NullValueHandling.Ignore)]
+		public string RampageDeco { get; set; } = string.Empty;
+
+		[JsonProperty("armor-skill", NullValueHandling = NullValueHandling.Ignore)]
+		public string ArmorSkill { get; set; } = string.Empty;
+
+		[JsonProperty("armor-skill-2", NullValueHandling = NullValueHandling.Ignore)]
+		public string ArmorSkill2 { get; set; } = string.Empty;
 
 		[JsonProperty("affinity", NullValueHandling = NullValueHandling.Ignore)]
 		[JsonConverter(typeof(ParseStringConverter))]

@@ -19,8 +19,7 @@ namespace MediawikiTranslator.Models.Weapon
         public string? Tree { get; set; }
 
         [JsonProperty("attack", NullValueHandling = NullValueHandling.Ignore)]
-        [JsonConverter(typeof(ParseStringConverter))]
-        public long? Attack { get; set; }
+        public string Attack { get; set; } = string.Empty;
 
         [JsonProperty("rarity", NullValueHandling = NullValueHandling.Ignore)]
         [JsonConverter(typeof(ParseStringConverter))]
@@ -31,29 +30,27 @@ namespace MediawikiTranslator.Models.Weapon
         public long? ForgeCost { get; set; }
 
         [JsonProperty("forge-materials", NullValueHandling = NullValueHandling.Ignore)]
-        public string? ForgeMaterials { get; set; }
+        public string ForgeMaterials { get; set; } = string.Empty;
 
         [JsonProperty("defense", NullValueHandling = NullValueHandling.Ignore)]
         [JsonConverter(typeof(ParseStringConverter))]
-        public long? Defense { get; set; }
+        public string Defense { get; set; } = string.Empty;
 
         [JsonProperty("affinity", NullValueHandling = NullValueHandling.Ignore)]
         [JsonConverter(typeof(ParseStringConverter))]
         public long? Affinity { get; set; }
 
         [JsonProperty("element-1", NullValueHandling = NullValueHandling.Ignore)]
-        public string? Element1 { get; set; }
+        public string Element1 { get; set; } = string.Empty;
 
-        [JsonProperty("element-1-dmg", NullValueHandling = NullValueHandling.Ignore)]
-        [JsonConverter(typeof(ParseStringConverter))]
-        public long? ElementDmg1 { get; set; }
+		[JsonProperty("element-1-dmg", NullValueHandling = NullValueHandling.Ignore)]
+        public string ElementDmg1 { get; set; } = string.Empty;
 
-        [JsonProperty("element-2", NullValueHandling = NullValueHandling.Ignore)]
-        public string? Element2 { get; set; }
+		[JsonProperty("element-2", NullValueHandling = NullValueHandling.Ignore)]
+        public string Element2 { get; set; } = string.Empty;
 
-        [JsonProperty("element-2-dmg", NullValueHandling = NullValueHandling.Ignore)]
-        [JsonConverter(typeof(ParseStringConverter))]
-        public long? ElementDmg2 { get; set; }
+		[JsonProperty("element-2-dmg", NullValueHandling = NullValueHandling.Ignore)]
+        public string ElementDmg2 { get; set; } = string.Empty;
 
         [JsonProperty("rollback", NullValueHandling = NullValueHandling.Ignore)]
         public string? Rollback { get; set; }

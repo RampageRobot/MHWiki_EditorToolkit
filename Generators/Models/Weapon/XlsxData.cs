@@ -90,7 +90,7 @@ namespace MediawikiTranslator.Models.Weapon
             }
             if (DisplayedRaw != null)
             {
-                retData.Attack = DisplayedRaw;
+                retData.Attack = DisplayedRaw!.ToString()!;
             }
             if (Rarity != null)
             {
@@ -102,7 +102,7 @@ namespace MediawikiTranslator.Models.Weapon
             }
             if (DefenseBonus != null)
             {
-                retData.Defense = DefenseBonus;
+                retData.Defense = DefenseBonus!.ToString()!;
             }
             if (Affinity != null)
             {
@@ -122,15 +122,15 @@ namespace MediawikiTranslator.Models.Weapon
             }
             if (ElementValue != null)
             {
-                retData.ElementDmg1 = ElementValue;
+                retData.ElementDmg1 = ElementValue!.ToString()!;
             }
             if (ElementValue1 != null)
             {
-                retData.ElementDmg1 = ElementValue1;
+                retData.ElementDmg1 = ElementValue1!.ToString()!;
             }
             if (ElementValue2 != null)
             {
-                retData.ElementDmg2 = ElementValue2;
+                retData.ElementDmg2 = ElementValue2!.ToString()!;
             }
             if (Rollback != null && Rollback == "x")
             {
