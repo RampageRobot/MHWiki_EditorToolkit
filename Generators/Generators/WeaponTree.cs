@@ -29,9 +29,9 @@ namespace MediawikiTranslator.Generators
 |-
 !Name 
 !Rarity
-![[File:UI-Attack Up.png|24x24px|link=Attack]] 
-![[File:UI-Blastblight.png|24x24px|link=Elemental Damage]] 
-![[File:UI-Affinity Up.png|24x24px|link=Affinity]]");
+!{{{{Element|Attack}}}}
+!{{{{Element|Element}}}}
+!{{{{Element|Affinity}}}}");
 					if (tableHasElderseal)
 					{
 						ret.AppendLine(@"!{{Element|Elderseal}}");
@@ -50,7 +50,7 @@ namespace MediawikiTranslator.Generators
 					}
 					ret.AppendLine(@"![[File:2ndGen-Whetstone Icon Yellow.png|24x24px|link=Sharpness]] 
 ![[File:2ndGen-Decoration Icon Blue.png|24x24px|link=Decorations]] 
-![[File:UI-Defense Up.png|24x24px|link=Defense]]");
+!{{Element|Defense}}");
 					foreach (Datum dataObj in dataArray.Data)
 					{
 						string iconType = dataObj.IconType;
@@ -146,13 +146,17 @@ namespace MediawikiTranslator.Generators
 			Datum? iterAncestor = dataObj;
 			List<int> ancestors = [];
 			Datum ancestor = dataArray.Data[0];
-			while (iterAncestor != null)
+			while (iterAncestor != null && ancestors.Count < 500)
 			{
 				iterAncestor = dataArray.Data.FirstOrDefault(x => x.Name == iterAncestor.Parent);
 				if (iterAncestor == null || iterAncestor != ancestor)
 				{
 					ancestors.Add(Array.IndexOf(dataNames, (iterAncestor ?? ancestor).Name));
 				}
+			}
+			if (ancestors.Count >= 500)
+			{
+				throw new Exception("Ancestor overload at " + dataArray.Data[0].Name + " line somewhere near " + iterAncestor!.Name + ". This usually means that the weapons are referencing each other in the \"Upgraded From\" section in a never-ending loop.");
 			}
 			string prefix = "";
 			ancestors.Reverse();

@@ -78,12 +78,18 @@
 			</div>
 			<div class="row">
 				<div id="divCardContainer">
-					<div class="row py-1 card-holder" ondragend="dragend(event)" ondragover="card_dragover(event)" ondragstart="card_start(event)">
+					<div class="row py-1 card-holder">
 						<div class="card" id="card_1">
 							<div class="card-header">
 								<div class="row">
 									<div class="col-2">
-										<button type="button" onmousedown="$(this).parents('.card').first().attr('draggable', true);" class="btn btn-primary btn-drag-card" title="Drag this button to move this card."><i class="bi bi-arrows-move"></i></button>
+										ck
+										<div class="row pb-1">
+											<div class="col">
+												<button style="padding: .25rem; margin-right:.25rem;" class="btn btn-primary bi bi-arrow-up float-start" onclick="$(this).parents('.card-holder').after($(this).parents('.card-holder').prev())"></button>
+												<button style="padding: .25rem;" class="btn btn-primary bi bi-arrow-down float-start" onclick="$(this).parents('.card-holder').before($(this).parents('.card-holder').next())"></button>
+											</div>
+										</div>
 									</div>
 									<div class="col">
 										<button type="button" class="btn btn-primary btn-collapse-card float-end" data-is-collapsed="false" onmousedown="collapseCard($(this));" title="Collapse this tree."><i class="bi bi-arrows-collapse"></i></button>

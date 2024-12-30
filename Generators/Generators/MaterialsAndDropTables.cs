@@ -38,10 +38,30 @@ namespace MediawikiTranslator.Generators
 !style=""width:400px;text-align:left"" | Item
 !style=""width:65px;text-align:left"" | Rarity
 !style=""width:200px;text-align:left"" | Price");
+			Models.Data.MHWI.Items[] itemArray = Models.Data.MHWI.Items.Fetch();
+			foreach (WebToolkitData data in srcData)
+			{
+				foreach (Table table in data.Tables)
+				{
+					foreach (Item item in table.Items)
+					{
+						if (itemArray.Any(x => x.Id.ToString() == item.ItemId))
+						{
+							Models.Data.MHWI.Items itemMatch = itemArray.First(x => x.Id.ToString() == item.ItemId);
+							item.ItemName = itemMatch.Name;
+							item.Icon = itemMatch.WikiIconName;
+							item.IconColor = itemMatch.WikiIconColor.ToString()!;
+							item.Price = itemMatch.BuyPrice.ToString()!;
+							item.Rarity = itemMatch.Rarity;
+							item.Description = itemMatch.Description;
+						}
+					}
+				}
+			}
 			Item[] items = [..srcData
 					.SelectMany(x => x.Tables.SelectMany(x => x.Items))
 					.Where(x => x.Include)
-					.GroupBy(x => new { x.ItemName, x.Icon, x.IconColor, x.Description, x.Rarity, x.Price })
+					.GroupBy(x => new { x.ItemId, x.Icon, x.IconColor, x.Description, x.Rarity, x.Price })
 					.Select(x => x.First())
 					.OrderBy(x => x.Rarity)
 					.ThenBy(x => x.Price)
@@ -53,23 +73,20 @@ namespace MediawikiTranslator.Generators
 					!string.IsNullOrEmpty(item.ItemName) && !string.IsNullOrEmpty(item.Icon) && !string.IsNullOrEmpty(item.IconColor))
 				{
 					ret.AppendLine($@"|-
-|{{{{{(game == "MHWilds" ? "MHWildsItem" : game + "ItemLink")}|{item.ItemName}|{item.Icon}|{item.IconColor}}}}}
+|{{{{GenericItemLink|{game}|{item.ItemName}|{item.Icon}|{item.IconColor}}}}}
 |Rarity {item.Rarity}
 |{item.Price}
 |-
-| colspan=""3"" |{item.Description}
-");
+| colspan=""3"" |{item.Description}");
 				}
 			}
 			ret.AppendLine(@"|}
 === Drop Rates ===
-<tabber>
-");
+<tabber>");
 			foreach (WebToolkitData data in srcData)
 			{
 				ret.AppendLine($@"|-| {data.Rank} Rank = 
-<div class=""{numWords[data.Tables.Length - 1] + (data.Tables.Length == 3 ? "cen" : "col")}"">
-");
+<div class=""{numWords[data.Tables.Length - 1] + (data.Tables.Length == 3 ? "cen" : "col")}"">");
 				foreach (Table table in data.Tables)
 				{
 					ret.AppendLine($@"<div>
@@ -77,17 +94,15 @@ namespace MediawikiTranslator.Generators
 !colspan=""2"" | <big>{table.Header}</big>
 |-
 !Item
-!Chance
-");
+!Chance");
 					foreach (string category in table.Items.Select(x => x.Category).Distinct())
 					{
 						ret.AppendLine($@"|-
-! colspan=""2"" |{category}
-");
+! colspan=""2"" |{category}");
 						foreach (Item item in table.Items.Where(x => x.Category == category && !string.IsNullOrEmpty(x.ItemName) && !string.IsNullOrEmpty(x.Icon) && !string.IsNullOrEmpty(x.IconColor)))
 						{
 							ret.AppendLine($@"|-
-|{{{{{(game == "MHWilds" ? "MHWildsItem" : game + "ItemLink")}|{item.ItemName}|{item.Icon}|{item.IconColor}}}}}{(item.Quantity > 1 ? " x" + item.Quantity : "")}
+|{{{{GenericItemLink|{game}|{item.ItemName}|{item.Icon}|{item.IconColor}}}}}{(item.Quantity > 1 ? " x" + item.Quantity : "")}
 |{(item.Chance != null ? item.Chance + "%" : "")}");
 						}
 					}
@@ -126,23 +141,20 @@ namespace MediawikiTranslator.Generators
 					!string.IsNullOrEmpty(item.ItemName) && !string.IsNullOrEmpty(item.Icon) && !string.IsNullOrEmpty(item.IconColor))
 				{
 					ret.AppendLine($@"|-
-|{{{{{(game == "MHWilds" ? "MHWildsItem" : game + "ItemLink")}|{item.ItemName}|{item.Icon}|{item.IconColor}}}}}
+|{{{{GenericItemLink|{game}|{item.ItemName}|{item.Icon}|{item.IconColor}}}}}
 |Rarity {item.Rarity}
 |{item.Price}
 |-
-| colspan=""3"" |{item.Description}
-");
+| colspan=""3"" |{item.Description}");
 				}
 			}
 			ret.AppendLine(@"|}
 === Drop Rates ===
-{{#tag:tabber|
-");
+{{#tag:tabber|");
 			foreach (WebToolkitData data in srcData)
 			{
 				ret.AppendLine($@"{{{{!}}}}-{{{{!}}}} {data.Rank} Rank = 
-<div class=""{numWords[data.Tables.Length - 1] + (data.Tables.Length == 3 ? "cen" : "col")}"">
-");
+<div class=""{numWords[data.Tables.Length - 1] + (data.Tables.Length == 3 ? "cen" : "col")}"">");
 				foreach (Table table in data.Tables)
 				{
 					ret.AppendLine($@"<div>
@@ -150,17 +162,15 @@ namespace MediawikiTranslator.Generators
 !colspan=""2"" {{{{!}}}} <big>{table.Header}</big>
 {{{{!}}}}-
 !Item
-!Chance
-");
+!Chance");
 					foreach (string category in table.Items.Select(x => x.Category).Distinct())
 					{
 						ret.AppendLine($@"{{{{!}}}}-
-! colspan=""2"" {{{{!}}}}{category}
-");
+! colspan=""2"" {{{{!}}}}{category}");
 						foreach (Item item in table.Items.Where(x => x.Category == category && !string.IsNullOrEmpty(x.ItemName) && !string.IsNullOrEmpty(x.Icon) && !string.IsNullOrEmpty(x.IconColor)))
 						{
 							ret.AppendLine($@"{{{{!}}}}-
-{{{{!}}}}{{{{{(game == "MHWilds" ? "MHWildsItem" : game + "ItemLink")}|{item.ItemName}|{item.Icon}|{item.IconColor}}}}}{(item.Quantity > 1 ? " x" + item.Quantity : "")}
+{{{{!}}}}{{{{GenericItemLink|{game}|{item.ItemName}|{item.Icon}|{item.IconColor}}}}}{(item.Quantity > 1 ? " x" + item.Quantity : "")}
 {{{{!}}}}{(item.Chance != null ? item.Chance + "%" : "")}");
 						}
 					}

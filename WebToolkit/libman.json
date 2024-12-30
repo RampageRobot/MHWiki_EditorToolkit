@@ -5,6 +5,10 @@
     {
       "library": "bootstrap-icons@1.11.3",
       "destination": "wwwroot/bootstrap-icons/"
+    },
+    {
+      "library": "select2@4.0.13",
+      "destination": "wwwroot/lib/select2/"
     }
   ]
 }

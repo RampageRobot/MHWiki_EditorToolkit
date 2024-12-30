@@ -1,7 +1,6 @@
 var mdlGenerate;
 var rootEl = {};
 var rootItemEl = {};
-var itemArray = [];
 $(window).on("load", function () {
     $(".item-table").attr("id", crypto.randomUUID());
     rootEl = $($(".card")[0]).parent().clone(true);
@@ -10,59 +9,8 @@ $(window).on("load", function () {
     var rowId = crypto.randomUUID();
     $(rowEl).attr('id', rowId);
     $(rowEl).find(".btn-delete-global-row").attr("onclick", "deleteGlobalRow('" + rowId + "');");
+    $('.item-name-input').each(function () { $(this).select2(); });
 });
-function addGlobalRow()
-{
-    var newRow = rootItemEl.clone(true);
-    var rowId = crypto.randomUUID();
-    $("#tblGlobalItems tbody").append(newRow);
-    $(newRow).attr('id', rowId);
-    $(newRow).find(".btn-delete-global-row").attr("onclick", "deleteGlobalRow('" + rowId + "');");
-}
-function deleteGlobalRow(rowId)
-{
-    $("#" + rowId).remove();
-    setItemArray();
-}
-function setItemArray()
-{
-    itemArray = [];
-    $("#tblGlobalItems tbody tr").each(function () {
-        var itemName = $($($(this).children()[1]).children()[0]).val();
-        if (itemName != '')
-        {
-            itemArray.push({
-                "Include": $($($($(this).children()[0]).children()[0]).children()[0]).prop("checked"),
-                "ItemName": itemName,
-                "IconType": $($($(this).children()[2]).children()[0]).val(),
-                "IconColor": $($($(this).children()[3]).children()[0]).val(),
-                "Description": $($($(this).children()[4]).children()[0]).val(),
-                "Rarity": $($($(this).children()[5]).children()[0]).val(),
-                "Price": $($($(this).children()[6]).children()[0]).val()
-            });
-        }
-    });
-    $(".item-name-input").each(function () {
-        var lastVal = $(this).val();
-        $(this)
-            .find('option')
-            .remove()
-            .end()
-            .append("<option value=''></option>");
-        itemArray.map(function (item) { return item.ItemName; }).sort(function (a, b) { return a > b ? 1 : -1;}).forEach((x) => $(this).append("<option value='" + x + "'>" + x + "</option>"));
-        $(this).val(lastVal);
-    });
-    if (itemArray.map(function (item) {return item.ItemName;}).filter((item, index) => itemArray.map(function (item) {return item.ItemName;}).indexOf(item) !== index).length > 0)
-    {
-        $("#divItemList").addClass("item-list-warn");
-        $("#divWarning").removeClass("d-none");
-    }
-    else
-    {
-        $("#divItemList").removeClass("item-list-warn");
-        $("#divWarning").addClass("d-none");
-    }
-}
 function copyToClipboard()
 {
     var copyText = document.getElementById("txtResults");
@@ -70,56 +18,6 @@ function copyToClipboard()
         copyText.setSelectionRange(0, 99999);
         navigator.clipboard.writeText(copyText.value);
         alert("Copied!");
-}
-function dragend()
-{
-    $("[draggable=true]").removeAttr("draggable");
-    draggedCard = undefined;
-    draggedRow = undefined;
-    draggedTable = undefined;
-    $(".card-holder").each(function() {
-        var cardId = $($(this).find("div.card-body")).attr("id");
-        $($(this).children()[0]).attr("id", "card_" + cardId);
-        $($(this).find("button.btn-drag-card")).attr("onmousedown", "setCardDraggable('card_" + cardId + "');");
-        $($(this).find("button.btn-add-table")).attr("onclick", "addTableToRankCard('" + cardId + "');");
-        $($(this).find("button.btn-delete-card")).attr("onclick", "$(this).parents('div.card-holder').first().remove();");
-        $(this).find(".table-holder").each(function () {
-            var tableId = $($(this).find("table")).attr("id");
-            $($(this).find("button.btn-add-item")).attr("onclick", "addItemToTable('" + tableId + "');");
-            $($(this).find("button.btn-delete-table")).attr("onclick", "$(this).parents('div.table-holder').first().remove();");
-            $($(this).find("button.btn-drag-table")).attr("onmousedown", "setTableDraggable('" + tableId + "');");
-            $(this).find("tbody tr").each(function() {
-                var rowId = $(this).attr("id");
-                $($(this).find("button.btn-delete-row")).attr("onclick", "$(this).parent().parent().remove();");
-                $($(this).find("button.btn-drag-row")).attr("onmousedown", "setRowDraggable('" + rowId + "');");
-            });
-        });
-    });
-}
-function setRowDraggable(rowId) {
-    if (rowId === '')
-    {
-        el = $("#trFirstRow");
-    }
-    else
-    {
-        el = $("#" + rowId);
-    }
-    $(el).attr("draggable", true);
-}
-function setTableDraggable(tableId) {
-    if (tableId === '')
-    {
-        el = $("#divFirstHolder");
-    }
-    else
-    {
-        el = $("#" + tableId).parent().parent().parent();
-    }
-    $(el).attr("draggable", true);
-}
-function setCardDraggable(cardId) {
-    $("#" + cardId).attr("draggable", true);
 }
 
 function onlyUnique(value, index, array) {
@@ -152,7 +50,7 @@ function addRankCard()
     $(rankCard.find("button.btn-delete-row")).attr("onclick", "$(this).parent().parent().remove();");
     $(rankCard.find("button.btn-drag-row")).attr("onmousedown", "setRowDraggable('" + rowId + "');");
     $("#divCardContainer").append(rankCard);
-    setItemArray();
+    $(rankCard).find('.item-name-input').each(function () { $(this).select2(); });
 }
 
 function addTableToRankCard(cardId)
@@ -182,7 +80,7 @@ function addTableToRankCard(cardId)
     $(newTable.find("tr.table-content-row")).attr("id", rowId);
     $(newTable.find("button.btn-delete-row")).attr("onclick", "$(this).parent().parent().remove();");
     $(newTable.find("button.btn-drag-row")).attr("onmousedown", "setRowDraggable('" + rowId + "');");
-    setItemArray();
+    $(newTable).find('.item-name-input').each(function () { $(this).select2(); });
 }
 
 function addItemToTable(tableId)
@@ -202,7 +100,7 @@ function addItemToTable(tableId)
     $(newRow).attr("id", rowId);
     $(newRow.find("button.btn-delete-row")).attr("onclick", "$(this).parent().parent().remove();");
     $(newRow.find("button.btn-drag-row")).attr("onmousedown", "setRowDraggable('" + rowId + "');");
-    setItemArray();
+    $(newRow).find('.item-name-input').each(function () { $(this).select2(); });
 }
 
 function collapseTable(button)
@@ -247,36 +145,15 @@ function generateTables()
 }
 
 function getSaveData() {
-    setItemArray();
     return {
         "monster": $("#txtMonsterName").val(),
-        "data": getFinalData(),
-        "itemData": itemArray
+        "data": getFinalData()
     };
     var finalData = getFinalData();
 }
 
 function pageLoadData(loadedData) {
     $("#txtMonsterName").val(loadedData.monster);
-    for (var i = 0; i < loadedData.itemData.length; i++) {
-        if ($("#tblGlobalItems tbody tr").length < (i + 1)) {
-            addGlobalRow();
-        }
-        var row = $("#tblGlobalItems tbody tr").last();
-        var itemObj = loadedData.itemData[i];
-        row.find(".global-item-include-input").prop("checked", itemObj.Include == true)
-        row.find(".global-item-name-input").val(itemObj.ItemName);
-        row.find(".global-item-icon-input").val(itemObj.IconType);
-        row.find(".global-item-color-input").val(itemObj.IconColor);
-        row.find(".global-item-description-input").val(itemObj.Description);
-        var rarityEl = row.find(".global-item-rarity-input");
-        rarityEl.val(itemObj.Rarity);
-        validateInput(rarityEl[0]);
-        var priceEl = row.find(".global-item-price-input");
-        priceEl.val(itemObj.Price);
-        validateInput(priceEl[0]);
-    }
-    setItemArray();
     for (var i = 0; i < loadedData.data.length; i++) {
         var rankObj = loadedData.data[i];
         if ($("#divCardContainer .card-holder").length < (i + 1)) {
@@ -297,7 +174,8 @@ function pageLoadData(loadedData) {
                     addItemToTable(table.find(".table-content table").attr("id"));
                 }
                 var row = table.find(".table-content table tbody tr").last();
-                row.find(".item-name-input").val(itemObj.ItemName);
+                row.find(".item-name-input").val(itemObj.ItemId);
+                row.find('.item-name-input').trigger("change");
                 var chanceCol = row.find(".item-chance-input");
                 chanceCol.val(itemObj.Chance);
                 validateInput(chanceCol[0]);
@@ -308,6 +186,15 @@ function pageLoadData(loadedData) {
             }
         }
     }
+}
+
+function updateDropdowns() {
+    $(".item-name-input").each(function () {
+        var oldVal = $(this).val();
+        $(this).find("option").remove();
+        $(this).append(dropdowns[$("#ddlGameSelect").val()]);
+        $(this).val(oldVal);
+    });
 }
 
 function getFinalData() {
@@ -330,18 +217,16 @@ function getFinalData() {
                 let row = $(rows[i3]);
                 var itemName = $($(row.children()[1]).children()[0]).val();
                 if (itemName != '') {
-                    var item = itemArray.filter(function (item) {
-                        return item.ItemName == itemName;
-                    })[0];
                     thisTable["Items"].push({
-                        "Include": item.Include,
-                        "ItemName": item.ItemName,
+                        "Include": true,
+                        "ItemName": '',
+                        "ItemId": itemName,
                         "Chance": $($(row.children()[2]).children()[0]).val(),
-                        "Icon": item.IconType,
-                        "IconColor": item.IconColor,
-                        "Description": ((item.Description == '' || typeof (item.Description) === 'undefined') ? '[DESCRIPTION]' : item.Description),
-                        "Rarity": ((item.Rarity == '' || typeof (item.Rarity) === 'undefined') ? '1' : item.Rarity),
-                        "Price": ((item.Price == '' || typeof (item.Price) === 'undefined') ? '0' : (item.Price.toString() + "z")),
+                        "Icon": '',
+                        "IconColor": '',
+                        "Description": '',
+                        "Rarity": '',
+                        "Price": '',
                         "Category": $($(row.children()[3]).children()[0]).val(),
                         "Quantity": $($(row.children()[4]).children()[0]).val()
                     });
@@ -356,190 +241,4 @@ function getFinalData() {
 
 function convert(num) {
     return ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten"][parseInt(num)];
-}
-
-var draggedRow;
-var initRowIndex = -1;
-function row_start(e){
-    if (e.target.tagName == "TR")
-    {
-        draggedRow = e.target;
-        initRowIndex = Array.from(draggedRow.parentNode.children).indexOf(draggedRow);
-    }
-}
-function row_dragover(e){
-    if (typeof(draggedRow) !== 'undefined')
-    {
-        if (matchRowAncestor(e.target, draggedRow.parentNode.id))
-        {
-            if(getRowIndex(e.target)>=initRowIndex)
-                getRowNode(e.target).after(getRowNode(draggedRow));
-            else
-                getRowNode(e.target).before(getRowNode(draggedRow));
-        }
-    }
-}
-
-function getRowNode(eventTarget)
-{
-    while (eventTarget.tagName != "TR")
-    {
-        eventTarget = eventTarget.parentNode;
-    }
-    return eventTarget;
-}
-
-function getRowIndex(eventTarget)
-{
-    var rowNode;
-    var parentNode = eventTarget.parentNode;
-    while (parentNode.tagName != "TBODY" && parentNode.tagName != "THEAD")
-    {
-        if (parentNode.tagName == "TR")
-        {
-            rowNode = parentNode;
-        }
-        parentNode = parentNode.parentNode;
-    }
-    if (parentNode.tagName == "THEAD")
-    {
-        return -1;
-    }
-    else
-    {
-        return Array.from(parentNode.children).indexOf(rowNode);
-    }
-}
-
-function matchRowAncestor(node, targetId)
-{
-    while (node.tagName != "TBODY" && node.tagName != 'BODY')
-    {
-        node = node.parentNode;
-    }
-    return node.tagName == "TBODY";
-}
-
-function matchTableAncestor(node, targetId)
-{
-    while (node.className != "table-container" && node.tagName != 'BODY')
-    {
-        node = node.parentNode;
-    }
-    return node.className == "table-container";
-}
-
-var draggedTable;
-function table_start(e){
-    if (e.target.className == "table-holder")
-    {
-        draggedTable = e.target;
-    }
-}
-function table_dragover(e){
-    if (typeof(draggedTable) !== 'undefined')
-    {
-        if (matchTableAncestor(e.target, draggedTable.parentNode.id))
-        {
-            let children= Array.from(draggedTable.parentNode.children);
-            if(getTableIndex(e.target)>children.indexOf(draggedTable))
-                getTableNode(e.target).after(draggedTable);
-            else
-                getTableNode(e.target).before(draggedTable);
-        }
-    }
-}
-
-function getTableNode(eventTarget)
-{
-    while (eventTarget.className != "table-holder")
-    {
-        eventTarget = eventTarget.parentNode;
-    }
-    return eventTarget;
-}
-
-function getTableIndex(eventTarget)
-{
-    var tableNode;
-    var parentNode = eventTarget.parentNode;
-    while (parentNode.className != "table-container")
-    {
-        if (parentNode.className == "table-holder")
-        {
-            tableNode = parentNode;
-        }
-        parentNode = parentNode.parentNode;
-    }
-    return Array.from(parentNode.children).indexOf(tableNode);
-}
-var draggedCard;
-function card_start(event){
-    if (event.target.className == 'card')
-    {
-        console.log(event.target);
-        draggedCard = event.target;
-    }
-}
-function card_dragover(e){
-    if (typeof(draggedCard) !== 'undefined')
-    {
-        if (isCardAncestor(e.target))
-        {
-            let children= Array.from(getCardHolder(e.target).parentNode.children);
-            if(children.indexOf(getCardHolder(e.target))>children.indexOf(getCardHolder(draggedCard)))
-                getCardHolder(e.target).after(getCardHolder(draggedCard));
-            else
-                getCardHolder(e.target).before(getCardHolder(draggedCard));
-        }
-    }
-}
-
-function getCardNode(eventTarget)
-{
-    while (eventTarget.className != "table-holder")
-    {
-        eventTarget = eventTarget.parentNode;
-    }
-    return eventTarget;
-}
-
-function getCardIndex(eventTarget)
-{
-    var tableNode;
-    var parentNode = eventTarget.parentNode;
-    while (parentNode.className != "table-container")
-    {
-        if (parentNode.className == "table-holder")
-        {
-            tableNode = parentNode;
-        }
-        parentNode = parentNode.parentNode;
-    }
-    return Array.from(parentNode.children).indexOf(tableNode);
-}
-
-function isCardAncestor(eventTarget)
-{
-    while (eventTarget.className != "card" && eventTarget.tagName != "BODY")
-    {
-        eventTarget = eventTarget.parentNode;
-    }
-    return eventTarget.className == "card";
-}
-
-function getCardHolder(node)
-{
-    while (!node.className.includes("card-holder") && node.tagName != "BODY")
-    {
-        node = node.parentNode;
-    }
-    if (node.className.includes("card-holder"))
-    {
-        return node;
-    }
-    else
-    {
-        return null;
-    }
 }

@@ -280,7 +280,6 @@ class WeaponTemplate
 			</div>
 		</div>`);
 		$(".hide-on-invalid-game").each(function () {
-			console.log($(this));
 			if (!$(this).attr("data-valid-games").split(',').some(function (item) { return item == $("#ddlGameSelect").val(); })) {
 				$(this).hide();
 			}
@@ -308,9 +307,16 @@ class WeaponTemplate
     }
     static getRow()
     {
-        return `<tr style="vertical-align:middle;" class="table-content-row" ondragend="dragend(event)" ondragover="row_dragover(event)" ondragstart="row_start(event)" data-template="row">
+        return `<tr style="vertical-align:middle;" class="table-content-row" data-template="row">
 	<td class="ignore-generate" style="text-align:center">
-		<button type="button" onmousedown="$(this).parent().parent().attr('draggable', true);" class="btn btn-primary btn-drag-row" title="Drag this button to move this weapon."><i class="bi bi-arrows-move"></i></button>
+		<div class="col">
+			<div class="row pb-1">
+				<div class="col">
+					<button style="padding: .25rem; margin-right:.25rem;" class="btn btn-primary bi bi-arrow-up float-start" onclick="$(this).parents('.table-content-row').after($(this).parents('.table-content-row').prev())"></button>
+					<button style="padding: .25rem;" class="btn btn-primary bi bi-arrow-down float-start" onclick="$(this).parents('.table-content-row').before($(this).parents('.table-content-row').next())"></button>
+				</div>
+			</div>
+		</div>
 	</td>
 	<td style="text-align:center; align-content:center">
 		<input style="font-size:1.5rem;" class="form-check-input weapon-can-forge-input data-value m-auto" data-label="can-forge" type="checkbox" value="">
@@ -390,6 +396,7 @@ class WeaponTemplate
 	}
 	static modifyStats(row, statsCallback, arg1, arg2, arg3) {
 		WeaponTemplate.currentStatsRow = row;
+		$("#mdlModifyStats .modal-body").find(".data-value").val("");
 		var prevVal = null;
 		var prevValStr = $(WeaponTemplate.currentStatsRow).find(".weapon-stats-input").first().val();
 		if (prevValStr != '') {
@@ -657,6 +664,7 @@ class WeaponTemplate
 	static pageLoadData(loadedData) {
 		var pathLinkDict = [];
 		var parentNameDict = [];
+		$(".card-holder").remove();
 		for (var i2 = 0; i2 < loadedData.length; i2++) {
 			var pathData = loadedData[i2];
 			if ($(".card-holder").length < (i2 + 1)) {

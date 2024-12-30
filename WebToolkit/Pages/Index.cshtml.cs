@@ -14,7 +14,6 @@ namespace WebToolkit.Pages
 
         public void OnGet()
         {
-
-        }
+		}
     }
 }

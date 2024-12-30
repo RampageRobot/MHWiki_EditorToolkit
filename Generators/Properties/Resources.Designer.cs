@@ -61,6 +61,25 @@ namespace MediawikiTranslator.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to [{&quot;Name&quot;:&quot;Potion&quot;,&quot;Description&quot;:&quot;Restores a small amount of health.&quot;,&quot;WikiIconColor&quot;:&quot;Green&quot;,&quot;WikiIconName&quot;:&quot;Medicine&quot;,&quot;_Id&quot;:68157446,&quot;_CariableFilter&quot;:1,&quot;_Type&quot;:0,&quot;_Rare&quot;:0,&quot;_PlMaxCount&quot;:10,&quot;_OtMaxCount&quot;:10,&quot;_SortId&quot;:100,&quot;_Supply&quot;:false,&quot;_CanPutInOtDogPouch&quot;:false,&quot;_ShowItemWindow&quot;:true,&quot;_ShowActionWindow&quot;:false,&quot;_Infinite&quot;:false,&quot;_Default&quot;:false,&quot;_IconCanEat&quot;:false,&quot;_IconItemRank&quot;:0,&quot;_EffectRare&quot;:false,&quot;_IconChara&quot;:5,&quot;_IconColor&quot;:8,&quot;_SeType&quot;:0,&quot;_SellPrice&quot;:8,&quot;_BuyPrice&quot;:66,&quot;_ItemActionType&quot;:11,&quot;_RankType&quot; [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string mhrs_items {
+            get {
+                return ResourceManager.GetString("mhrs items", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] mhwi_items {
+            get {
+                object obj = ResourceManager.GetObject("mhwi_items", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized resource of type System.Byte[].
         /// </summary>
         internal static byte[] MHWilds_PartNames_json {
