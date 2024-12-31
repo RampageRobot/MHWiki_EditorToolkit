@@ -80,6 +80,21 @@ namespace MediawikiTranslator.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to {
+        ///    &quot;0984acc3-46af-4537-ac70-b7fdc9f24f74&quot;: {
+        ///        &quot;content&quot;: [
+        ///            &quot;\u30bb\u30fc\u30d6\u30c7\u30fc\u30bf\u304c\u3042\u308a\u307e\u305b\u3093\u3002\r\n\u65b0\u898f\u306b\u30bb\u30fc\u30d6\u30c7\u30fc\u30bf\u3092\u4f5c\u6210\u3057\u307e\u3059\u3002&quot;,
+        ///            &quot;No save data exists.\r\nCreating a new save data file.&quot;,
+        ///            &quot;Aucune donn\u00e9e de sauvegarde existante.\r\nCr\u00e9ation de nouvelles donn\u00e9es de sauvegarde.&quot;,
+        ///            &quot;Non sono stati trovati dati di salvataggio.\r\nCr [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string mhwilds_combined_msgs {
+            get {
+                return ResourceManager.GetString("mhwilds_combined_msgs", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized resource of type System.Byte[].
         /// </summary>
         internal static byte[] MHWilds_PartNames_json {

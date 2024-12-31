@@ -165,7 +165,7 @@
 																	</div>
 																</td>
 																<td>
-																	<select class="form-control form-select item-name-input">
+																	<select class="form-control form-select item-name-input" onclick="$(this).find('')">
 																		@Html.Raw(Model.MHWIDropdowns)
 																	</select>
 																</td>
@@ -260,6 +260,20 @@
 				<div class="row">
 					<div class="col">
 						<p>Ping or message @@rampagerobot on Discord if you have any issues.</p>
+					</div>
+				</div>
+				<div class="row py-2">
+					<div class="col">
+						<div class="card">
+							<div class="card-header">
+								<h4>v1.3.7</h4>
+							</div>
+							<div class="card-body">
+								<h6>Fixed old save incompatibility since items switch.</h6>
+								<h6>Fixed game agnosticism in saves.</h6>
+								<h6>Fixed dropdowns not auto-focusing on open.</h6>
+							</div>
+						</div>
 					</div>
 				</div>
 				<div class="row py-2">

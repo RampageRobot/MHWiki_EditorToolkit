@@ -50,7 +50,13 @@ function addRankCard()
     $(rankCard.find("button.btn-delete-row")).attr("onclick", "$(this).parent().parent().remove();");
     $(rankCard.find("button.btn-drag-row")).attr("onmousedown", "setRowDraggable('" + rowId + "');");
     $("#divCardContainer").append(rankCard);
-    $(rankCard).find('.item-name-input').each(function () { $(this).select2(); });
+    $(rankCard).find(".item-name-input").each(function () {
+        var oldVal = $(this).val();
+        $(this).find("option").remove();
+        $(this).append(dropdowns[$("#ddlGameSelect").val()]);
+        $(this).val(oldVal);
+        $(this).select2();
+    });
 }
 
 function addTableToRankCard(cardId)
@@ -80,7 +86,13 @@ function addTableToRankCard(cardId)
     $(newTable.find("tr.table-content-row")).attr("id", rowId);
     $(newTable.find("button.btn-delete-row")).attr("onclick", "$(this).parent().parent().remove();");
     $(newTable.find("button.btn-drag-row")).attr("onmousedown", "setRowDraggable('" + rowId + "');");
-    $(newTable).find('.item-name-input').each(function () { $(this).select2(); });
+    $(newTable).find(".item-name-input").each(function () {
+        var oldVal = $(this).val();
+        $(this).find("option").remove();
+        $(this).append(dropdowns[$("#ddlGameSelect").val()]);
+        $(this).val(oldVal);
+        $(this).select2();
+    });
 }
 
 function addItemToTable(tableId)
@@ -100,7 +112,13 @@ function addItemToTable(tableId)
     $(newRow).attr("id", rowId);
     $(newRow.find("button.btn-delete-row")).attr("onclick", "$(this).parent().parent().remove();");
     $(newRow.find("button.btn-drag-row")).attr("onmousedown", "setRowDraggable('" + rowId + "');");
-    $(newRow).find('.item-name-input').each(function () { $(this).select2(); });
+    $(newRow).find(".item-name-input").each(function () {
+        var oldVal = $(this).val();
+        $(this).find("option").remove();
+        $(this).append(dropdowns[$("#ddlGameSelect").val()]);
+        $(this).val(oldVal);
+        $(this).select2();
+    });
 }
 
 function collapseTable(button)
@@ -146,6 +164,7 @@ function generateTables()
 
 function getSaveData() {
     return {
+        "game": $("#ddlGameSelect").val(),
         "monster": $("#txtMonsterName").val(),
         "data": getFinalData()
     };
@@ -153,6 +172,10 @@ function getSaveData() {
 }
 
 function pageLoadData(loadedData) {
+    if (typeof (loadedData.game) !== 'undefined') {
+        $("#ddlGameSelect").val(loadedData.game);
+        $("#ddlGameSelect").trigger("change");
+    }
     $("#txtMonsterName").val(loadedData.monster);
     for (var i = 0; i < loadedData.data.length; i++) {
         var rankObj = loadedData.data[i];
@@ -174,7 +197,18 @@ function pageLoadData(loadedData) {
                     addItemToTable(table.find(".table-content table").attr("id"));
                 }
                 var row = table.find(".table-content table tbody tr").last();
-                row.find(".item-name-input").val(itemObj.ItemId);
+                var nameSelect = row.find(".item-name-input").first();
+                if (typeof (itemObj.ItemId) === 'undefined') {
+                    itemObj.ItemId = itemObj.ItemName;
+                }
+                nameSelect.val(itemObj.ItemId);
+                if (nameSelect.val() != itemObj.ItemId) {
+                    var matches = nameSelect.find("option").filter(function () { return $(this).html() == itemObj.ItemId; });
+                    if (matches.length > 0) {
+                        nameSelect.val(matches.first().attr("value"));
+                    }
+                }
+                if (row.find(".item-name-input option").first().html())
                 row.find('.item-name-input').trigger("change");
                 var chanceCol = row.find(".item-chance-input");
                 chanceCol.val(itemObj.Chance);

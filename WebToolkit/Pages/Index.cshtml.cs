@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Mvc;
+using MHWilds = MediawikiTranslator.Models.Data.MHWilds;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
 namespace WebToolkit.Pages

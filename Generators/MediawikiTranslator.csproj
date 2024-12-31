@@ -7,6 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Resources\combined_msgs.json" />
     <None Remove="Resources\mhrs items.json" />
     <None Remove="Resources\mhwi-items.json" />
   </ItemGroup>
@@ -17,6 +18,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Resource Include="Resources\combined_msgs.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
     <Resource Include="Resources\mhrs items.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
