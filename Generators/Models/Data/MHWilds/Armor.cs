@@ -13,8 +13,8 @@ namespace MediawikiTranslator.Models.Data.MHWilds
 		public static Armor GetArmors()
 		{
 			Dictionary<string, CommonMsgs> msgs = CommonMsgs.Fetch();
-			Armor src = FromJson(File.ReadAllText(@"D:\mhwildsdata\outputs\stm\gamedesign\common\equip\armordata.user.3.json"));
-			ArmorSeries srcSeries = ArmorSeries.FromJson(File.ReadAllText(@"D:\mhwildsdata\outputs\stm\gamedesign\common\equip\armorseriesdata.user.3.json"));
+			Armor src = FromJson(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Raw Data\MHWilds\stm\gamedesign\common\equip\armordata.user.3.json"));
+			ArmorSeries srcSeries = ArmorSeries.FromJson(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Raw Data\MHWilds\stm\gamedesign\common\equip\armorseriesdata.user.3.json"));
 			foreach (Value val in src.AppUserDataArmorData.Values)
 			{
 				val.ArmorSeries = srcSeries.AppUserDataArmorSeriesData.Values.FirstOrDefault(x => !string.IsNullOrEmpty(val.Series) && x.Series == val.Series);

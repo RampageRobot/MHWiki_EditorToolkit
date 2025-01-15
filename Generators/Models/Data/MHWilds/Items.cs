@@ -13,7 +13,7 @@ namespace MediawikiTranslator.Models.Data.MHWilds
 		public static Items GetItems()
 		{
 			Dictionary<string, CommonMsgs> msgs = CommonMsgs.Fetch();
-			Items src = FromJson(File.ReadAllText(@"D:\mhwildsdata\outputs\stm\gamedesign\common\item\itemdata.user.3.json"));
+			Items src = FromJson(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Raw Data\MHWilds\stm\gamedesign\common\item\itemdata.user.3.json"));
 			foreach (ItemsValue val in src.AppUserDataItemData.Values)
 			{
 				if (msgs.ContainsKey(val.RawName!.ToString()))

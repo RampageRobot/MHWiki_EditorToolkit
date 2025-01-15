@@ -45,7 +45,7 @@ namespace MediawikiTranslator.Models.ArmorSets
                         retPiece.IconType = "Chestplate";
                         break;
                     case ArmorSetPieceType.Arms:
-                        retPiece.IconType = "Armguard";
+                        retPiece.IconType = "Armguards";
                         break;
                     case ArmorSetPieceType.Waist:
                         retPiece.IconType = "Waist";

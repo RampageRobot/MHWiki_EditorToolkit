@@ -79,7 +79,7 @@ namespace MediawikiTranslator.Models.Data.MHWI
 			return;
 		}
 
-		public static readonly ParseStringConverter Singleton = new ParseStringConverter();
+		public static readonly SkillsExtraInfoParseStringConverter Singleton = new SkillsExtraInfoParseStringConverter();
 	}
 
 	internal class IsSetBonusConverter : JsonConverter

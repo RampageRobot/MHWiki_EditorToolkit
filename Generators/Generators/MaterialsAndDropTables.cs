@@ -38,22 +38,48 @@ namespace MediawikiTranslator.Generators
 !style=""width:400px;text-align:left"" | Item
 !style=""width:65px;text-align:left"" | Rarity
 !style=""width:200px;text-align:left"" | Price");
-			Models.Data.MHWI.Items[] itemArray = Models.Data.MHWI.Items.Fetch();
-			foreach (WebToolkitData data in srcData)
+			if (game == "MHWI")
 			{
-				foreach (Table table in data.Tables)
+				Models.Data.MHWI.Items[] itemArray = Models.Data.MHWI.Items.Fetch();
+				foreach (WebToolkitData data in srcData)
 				{
-					foreach (Item item in table.Items)
+					foreach (Table table in data.Tables)
 					{
-						if (itemArray.Any(x => x.Id.ToString() == item.ItemId))
+						foreach (Item item in table.Items)
 						{
-							Models.Data.MHWI.Items itemMatch = itemArray.First(x => x.Id.ToString() == item.ItemId);
-							item.ItemName = itemMatch.Name;
-							item.Icon = itemMatch.WikiIconName;
-							item.IconColor = itemMatch.WikiIconColor.ToString()!;
-							item.Price = itemMatch.BuyPrice.ToString()!;
-							item.Rarity = itemMatch.Rarity;
-							item.Description = itemMatch.Description;
+							if (itemArray.Any(x => x.Id.ToString() == item.ItemId))
+							{
+								Models.Data.MHWI.Items itemMatch = itemArray.First(x => x.Id.ToString() == item.ItemId);
+								item.ItemName = itemMatch.Name;
+								item.Icon = itemMatch.WikiIconName;
+								item.IconColor = itemMatch.WikiIconColor.ToString()!;
+								item.Price = itemMatch.BuyPrice.ToString()!;
+								item.Rarity = itemMatch.Rarity;
+								item.Description = itemMatch.Description;
+							}
+						}
+					}
+				}
+			}
+			else if (game == "MHRS")
+			{
+				Models.Data.MHRS.Items[] itemArray = Models.Data.MHRS.Items.Fetch();
+				foreach (WebToolkitData data in srcData)
+				{
+					foreach (Table table in data.Tables)
+					{
+						foreach (Item item in table.Items)
+						{
+							if (itemArray.Any(x => x.Id.ToString() == item.ItemId))
+							{
+								Models.Data.MHRS.Items itemMatch = itemArray.First(x => x.Id.ToString() == item.ItemId);
+								item.ItemName = itemMatch.Name;
+								item.Icon = itemMatch.WikiIconName;
+								item.IconColor = itemMatch.WikiIconColor.ToString()!;
+								item.Price = itemMatch.BuyPrice.ToString()!;
+								item.Rarity = Convert.ToInt32(itemMatch.Rare!.Substring(2));
+								item.Description = itemMatch.Description.Replace("<COL YEL>(Account Item)</COL>", "<span style=\"color:yellow\">(Account Item)</span>");
+							}
 						}
 					}
 				}
@@ -126,6 +152,52 @@ namespace MediawikiTranslator.Generators
 !style=""width:400px;text-align:left"" | Item
 !style=""width:65px;text-align:left"" | Rarity
 !style=""width:200px;text-align:left"" | Price");
+			if (game == "MHWI")
+			{
+				Models.Data.MHWI.Items[] itemArray = Models.Data.MHWI.Items.Fetch();
+				foreach (WebToolkitData data in srcData)
+				{
+					foreach (Table table in data.Tables)
+					{
+						foreach (Item item in table.Items)
+						{
+							if (itemArray.Any(x => x.Id.ToString() == item.ItemId))
+							{
+								Models.Data.MHWI.Items itemMatch = itemArray.First(x => x.Id.ToString() == item.ItemId);
+								item.ItemName = itemMatch.Name;
+								item.Icon = itemMatch.WikiIconName;
+								item.IconColor = itemMatch.WikiIconColor.ToString()!;
+								item.Price = itemMatch.BuyPrice.ToString()!;
+								item.Rarity = itemMatch.Rarity;
+								item.Description = itemMatch.Description;
+							}
+						}
+					}
+				}
+			}
+			else if (game == "MHRS")
+			{
+				Models.Data.MHRS.Items[] itemArray = Models.Data.MHRS.Items.Fetch();
+				foreach (WebToolkitData data in srcData)
+				{
+					foreach (Table table in data.Tables)
+					{
+						foreach (Item item in table.Items)
+						{
+							if (itemArray.Any(x => x.Id.ToString() == item.ItemId))
+							{
+								Models.Data.MHRS.Items itemMatch = itemArray.First(x => x.Id.ToString() == item.ItemId);
+								item.ItemName = itemMatch.Name;
+								item.Icon = itemMatch.WikiIconName;
+								item.IconColor = itemMatch.WikiIconColor.ToString()!;
+								item.Price = itemMatch.BuyPrice.ToString()!;
+								item.Rarity = Convert.ToInt32(itemMatch.Rare!.Substring(2));
+								item.Description = itemMatch.Description.Replace("<COL YEL>(Account Item)</COL>", "<span style=\"color:yellow\">(Account Item)</span>");
+							}
+						}
+					}
+				}
+			}
 			Item[] items = [..srcData
 					.SelectMany(x => x.Tables.SelectMany(x => x.Items))
 					.Where(x => x.Include)

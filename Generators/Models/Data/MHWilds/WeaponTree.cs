@@ -31,7 +31,7 @@ namespace MediawikiTranslator.Models.Data.MHWilds
 				"whistle"
 			};
 			List<WeaponTree> ret = [];
-			string folder = @"D:\mhwildsdata\outputs\stm\gamedesign\common\weapon\";
+			string folder = @"D:\MH_Data Repo\MH_Data\Raw Data\MHWilds\stm\gamedesign\common\weapon\";
 			foreach (string weaponDataFile in weaponDataFiles)
 			{
 				WeaponTree thisSrc = FromJson(File.ReadAllText(Path.Combine(folder, weaponDataFile + "tree.user.3.json")));

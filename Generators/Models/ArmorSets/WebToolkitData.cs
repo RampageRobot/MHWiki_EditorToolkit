@@ -42,6 +42,9 @@ namespace MediawikiTranslator.Models.ArmorSets
 
         [JsonProperty("pieces")]
         public Piece[] Pieces { get; set; } = [];
+
+        [JsonIgnore]
+        public string Rank { get; set; } = string.Empty;
     }
 
     public partial class Piece
@@ -117,6 +120,9 @@ namespace MediawikiTranslator.Models.ArmorSets
         [JsonProperty("decos-4")]
         [JsonConverter(typeof(ParseStringConverter))]
         public long? Decos4 { get; set; }
+
+        [JsonIgnore]
+        public int MaxLevel { get; set; }
     }
 
     public partial class Material
@@ -143,6 +149,9 @@ namespace MediawikiTranslator.Models.ArmorSets
         [JsonProperty("level")]
         [JsonConverter(typeof(ParseStringConverter))]
         public long? Level { get; set; }
+
+        [JsonIgnore]
+        public string WikiIconColor { get; set; } = string.Empty;
     }
 
     public partial class WebToolkitData

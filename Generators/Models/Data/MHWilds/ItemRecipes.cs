@@ -11,7 +11,7 @@ namespace MediawikiTranslator.Models.Data.MHWilds
 		public static ItemRecipes GetItemRecipes()
 		{
 			Items allItems = Items.GetItems();
-			ItemRecipes src = FromJson(File.ReadAllText(@"D:\mhwildsdata\outputs\stm\gamedesign\common\item\itemrecipe.user.3.json"));
+			ItemRecipes src = FromJson(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Raw Data\MHWilds\stm\gamedesign\common\item\itemrecipe.user.3.json"));
 			foreach (ItemRecipesValue val in src.AppUserDataCItemRecipe.Values)
 			{
 				if (allItems.AppUserDataItemData.Values.Any(x => x.ItemId == val.ResultItem))

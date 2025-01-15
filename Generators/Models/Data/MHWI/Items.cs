@@ -103,7 +103,7 @@ namespace MediawikiTranslator.Models.Data.MHWI
 
     public enum TypeEnum { AccountItem, AmmoOrCoating, Item, Jewel, Material, RoomDecoration };
 
-    public enum WikiIconColor { Blue, Brown, DarkPurple, Emerald, Gray, Green, Lemon, LightBlue, Moss, NA, NotAvailable, Orange, Pink, Purple, Red, Rose, Tan, Violet, White, Yellow, Vermilion, LightGreen };
+    public enum WikiIconColor { Blue, Brown, DarkPurple, Emerald, Gray, Green, Lemon, LightBlue, Moss, NA, NotAvailable, Orange, Pink, Purple, Red, Rose, Tan, Violet, White, Yellow, Vermilion, LightGreen, DarkBlue };
 
     public partial class Items
     {
@@ -287,6 +287,8 @@ namespace MediawikiTranslator.Models.Data.MHWI
                     return WikiIconColor.Vermilion;
 				case "Light Green":
 					return WikiIconColor.LightGreen;
+				case "Dark Blue":
+					return WikiIconColor.DarkBlue;
 			}
             throw new Exception("Cannot unmarshal type WikiIconColor");
         }

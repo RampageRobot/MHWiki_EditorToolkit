@@ -10,38 +10,6 @@ namespace MediawikiTranslator.Generators
 {
 	public class Items
 	{
-		public static void ParseItems()
-		{
-			RawItems rawItems = RawItems.FromJson(File.ReadAllText(@"C:\Users\mkast\Desktop\itemdata.user.2.json"));
-			ItemsExplain itemsExplain = ItemsExplain.FromJson(File.ReadAllText(@"C:\Users\mkast\Desktop\mhrs item explains.txt"));
-			ItemsNames itemsNames = ItemsNames.FromJson(File.ReadAllText(@"C:\Users\mkast\Desktop\mhrs item names.txt"));
-			Dictionary<int, string> mhrsItemEnum = GetMHRSItemEnum();
-			Dictionary<int, string> mhrsColors = GetMHRSWikiColors();
-			Dictionary<int, string> mhrsIconChara = GetMHRSIconCharaDict();
-			List<Models.Data.MHRS.Items> finalItems = [];
-			foreach (ItemsParam item in rawItems.SnowDataItemUserData.Param)
-			{
-				Models.Data.MHRS.Items newItem = new(item);
-				if (mhrsItemEnum.ContainsKey((int)newItem.Id!.Value))
-				{
-					string itemKey = mhrsItemEnum[(int)newItem.Id!.Value];
-					newItem.Name = itemsNames.Msgs[itemsNames.NameToUuid["I_" + itemKey + "_Name"].ToString()].Content[1].Replace("\r\n", " ");
-					newItem.Description = itemsExplain.Msgs[itemsExplain.NameToUuid["I_" + itemKey + "_Explain"].ToString()].Content[1].Replace("\r\n", " ");
-					newItem.WikiIconColor = mhrsColors[(int)item.IconColor!.Value];
-					if (mhrsIconChara.ContainsKey((int)item.IconChara!.Value))
-					{
-						newItem.WikiIconName = mhrsIconChara[(int)item.IconChara!.Value];
-					}
-					else
-					{
-						newItem.WikiIconName = "NOT AVAILABLE";
-					}
-				}
-				finalItems.Add(newItem);
-			}
-			File.WriteAllText(@"C:\Users\mkast\Desktop\mhrs items.json", Newtonsoft.Json.JsonConvert.SerializeObject(finalItems));
-		}
-
 		public static Dictionary<int, string> GetMHWIWikiColors()
 		{
 			return new()
@@ -61,11 +29,11 @@ namespace MediawikiTranslator.Generators
 				{ 12, "Emerald" },
 				{ 13, "Moss" },
 				{ 14, "Rose" },
-				{ 15, "Violet" },
+				{ 15, "Dark Blue" },
 				{ 16, "Dark Purple" },
 				{ 17, "NOT AVAILABLE" },
 				{ 18, "NOT AVAILABLE" },
-				{ 19, "Purple" },
+				{ 19, "Violet" },
 				{ 20, "NOT AVAILABLE" },
 				{ 21, "NOT AVAILABLE" },
 				{ 22, "NOT AVAILABLE" },

@@ -12,8 +12,8 @@ namespace MediawikiTranslator.Models.Data.MHWilds
 		public static Skill GetSkills()
 		{
 			Dictionary<string, CommonMsgs> msgs = CommonMsgs.Fetch();
-			Skill src = FromJson(File.ReadAllText(@"D:\mhwildsdata\outputs\stm\gamedesign\common\equip\skilldata.user.3.json"));
-			SkillCommon srcCommon = SkillCommon.FromJson(File.ReadAllText(@"D:\mhwildsdata\outputs\stm\gamedesign\common\equip\skillcommondata.user.3.json"));
+			Skill src = FromJson(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Raw Data\MHWilds\stm\gamedesign\common\equip\skilldata.user.3.json"));
+			SkillCommon srcCommon = SkillCommon.FromJson(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Raw Data\MHWilds\stm\gamedesign\common\equip\skillcommondata.user.3.json"));
 			foreach (SkillValue val in src.AppUserDataSkillData.Values)
 			{
 				SkillCommonValue comVal = srcCommon.AppUserDataSkillCommonData.Values.FirstOrDefault(x => val.SkillId == x.SkillId);

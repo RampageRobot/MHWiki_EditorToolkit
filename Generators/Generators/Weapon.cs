@@ -1,5 +1,7 @@
 ﻿using ClosedXML.Excel;
+using DocumentFormat.OpenXml.Spreadsheet;
 using DocumentFormat.OpenXml.Wordprocessing;
+using MediawikiTranslator.Models.Data.MHWI;
 using MediawikiTranslator.Models.Weapon;
 using Newtonsoft.Json;
 using System.Diagnostics;
@@ -10,290 +12,687 @@ using System.Text;
 
 namespace MediawikiTranslator.Generators
 {
-    public class Weapon
-    {
-        private static async Task<string> Generate(WebToolkitData weapon)
-        {
-
-            return await Task.Run(() =>
-            {
-                StringBuilder ret = new();
-                ret.AppendLine($@"{{{{GenericWeapon
+	public class Weapon
+	{
+		private static Models.Data.MHWI.Items[] _mhwiItems = Models.Data.MHWI.Items.Fetch();
+		private static async Task<string> Generate(WebToolkitData weapon)
+		{
+			return await Task.Run(() =>
+			{
+				Tuple<string, string, string> weaponNames = GetWeaponTypeFullName(weapon.Type!);
+				StringBuilder ret = new();
+				ret.AppendLine($@"{{{{GenericNav|{weapon.Game}}}}}
+<br>
+<br>
+The {weapon.Name} is {(weapon.Type == "IG" ? "an" : "a")} [[{weaponNames.Item1} ({weapon.Game})|{weaponNames.Item2}]] in [[{GetGameFullName(weapon.Game!)}]]. To view the upgrade relationships between {weaponNames.Item3}, see the  [[{weapon.Game}/{weaponNames.Item1} Tree|{weapon.Game} {weaponNames.Item1} Weapon Tree]].");
+				ret.AppendLine($@"{{{{GenericWeapon
 |Game                    = {weapon.Game}
 |Weapon Name             = {weapon.Name}
-|Weapon Family Name      = {ReplaceRomanNumerals(weapon.Name)}
+|Render File             = {weapon.Game}-{weapon.Name} Render.png
 |Weapon Type             = {weapon.Type}
 |Tree                    = {weapon.Tree}
 |Rarity                  = {weapon.Rarity}
 |Description             = {weapon.Description}
-|Attack                  = {weapon.Attack + " (" + Convert.ToInt32(Math.Round(1.5f * Convert.ToInt32(weapon.Attack))) + ")"}
-|Affinity                = {weapon.Affinity}
-{(!string.IsNullOrEmpty(weapon.Element1) && weapon.ElementDmg1 != null ? "|Elemental Damage        =" + weapon.ElementDmg1 : "")}
-{(!string.IsNullOrEmpty(weapon.Element1) && weapon.ElementDmg1 != null ? "|Elemental Damage Type   =" + weapon.Element1 : "")}
-{(!string.IsNullOrEmpty(weapon.Element2) && weapon.ElementDmg2 != null ? "|Elemental Damage 2      =" + weapon.ElementDmg2 : "")}
-{(!string.IsNullOrEmpty(weapon.Element2) && weapon.ElementDmg2 != null ? "|Elemental Damage Type 2 =" + weapon.Element2 : "")}
-{(!string.IsNullOrEmpty(weapon.Sharpness) ? GetSharpnessTemplates(weapon.Sharpness) : "")}
-{(!string.IsNullOrEmpty(weapon.HhNote1) ? $"|HH Note 1               = {weapon.HhNote1}" : "")}
-{(!string.IsNullOrEmpty(weapon.HhNote1) ? $"|HH Note 2               = {weapon.HhNote2}" : "")}
-{(!string.IsNullOrEmpty(weapon.HhNote1) ? $"|HH Note 3               = {weapon.HhNote3}" : "")}
-{(!string.IsNullOrEmpty(weapon.GlShellingType) ? $"|GL Shelling Type        = {weapon.GlShellingType} Lv {weapon.GlShellingLevel}" : "")}
-{(!string.IsNullOrEmpty(weapon.SaPhialType) ? $"|SA Phial Type           = {weapon.SaPhialType}" : "")}
-{(!string.IsNullOrEmpty(weapon.CbPhialType) ? $"|CB Phial Type           = {weapon.CbPhialType}" : "")}
-{(!string.IsNullOrEmpty(weapon.IgKinsectBonus) ? $"|IG Kinsect Bonus        = {weapon.IgKinsectBonus}" : "")}
-{(!string.IsNullOrEmpty(weapon.BoCoatings) ? $"|Bo Coatings             = {weapon.BoCoatings}" : "")}
-{(!string.IsNullOrEmpty(weapon.HbgSpecialAmmoType) ? $"|HBG Special Ammo Type   = {weapon.HbgSpecialAmmoType}" : "")}
-{(!string.IsNullOrEmpty(weapon.Elderseal) ? $"|Elderseal               = {weapon.Elderseal}" : "")}
-{(!string.IsNullOrEmpty(weapon.ArmorSkills) ? $"|Armor Skills            = {weapon.ArmorSkills}" : "")}
-{(!string.IsNullOrEmpty(weapon.RampageSkillSlots) ? $"|Rampage Slots           = {weapon.RampageSkillSlots}" : "")}
-{(!string.IsNullOrEmpty(weapon.RampageDecoration) ? $"|Rampage Decoration      = {weapon.RampageDecoration}" : "")}
-{(!string.IsNullOrEmpty(weapon.Rollback) ? $"|Can Rollback            = {weapon.Rollback}" : "")}");
-                if (!string.IsNullOrEmpty(weapon.PreviousName))
-                {
-                    ret.AppendLine($@"|Upgrade Cost            = {weapon.UpgradeCost}
+|Attack                  = {Convert.ToInt32(Math.Round(GetWeaponBloat(weapon.Type!) * Convert.ToInt32(weapon.Attack))) + " (" + weapon.Attack + ")"}
+|Affinity                = {weapon.Affinity}" + 
+(weapon.Decos1 != null && weapon.Decos1!.Value > 0 ? $"|Level 1 Decos           = {weapon.Decos1.Value}" : "") +
+(weapon.Decos2 != null && weapon.Decos2!.Value > 0 ? $"|Level 2 Decos           = {weapon.Decos2.Value}" : "") +
+(weapon.Decos3 != null && weapon.Decos3!.Value > 0 ? $"|Level 3 Decos           = {weapon.Decos3.Value}" : "") +
+(weapon.Decos4 != null && weapon.Decos4!.Value > 0 ? $"|Level 4 Decos           = {weapon.Decos4.Value}" : "") +
+(!string.IsNullOrEmpty(weapon.Element1) && weapon.ElementDmg1 != null ? "|Elemental Damage        =" + weapon.ElementDmg1 : "") +
+(!string.IsNullOrEmpty(weapon.Element1) && weapon.ElementDmg1 != null ? "|Elemental Damage Type   =" + weapon.Element1 : "") +
+(!string.IsNullOrEmpty(weapon.Element2) && weapon.ElementDmg2 != null ? "|Elemental Damage 2      =" + weapon.ElementDmg2 : "") +
+(!string.IsNullOrEmpty(weapon.Element2) && weapon.ElementDmg2 != null ? "|Elemental Damage Type 2 =" + weapon.Element2 : "") +
+(!string.IsNullOrEmpty(weapon.Sharpness) ? GetSharpnessTemplates(weapon.Sharpness) : "") +
+(!string.IsNullOrEmpty(weapon.HhNote1) ? $"|HH Note 1               = {weapon.HhNote1.Replace("_", " ").Replace("Dark Blue", "Blue").Replace("Light Blue", "Cyan")}" : "") +
+(!string.IsNullOrEmpty(weapon.HhNote2) ? $"|HH Note 2               = {weapon.HhNote2.Replace("_", " ").Replace("Dark Blue", "Blue").Replace("Light Blue", "Cyan")}" : "") +
+(!string.IsNullOrEmpty(weapon.HhNote3) ? $"|HH Note 3               = {weapon.HhNote3.Replace("_", " ").Replace("Dark Blue", "Blue").Replace("Light Blue", "Cyan")}" : "") +
+(!string.IsNullOrEmpty(weapon.GlShellingType) ? $"|GL Shelling Type        = {weapon.GlShellingType} Lv {weapon.GlShellingLevel}" : "") +
+(!string.IsNullOrEmpty(weapon.SaPhialType) ? $"|SA Phial Type           = {weapon.SaPhialType}" : "") +
+(!string.IsNullOrEmpty(weapon.CbPhialType) ? $"|CB Phial Type           = {weapon.CbPhialType}" : "") +
+(!string.IsNullOrEmpty(weapon.IgKinsectBonus) ? $"|IG Kinsect Bonus        = {weapon.IgKinsectBonus}" : "") +
+(!string.IsNullOrEmpty(weapon.BoCoatings) ? $"|Bo Coatings             = {weapon.BoCoatings}" : "") +
+(!string.IsNullOrEmpty(weapon.HbgSpecialAmmoType) ? $"|HBG Special Ammo Type   = {weapon.HbgSpecialAmmoType}" : "") +
+(!string.IsNullOrEmpty(weapon.LbgSpecialAmmoType) ? $"|LBG Special Ammo Type   = {weapon.LbgSpecialAmmoType}" : "") +
+(!string.IsNullOrEmpty(weapon.HbgDeviation) ? $"|HBG Deviation        = {weapon.HbgDeviation}" : "") +
+(!string.IsNullOrEmpty(weapon.Elderseal) && weapon.Elderseal != "None" ? $"|Elderseal               = {weapon.Elderseal}" : "") +
+(!string.IsNullOrEmpty(weapon.ArmorSkills) ? $"|Armor Skills            = {weapon.ArmorSkills}" : "") +
+(!string.IsNullOrEmpty(weapon.RampageSkillSlots) ? $"|Rampage Slots           = {weapon.RampageSkillSlots}" : "") +
+(!string.IsNullOrEmpty(weapon.RampageDecoration) ? $"|Rampage Decoration      = {weapon.RampageDecoration}" : "") +
+(!string.IsNullOrEmpty(weapon.Rollback) ? $"|Can Rollback            = {weapon.Rollback}" : ""));
+				if (!string.IsNullOrEmpty(weapon.ForgeMaterials))
+				{
+					ret.AppendLine($@"|Forge Cost              = {weapon.ForgeCost:N0}
+|Forge Materials         = {GetMaterialsTemplates(weapon.ForgeMaterials, weapon.Game)}");
+				}
+				if (!string.IsNullOrEmpty(weapon.PreviousName))
+				{
+					ret.AppendLine($@"|Upgrade Cost            = {weapon.UpgradeCost:N0}
 |Upgrade Materials       = {GetMaterialsTemplates(weapon.UpgradeMaterials, weapon.Game)}
 |Previous Name           = {weapon.PreviousName}
 |Previous Type           = {weapon.Type}
 |Previous Rarity         = {weapon.PreviousRarity}");
-                }
-                if (!string.IsNullOrEmpty(weapon.Next1Name))
-                {
-                    ret.AppendLine($@"|Next 1 Name             = {weapon.Next1Name}
+				}
+				if (!string.IsNullOrEmpty(weapon.Next1Name))
+				{
+					ret.AppendLine($@"|Next 1 Name             = {weapon.Next1Name}
 |Next 1 Type             = {weapon.Type}
 |Next 1 Rarity           = {weapon.Next1Rarity}
-|Next 1 Cost             = {weapon.Next1Cost}
+|Next 1 Cost             = {weapon.Next1Cost:N0}
 |Next 1 Materials        = {GetMaterialsTemplates(weapon.Next1Materials, weapon.Game)}");
-                }
-                if (!string.IsNullOrEmpty(weapon.Next2Name))
-                {
-                    ret.AppendLine($@"|Next 2 Name             = {weapon.Next2Name}
+				}
+				if (!string.IsNullOrEmpty(weapon.Next2Name))
+				{
+					ret.AppendLine($@"|Next 2 Name             = {weapon.Next2Name}
 |Next 2 Type             = {weapon.Type}
 |Next 2 Rarity           = {weapon.Next2Rarity}
-|Next 2 Cost             = {weapon.Next2Cost}
+|Next 2 Cost             = {weapon.Next2Cost:N0}
 |Next 2 Materials        = {GetMaterialsTemplates(weapon.Next2Materials, weapon.Game)}");
-                }
-                if (!string.IsNullOrEmpty(weapon.Next3Name))
-                {
-                    ret.AppendLine($@"|Next 3 Name             = {weapon.Next3Name}
+				}
+				if (!string.IsNullOrEmpty(weapon.Next3Name))
+				{
+					ret.AppendLine($@"|Next 3 Name             = {weapon.Next3Name}
 |Next 3 Type             = {weapon.Type}
 |Next 3 Rarity           = {weapon.Next3Rarity}
-|Next 3 Cost             = {weapon.Next3Cost}
+|Next 3 Cost             = {weapon.Next3Cost:N0}
 |Next 3 Materials        = {GetMaterialsTemplates(weapon.Next3Materials, weapon.Game)}");
-                }
-                ret.AppendLine(@"}}");
-                return ret.ToString().Replace("\r\n\r\n", "\r\n").Replace("\r\n\r\n", "\r\n").Replace("\r\n\r\n", "\r\n");
-            });
-        }
+				}
+				ret.AppendLine(@"}}");
+				if (weapon.Type == "HH")
+				{
+					List<Tuple<string, string[]>> melodies = GetHHMelodies();
+					ret.AppendLine(@"==Melodies==
+{| class=""wikitable"" style=""margin-left:auto; margin-right:auto; text-align:center;""
+! style=""min-width:100px;""|Sequence !! Melody !! Effect
+|-");
+					string[] validNotes = [..new string[] { weapon.HhNote1!, weapon.HhNote2!, weapon.HhNote3! }.Where(x => x != "Disabled")];
+					foreach (Tuple<string, string[]> melody in melodies.Where(x => !x.Item2.Where(y => y != "Echo" && y != "Disabled").Any(y => !validNotes.Contains(y.Replace("_", " ")))))
+					{
+						string melodyNotes = "";
+						foreach (string note in melody.Item2.Where(x => x != "Disabled"))
+						{
+							if (note == "Echo")
+							{
+								melodyNotes += "{{UI|{{{Game|MHWI}}}|HH Echo|nolink=true}}";
+							}
+							else
+							{
+								string noteFile = "1";
+								if (note.Replace("_", " ") == weapon.HhNote2)
+								{
+									noteFile = "2";
+								}
+								else if (note.Replace("_", " ") == weapon.HhNote3)
+								{
+									noteFile = "3";
+								}
+								melodyNotes += $"{{{{UI|{{{{{{Game|MHWI}}}}}}|HH Note|{noteFile} {note.Replace("_", " ").Replace("Dark Blue", "Blue").Replace("Light Blue", "Cyan")}|nolink=true}}}}";
+							}
+						}
+						Tuple<string, string> melodyInfo = GetMelodyEffect(melody.Item1);
+						ret.AppendLine(@$"|{melodyNotes} || {melodyInfo.Item1} || {melodyInfo.Item2}
+|-");
+					}
+					ret.AppendLine("|}");
+				}
+				if (weapon.ShellTable != null && weapon.Type != "Bo")
+				{
+					ret.AppendLine(@"==Ammunition==
+{{AmmoTableLegend}}
+<br>
+{| class=""wikitable"" style=""text-align:center; width:100%; margin:0;""
+!Ammo
+!Capacity
+!Recoil
+!Reload
+!Shot Type
+|-");
+					foreach (ShellTable shell in weapon.ShellTable.Where(x => x.Capacity > 0 && !x.Name.StartsWith("Unknown")))
+					{
+						string recoil = shell.RecoilType == "Auto-Reload" || shell.RecoilType == "Wyvern" || shell.RecoilType == "Rapid Fire (Sticky)" ? (shell.RecoilType == "Rapid Fire (Sticky)" ? "Recoil +1" : shell.RecoilType) : shell.RecoilType.Substring(shell.RecoilType.IndexOf("(Recoil") + 1, 9);
+						string reload = shell.ReloadSpeed[..shell.ReloadSpeed.IndexOf(" Reload")];
+						Models.Data.MHWI.Items shellItem = _mhwiItems.First(x => x.Name == shell.Name);
+						ret.AppendLine($"|{{{{GenericItemLink|{weapon.Game}|{shellItem.Name}|Ammo|{GetColorString(shellItem.WikiIconColor!.Value.ToString())}}}}}");
+						ret.AppendLine($"|{shell.Capacity}");
+						ret.AppendLine($"|{recoil}");
+						ret.AppendLine($"|{reload}");
+						string icons = "";
+						bool movingShotEnabled = false;
+						bool movingReloadEnabled = false;
+						if (!shell.RecoilType.StartsWith("Cluster") && !recoil.Contains("+3") && !recoil.Contains("+4") && shell.RecoilType != "Wyvern")
+						{
+							icons += $"{{{{UI|{{{{{{Game|MHWI}}}}}}|{weapon.Type} Moving Shot Enabled|size=24x24px|nolink=true|title=Moving Shot Enabled}}}}";
+							movingShotEnabled = true;
+						}
+						if (reload != "Slow" && reload != "Very Slow")
+						{
+							if (icons != "")
+							{
+								icons += " ";
+							}
+							icons += $"{{{{UI|{{{{{{Game|MHWI}}}}}}|{weapon.Type} Moving Reload Enabled|size=24x24px|nolink=true|title=Moving Reload Enabled}}}}";
+							movingReloadEnabled = true;
+						}
+						if (shell.RecoilType == "Auto-Reload")
+						{
+							if (!movingShotEnabled)
+							{
+								if (icons != "")
+								{
+									icons += " ";
+								}
+								icons += $"{{{{UI|{{{{{{Game|MHWI}}}}}}|{weapon.Type} Moving Shot Enabled|size=24x24px|nolink=true|title=Moving Shot Enabled}}}}";
+							}
+							if (!movingReloadEnabled)
+							{
+								if (icons != "")
+								{
+									icons += " ";
+								}
+								icons += $"{{{{UI|{{{{{{Game|MHWI}}}}}}|{weapon.Type} Moving Reload Enabled|size=24x24px|nolink=true|title=Moving Reload Enabled}}}}";
+							}
+							if (icons != "")
+							{
+								icons += " ";
+							}
+							icons += $"{{{{UI|{{{{{{Game|MHRS}}}}}}|{weapon.Type} Single Fire Auto Reload|size=24x24px|nolink=true|title=Single Fire Auto Reload}}}}";
+						}
+						if (shell.RecoilType.StartsWith("Rapid Fire"))
+						{
+							if (icons != "")
+							{
+								icons += " ";
+							}
+							icons += $"{{{{UI|{{{{{{Game|MHRS}}}}}}|{weapon.Type} Rapid Fire|size=24x24px|nolink=true|title=Rapid Fire}}}}";
+						}
+						if (shell.RecoilType == "Wyvern")
+						{
+							if (icons != "")
+							{
+								icons += " ";
+							}
+							icons += "[[File:MHWI-Ammo Icon Brown.png|24x24px|link=|Wyvern]]";
+						}
+						if (shell.RecoilType.StartsWith("Cluster"))
+						{
+							if (icons != "")
+							{
+								icons += " ";
+							}
+							icons += "[[File:MHWI-Ammo Icon Rose.png|24x24px|link=|Cluster]]";
+						}
+						if (string.IsNullOrEmpty(icons))
+						{
+							icons = " -";
+						}
+						ret.AppendLine("|" + icons);
+						ret.AppendLine("|-");
+					}
+					ret.AppendLine(@"
+|}
+{{UserHelpBox|'''Capacity:''' The number of rounds of an ammo that a bowgun can fire before it has to reload.<br>
+'''Recoil:''' How much the hunter is pushed back when firing a shot. Impacts fire rate.<br>
+'''Reload:''' How quickly the hunter can reload the bowgun.<br>
+'''Shot Type:''' Certain ammo types on some bowguns have special properties when fired, such as Auto Reload or Wyvern, which impacts how the hunter uses the bowgun when firing and/or reloading.}}");
+				}
+				return ret.ToString().Replace("\r\n\r\n", "\r\n").Replace("\r\n\r\n", "\r\n").Replace("\r\n\r\n", "\r\n");
+			});
+		}
 
-        public static string GenerateFromJson(string json)
-        {
-            return Generate(WebToolkitData.FromJson(json)).Result;
-        }
+		private static double GetWeaponBloat(string type)
+		{
+			return new Dictionary<string, double>()
+			{
+				{ "GS", 4.8f },
+				{ "GL", 2.3f },
+				{ "LS", 3.3f },
+				{ "SA", 3.5f },
+				{ "SnS", 1.4f },
+				{ "CB", 3.6f },
+				{ "DB", 1.4f },
+				{ "IG", 3.1f },
+				{ "Hm", 5.2f },
+				{ "LBG", 1.3f },
+				{ "HH", 4.2f },
+				{ "HBG", 1.5f },
+				{ "Ln", 2.3f },
+				{ "Bo", 1.2f }
+			}[type];
+		}
 
+		private static Tuple<string, string> GetMelodyEffect(string melody)
+		{
+			return new Dictionary<string, Tuple<string, string>>()
+			{
+				{ "Self-improvement", new Tuple<string, string>("Self-Improvement", "Increases your movement speed for a period of time. Perform an encore to prolong the duration of the boost, raise your attack power or briefly make your attacks less likely to deflect.") },
+				{ "Attack Up(S)", new Tuple<string, string>("Attack Up (S)", "Slightly increases the non-elemental power of your weapon for a period of time.") },
+				{ "Attack Up(L)", new Tuple<string, string>("Attack Up (L)", "Increases the non-elemental power of your weapon for a period of time.") },
+				{ "Health Boost(S)", new Tuple<string, string>("Health Boost (S)", "Slightly increases your maximum health for a period of time.") },
+				{ "Health Boost(L)", new Tuple<string, string>("Health Boost (L)", "Increases your maximum health for a period of time.") },
+				{ "Stamina Use Reduced(S)", new Tuple<string, string>("Stamina Use Reduced (S)", "Slightly reduces your stamina consumption.") },
+				{ "Stamina Use Reduced(L)", new Tuple<string, string>("Stamina Use Reduced (L)", "Reduces your stamina consumption.") },
+				{ "Wind Pressure Negated", new Tuple<string, string>("Wind Pressure Negation", "Allows you to resist wind pressure from certain monsters or attacks for a period of time.") },
+				{ "All Wind Pressure Negated", new Tuple<string, string>("Wind Pressure Negation", "Allows you to resist wind pressure from certain monsters or attacks for a period of time.") },
+				{ "Defense Up(S)", new Tuple<string, string>("Defense Up (S)", "Slightly increases your defense for a period of time.") },
+				{ "Defense Up(L)", new Tuple<string, string>("Defense Up (L)", "Increases your defense for a period of time.") },
+				{ "Tool Use Drain Reduced(S)", new Tuple<string, string>("Tool Use Drain Reduced (S)", "Slightly decreases the reductions on effect duration on your specialized tools for a period of time.") },
+				{ "Tool Use Drain Reduced(L)", new Tuple<string, string>("Tool Use Drain Reduced (L)", "Decreases the reductions on effect duration on your specialized tools for a period of time.") },
+				{ "Health Rec. (S)", new Tuple<string, string>("Health Rec. (S)", "Recovers a small amount of health.") },
+				{ "Health Rec. (L)", new Tuple<string, string>("Health Rec. (L)", "Recovers a large amount of health.") },
+				{ "Health Rec. (S) + Antidote", new Tuple<string, string>("Health Rec. (S) + Antidote", "Recovers a small amount of health and cures the poison ailment.") },
+				{ "Health Rec. (M) + Antidote", new Tuple<string, string>("Health Rec. (M) + Antidote", "Recovers a moderate amount of health and cures the poison ailment.") },
+				{ "Recovery Speed(S)", new Tuple<string, string>("Recovery Speed (S)", "Slightly increases the speed at which you recover health for a period of time.") },
+				{ "Recovery Speed(L)", new Tuple<string, string>("Recovery Speed (L)", "Increases the speed at which you recover health for a period of time.") },
+				{ "Earplugs(S)", new Tuple<string, string>("Earplugs (S)", "Protects you against small monster roars for a period of time.") },
+				{ "Earplugs(L)", new Tuple<string, string>("Earplugs (L)", "Protects you against small and large monster roars for a period of time.") },
+				{ "Divine Protection", new Tuple<string, string>("Divine Protection", "For a period of time, the damage you take has a chance of being reduced.") },
+				{ "Scoutfly Power Up", new Tuple<string, string>("Scoutfly Power Up", "Improves scoutfly tracking for a period of time.") },
+				{ "Envir.Damage Negated", new Tuple<string, string>("Environmental Damage Negation", "Protects you against some forms of environmental damage and increases resistance to heat and cold.") },
+				{ "Stun Negated", new Tuple<string, string>("Stun Negation", "Makes it harder for you to get stunned for a period of time.") },
+				{ "Paralysis Negated", new Tuple<string, string>("Paralysis Negation", "Makes it harder for you to become paralyzed for a period of time.") },
+				{ "Tremors Negated", new Tuple<string, string>("Tremor Resistance", "Allows you to resist tremors caused by monsters or certain attacks for a period of time.") },
+				{ "Muck Res", new Tuple<string, string>("Muck/Water/Deep Snow Res", "Protects you against mud for a period of time. Allows you to be more mobile in water or deep snow.") },
+				{ "Fire Res Boost(S)", new Tuple<string, string>("Fire Resistance Up (S)", "Slightly increases fire resistance and protects you from fireblight for a period of time.") },
+				{ "Fire Res Boost(L)", new Tuple<string, string>("Fire Resistance Up (L)", "Increases fire resistance and protects you from fireblight for a period of time.") },
+				{ "Water Res Boost(S)", new Tuple<string, string>("Water Resistance Up (S)", "Slightly increases water resistance and protects you from waterblight for a period of time.") },
+				{ "Water Res Boost(L)", new Tuple<string, string>("Water Resistance Up (L)", "Increases water resistance and protects you from waterblight for a period of time.") },
+				{ "Thunder Res Boost(S)", new Tuple<string, string>("Thunder Resistance Up (S)", "Slightly increases thunder resistance and protects you from thunderblight for a period of time.") },
+				{ "Thunder Res Boost(L)", new Tuple<string, string>("Thunder Resistance Up (L)", "Increases thunder resistance and protects you from thunderblight for a period of time.") },
+				{ "Ice Res Boost(S)", new Tuple<string, string>("Ice Resistance Up (S)", "Slightly increases ice resistance and protects you from iceblight for a period of time.") },
+				{ "Ice Res Boost(L)", new Tuple<string, string>("Ice Resistance Up (L)", "Increases ice resistance and protects you from iceblight for a period of time.") },
+				{ "Dragon Res Boost(S)", new Tuple<string, string>("Dragon Resistance Up (S)", "Slightly increases dragon resistance and protects you from dragonblight for a period of time.") },
+				{ "Dragon Res Boost(L)", new Tuple<string, string>("Dragon Resistance Up (L)", "Increases dragon resistance and protects you from dragonblight for a period of time.") },
+				{ "Elemental Attack Boost", new Tuple<string, string>("Elemental Attack Up", "Increases the elemental power of your weapon for a period of time.") },
+				{ "Blight Negated", new Tuple<string, string>("Blight Negation", "Protects you against all blights for a period of time.") },
+				{ "Sonic Waves", new Tuple<string, string>("Sonic Waves", "Unleashes a gigantic wave of sound around you.") },
+				{ "All Melody Effects Extended", new Tuple<string, string>("All Melody Effects Extended", "Extends the duration of all active melody effects.") },
+				{ "Knockbacks Negated", new Tuple<string, string>("Knockback Prevention", "Protects you against certain attacks for a period of time so you won't be knocked back.") },
+				{ "All Ailments Negated", new Tuple<string, string>("Ailment Negation", "Protects you against all status ailments for a period of time.") },
+				{ "Blight Res Up", new Tuple<string, string>("All Resistances Up", "Increases all elemental resistances for a period of time.") },
+				{ "Affinity Up and Health Rec. (S)", new Tuple<string, string>("Increases your critical damage and recovers a small amount of health.", "") },
+				{ "Earplugs(S) / Wind Pressure Negated", new Tuple<string, string>("Earplugs (S) / Wind Pressure Negated", "Protects you against small monster roars and allows you to resist wind pressure from certain monsters or attacks for a period of time.") },
+				{ "Abnormal Status Atk.Increased", new Tuple<string, string>("Status Attack Up", "Increases the potency of status ailment attacks dealt to monsters for a period of time.") },
+				{ "Health Recovery(M)", new Tuple<string, string>("Health Recovery(M)", "Recovers a moderate amount of health.") },
+				{ "Echo Impact", new Tuple<string, string>("Impact Echo Wave", "A melody effect that uses the echo mark. Sends out an echo wave capable of damaging and stunning a monster.") },
+				{ "Echo Dragon", new Tuple<string, string>("Echo Wave \"Dragon\"", "A melody effect that uses the echo mark. Sends out an echo wave capable of dealing dragon element damage to a monster.") },
+				{ "Max Stamina Up + Recovery", new Tuple<string, string>("Max Stamina Up + Recovery", "A melody effect that uses the echo mark. Touch the echo bubble to increase your maximum stamina for a period of time.") },
+				{ "Extend Health Recovery", new Tuple<string, string>("Extended Health Recovery", "A melody effect that uses the echo mark. Touch the echo bubble to gradually recover health for a period of time.") },
+				{ "Speed Boost + Evade Window", new Tuple<string, string>("Speed Boost + Evade Window Up", "A melody effect that uses the echo mark. Touch the echo bubble to increase your evade window for a period of time. Any other players using hunting horn will also get a speed boost.") },
+				{ "Elemental Effectiveness Up", new Tuple<string, string>("Elemental Effectiveness Up", "A melody effect that uses the echo mark. Touch the echo bubble to increase elemental resistance and elemental attack damage. If a melody that affects elemental resistance or attack is already active, this will boost its effectiveness.") }
+			}[melody];
+		}
 
+		private static Tuple<string, string, string> GetWeaponTypeFullName(string weaponType)
+		{
+			return new Dictionary<string, Tuple<string, string, string>>()
+			{
+				{ "CB", new Tuple<string,string,string>("Charge Blade", "Charge Blade", "Charge Blades") },
+				{ "DB", new Tuple<string,string,string>("Dual Blades", "set of Dual Blades", "sets of Dual Blades") },
+				{ "GS", new Tuple<string,string,string>("Great Sword", "Great Sword", "Great Swords") },
+				{ "GL", new Tuple<string,string,string>("Gunlance", "Gunlance", "Gunlances") },
+				{ "Hm", new Tuple<string,string,string>("Hammer", "Hammer", "Hammers") },
+				{ "HH", new Tuple<string,string,string>("Hunting Horn", "Hunting Horn", "Hunting Horns") },
+				{ "IG", new Tuple<string,string,string>("Insect Glaive", "Insect Glaive", "Insect Glaives") },
+				{ "Ln", new Tuple<string,string,string>("Lance", "Lance", "Lances") },
+				{ "LS", new Tuple<string,string,string>("Longsword", "Longsword", "Longswords") },
+				{ "SA", new Tuple<string,string,string>("Switch Axe", "Switch Axe", "Switch Axes") },
+				{ "SnS", new Tuple<string,string,string>("Sword and Shield", "Sword and Shield pair", "Sword and Shield pairs") },
+				{ "Bo", new Tuple<string,string,string>("Bow", "Bow", "Bows") },
+				{ "HBG", new Tuple<string,string,string>("Heavy Bowgun", "Heavy Bowgun", "Heavy Bowguns") },
+				{ "LBG", new Tuple<string,string,string>("Light Bowgun", "Light Bowgun", "Light Bowguns") }
+			}[weaponType];
+		}
 
-        public static async Task<string> GenerateFromXlsx(string xlsxBase64, string game)
-        {
-            DirectoryInfo workspace = Utilities.GetWorkspace();
-            string xlsxPath = Path.Combine(workspace.FullName, Guid.NewGuid().ToString() + ".xlsx");
-            File.WriteAllBytes(xlsxPath, Convert.FromBase64String(xlsxBase64));
-            Dictionary<string, Dictionary<string, XlsxData>> retData = [];
-            IXLWorksheet[] sheets = [];
-            using (XLWorkbook wb = new(xlsxPath))
-            {
-                sheets = [.. wb.Worksheets];
-                foreach (IXLWorksheet sheet in sheets)
-                {
-                    Dictionary<string, XlsxData> weaponData = [];
-                    Dictionary<string, int> headers = [];
-                    int cntr = 1;
-                    foreach (IXLRow row in sheet.Rows())
-                    {
-                        if (cntr == 1)
-                        {
-                            int cellCntr = 1;
-                            string lastVal = "";
-                            foreach (IXLCell cell in row.Cells())
-                            {
-                                string? val = !cell.Value.IsBlank ? cell.Value.GetText().Replace(" ", "").Replace("?", "") : null;
-                                if (val != null && val != "Name")
-                                {
-                                    if (!string.IsNullOrEmpty(lastVal))
-                                    {
-                                        if (lastVal == "CosttoUpgradeTo" && (val.Contains("Amount") || val.Contains("Material")))
-                                        {
-                                            int amountCntr = 1;
-                                            if (val == "Amount")
-                                            {
-                                                while (headers.ContainsKey(val + amountCntr + "Upgrade"))
-                                                {
-                                                    amountCntr++;
-                                                }
-                                                val += amountCntr;
-                                            }
-                                            val += "Upgrade";
-                                        }
-                                        else if (lastVal == "CosttoForge")
-                                        {
-                                            int amountCntr = 1;
-                                            if (val == "Amount")
-                                            {
-                                                while (headers.ContainsKey(val + amountCntr + "Forge"))
-                                                {
-                                                    amountCntr++;
-                                                }
-                                                val += amountCntr;
-                                            }
-                                            val += "Forge";
-                                        }
-                                    }
-                                    headers.Add(val, cellCntr);
-                                    if (!val.Contains("Amount") && !val.Contains("Material"))
-                                    {
-                                        lastVal = val;
-                                    }
-                                }
-                                cellCntr++;
-                            }
-                        }
-                        else
-                        {
-                            string? name = !row.Cell(1).Value.IsBlank ? row.Cell(1).Value.GetText() : null;
-                            if (!string.IsNullOrEmpty(name))
-                            {
-                                XlsxData data = new()
-                                {
-                                    Name = name
-                                };
-                                foreach (PropertyInfo pi in data.GetType().GetProperties())
-                                {
-                                    if (headers.TryGetValue(pi.Name, out int value))
-                                    {
-                                        XLCellValue val = row.Cell(value).Value; 
-                                        Type propertyType = pi.PropertyType;
-                                        if (propertyType.IsGenericType &&
-                                            propertyType.GetGenericTypeDefinition() == typeof(Nullable<>))
-                                        {
-                                            propertyType = propertyType.GetGenericArguments()[0];
-                                        }
-                                        try
-                                        {
-                                            if (propertyType == typeof(string))
-                                            {
-                                                pi.SetValue(data, !val.IsBlank ? val.GetText() : null);
-                                            }
-                                            else if (propertyType == typeof(int))
-                                            {
-                                                if (val.IsNumber)
-                                                {
-                                                    pi.SetValue(data, Convert.ToInt32(val.GetNumber()));
-                                                }
-                                                else
-                                                {
-                                                    string? cellVal = !val.IsBlank ? val.GetText() : null;
-                                                    if (cellVal != null && int.TryParse(cellVal, out int cellIntVal))
-                                                    {
-                                                        pi.SetValue(data, cellIntVal);
-                                                    }
-                                                    else
-                                                    {
-                                                        pi.SetValue(data, null);
-                                                    }
-                                                }
-                                            }
-                                        }
-                                        catch (Exception exc)
-                                        {
-                                            Debugger.Break();
-                                        }
-                                    }
-                                }
-                                weaponData.Add(name, data);
-                            }
-                        }
-                        cntr++;
-                    }
-                    retData.Add(sheet.Name, weaponData);
-                }
-            }
-            DirectoryInfo zipDirInfo = Utilities.GetWorkspace();
-            string zipDir = Path.Combine(zipDirInfo.FullName, Guid.NewGuid().ToString());
-            Directory.CreateDirectory(zipDir);
-            foreach (KeyValuePair<string, Dictionary<string, XlsxData>> kvp in retData)
-            {
-                Dictionary<string, WebToolkitData> thisDict = kvp.Value.ToDictionary(x => x.Key, x => x.Value.ToToolkitData(game, kvp.Key));
-                thisDict = XlsxData.GetLinkedWeapons(thisDict);
-                DirectoryInfo rankDir = Directory.CreateDirectory(Path.Combine(zipDir, kvp.Key));
-                foreach (KeyValuePair<string, WebToolkitData> val in thisDict)
-                {
-                    string txtPath = Path.Combine(rankDir.FullName, val.Key.Replace("\"", "'") + ".txt");
-                    File.WriteAllText(txtPath, await Generate(val.Value));
-                }
-            }
-            DirectoryInfo zipPathInfo = Utilities.GetWorkspace();
-            string zipPath = Path.Combine(zipPathInfo.FullName, Guid.NewGuid() + ".zip");
-            ZipFile.CreateFromDirectory(zipDir, zipPath);
-            string zipBytes = Convert.ToBase64String(File.ReadAllBytes(zipPath));
-            File.Delete(zipPath);
-            Directory.Delete(workspace.FullName, true);
-            return zipBytes;
-        }
+		private static List<Tuple<string, string[]>> GetHHMelodies()
+		{
+			return new List<Tuple<string, string[]>>()
+			{
+				new Tuple<string, string[]>("Self-improvement", ["Purple", "Purple", "Disabled", "Disabled"]),
+				new Tuple<string, string[]>("Self-improvement", ["White", "White", "Disabled", "Disabled"]),
+				new Tuple<string, string[]>("Attack Up(S)", ["White", "Red", "Red", "Disabled"]),
+				new Tuple<string, string[]>("Attack Up(S)", ["Purple", "Red", "Yellow", "Disabled"]),
+				new Tuple<string, string[]>("Attack Up(S)", ["Yellow", "Purple", "Red", "Disabled"]),
+				new Tuple<string, string[]>("Attack Up(S)", ["Red", "Yellow", "Purple", "Disabled"]),
+				new Tuple<string, string[]>("Attack Up(L)", ["Purple", "Red", "Dark_Blue", "Purple"]),
+				new Tuple<string, string[]>("Attack Up(L)", ["Purple", "Red", "Green", "Purple"]),
+				new Tuple<string, string[]>("Attack Up(L)", ["Purple", "Red", "Light_Blue", "Purple"]),
+				new Tuple<string, string[]>("Health Boost(S)", ["Red", "Dark_Blue", "White", "Disabled"]),
+				new Tuple<string, string[]>("Health Boost(L)", ["Red", "Dark_Blue", "Red", "Purple"]),
+				new Tuple<string, string[]>("Stamina Use Reduced(S)", ["White", "Light_Blue", "Dark_Blue", "Disabled"]),
+				new Tuple<string, string[]>("Stamina Use Reduced(S)", ["White", "Yellow", "Dark_Blue", "Disabled"]),
+				new Tuple<string, string[]>("Stamina Use Reduced(S)", ["White", "Green", "Dark_Blue", "Disabled"]),
+				new Tuple<string, string[]>("Stamina Use Reduced(L)", ["Purple", "Light_Blue", "Dark_Blue", "Light_Blue"]),
+				new Tuple<string, string[]>("Stamina Use Reduced(L)", ["Purple", "Yellow", "Dark_Blue", "Disabled"]),
+				new Tuple<string, string[]>("Stamina Use Reduced(L)", ["Purple", "Green", "Dark_Blue", "Green"]),
+				new Tuple<string, string[]>("Wind Pressure Negated", ["Dark_Blue", "Dark_Blue", "Red", "Disabled"]),
+				new Tuple<string, string[]>("Wind Pressure Negated", ["Dark_Blue", "Dark_Blue", "Green", "Disabled"]),
+				new Tuple<string, string[]>("Wind Pressure Negated", ["Dark_Blue", "Dark_Blue", "Light_Blue", "Disabled"]),
+				new Tuple<string, string[]>("All Wind Pressure Negated", ["Dark_Blue", "Dark_Blue", "Yellow", "Purple"]),
+				new Tuple<string, string[]>("Defense Up(S)", ["White", "Dark_Blue", "Dark_Blue", "Disabled"]),
+				new Tuple<string, string[]>("Defense Up(L)", ["Purple", "Dark_Blue", "Dark_Blue", "Purple"]),
+				new Tuple<string, string[]>("Tool Use Drain Reduced(S)", ["White", "Dark_Blue", "Light_Blue", "Disabled"]),
+				new Tuple<string, string[]>("Tool Use Drain Reduced(L)", ["Purple", "Dark_Blue", "Light_Blue", "Disabled"]),
+				new Tuple<string, string[]>("Health Rec. (S)", ["White", "Green", "White", "Disabled"]),
+				new Tuple<string, string[]>("Health Rec. (S)", ["Purple", "Green", "Purple", "Disabled"]),
+				new Tuple<string, string[]>("Health Rec. (L)", ["Green", "Green", "Purple", "Light_Blue"]),
+				new Tuple<string, string[]>("Health Rec. (S) + Antidote", ["Green", "Dark_Blue", "White", "Dark_Blue"]),
+				new Tuple<string, string[]>("Health Rec. (M) + Antidote", ["Green", "Dark_Blue", "Purple", "Dark_Blue"]),
+				new Tuple<string, string[]>("Health Recovery(M)", ["Green", "White", "Light_Blue", "Green"]),
+				new Tuple<string, string[]>("Recovery Speed(S)", ["Green", "Green", "Red", "White"]),
+				new Tuple<string, string[]>("Recovery Speed(S)", ["Green", "Green", "Yellow", "Disabled"]),
+				new Tuple<string, string[]>("Recovery Speed(L)", ["Green", "Green", "Red", "Purple"]),
+				new Tuple<string, string[]>("Divine Protection", ["Green", "Yellow", "Purple", "Yellow"]),
+				new Tuple<string, string[]>("Scoutfly Power Up", ["Light_Blue", "Light_Blue", "Light_Blue", "Disabled"]),
+				new Tuple<string, string[]>("Muck Res", ["Light_Blue", "Red", "Light_Blue", "Disabled"]),
+				new Tuple<string, string[]>("Envir.Damage Negated", ["Red", "Red", "Light_Blue", "Disabled"]),
+				new Tuple<string, string[]>("Earplugs(S)", ["Light_Blue", "Light_Blue", "Red", "White"]),
+				new Tuple<string, string[]>("Earplugs(S)", ["Light_Blue", "Light_Blue", "Red", "Purple"]),
+				new Tuple<string, string[]>("Earplugs(S)", ["Light_Blue", "Light_Blue", "Green", "White"]),
+				new Tuple<string, string[]>("Earplugs(L)", ["Light_Blue", "Light_Blue", "Green", "Purple"]),
+				new Tuple<string, string[]>("Stun Negated", ["Light_Blue", "Dark_Blue", "Purple", "Disabled"]),
+				new Tuple<string, string[]>("Paralysis Negated", ["Light_Blue", "Yellow", "White", "Disabled"]),
+				new Tuple<string, string[]>("Paralysis Negated", ["Light_Blue", "Yellow", "Purple", "Disabled"]),
+				new Tuple<string, string[]>("Tremors Negated", ["Light_Blue", "Light_Blue", "Yellow", "Disabled"]),
+				new Tuple<string, string[]>("Fire Res Boost(S)", ["Yellow", "Red", "White", "Disabled"]),
+				new Tuple<string, string[]>("Fire Res Boost(L)", ["Yellow", "Red", "Purple", "Disabled"]),
+				new Tuple<string, string[]>("Water Res Boost(S)", ["Yellow", "Light_Blue", "White", "Disabled"]),
+				new Tuple<string, string[]>("Water Res Boost(L)", ["Yellow", "Light_Blue", "Purple", "Disabled"]),
+				new Tuple<string, string[]>("Thunder Res Boost(S)", ["Yellow", "Green", "White", "Disabled"]),
+				new Tuple<string, string[]>("Thunder Res Boost(L)", ["Yellow", "Green", "Purple", "Disabled"]),
+				new Tuple<string, string[]>("Ice Res Boost(S)", ["Yellow", "Dark_Blue", "White", "Disabled"]),
+				new Tuple<string, string[]>("Ice Res Boost(L)", ["Yellow", "Dark_Blue", "Purple", "Disabled"]),
+				new Tuple<string, string[]>("Dragon Res Boost(S)", ["White", "Yellow", "Light_Blue", "Disabled"]),
+				new Tuple<string, string[]>("Dragon Res Boost(L)", ["Purple", "Yellow", "Light_Blue", "Disabled"]),
+				new Tuple<string, string[]>("Elemental Attack Boost", ["Purple", "Green", "Yellow", "Green"]),
+				new Tuple<string, string[]>("Elemental Attack Boost", ["Yellow", "Light_Blue", "Yellow", "Light_Blue"]),
+				new Tuple<string, string[]>("Sonic Waves", ["Yellow", "Yellow", "Yellow", "Disabled"]),
+				new Tuple<string, string[]>("All Melody Effects Extended", ["Orange", "Red", "Orange", "Disabled"]),
+				new Tuple<string, string[]>("Knockbacks Negated", ["Red", "Orange", "Red", "Purple"]),
+				new Tuple<string, string[]>("All Ailments Negated", ["Orange", "Dark_Blue", "Purple", "Dark_Blue"]),
+				new Tuple<string, string[]>("All Ailments Negated", ["Purple", "Dark_Blue", "Orange", "Orange"]),
+				new Tuple<string, string[]>("All Wind Pressure Negated", ["Dark_Blue", "Dark_Blue", "Orange", "Disabled"]),
+				new Tuple<string, string[]>("Stamina Use Reduced(L)", ["Purple", "Orange", "Dark_Blue", "Orange"]),
+				new Tuple<string, string[]>("Affinity Up and Health Rec. (S)", ["Green", "Orange", "Purple", "Orange"]),
+				new Tuple<string, string[]>("Earplugs(L)", ["Orange", "Orange", "Green", "Purple"]),
+				new Tuple<string, string[]>("Abnormal Status Atk.Increased", ["Light_Blue", "Orange", "Orange", "Purple"]),
+				new Tuple<string, string[]>("All Ailments Negated", ["Light_Blue", "Purple", "Orange", "Orange"]),
+				new Tuple<string, string[]>("Divine Protection", ["Purple", "Orange", "Purple", "Light_Blue"]),
+				new Tuple<string, string[]>("Blight Res Up", ["Yellow", "Orange", "Purple", "Disabled"]),
+				new Tuple<string, string[]>("Elemental Attack Boost", ["Purple", "Orange", "Yellow", "Orange"]),
+				new Tuple<string, string[]>("Blight Negated", ["Orange", "Yellow", "Yellow", "Orange"]),
+				new Tuple<string, string[]>("Earplugs(S) / Wind Pressure Negated", ["Purple", "Yellow", "Orange", "Yellow"]),
+				new Tuple<string, string[]>("Attack Up(L)", ["Purple", "Orange", "Orange", "Red"]),
+				new Tuple<string, string[]>("Echo Impact", ["Echo", "Red", "Disabled", "Disabled"]),
+				new Tuple<string, string[]>("Echo Dragon", ["Echo", "Orange", "Disabled", "Disabled"]),
+				new Tuple<string, string[]>("Max Stamina Up + Recovery", ["Echo", "Dark_Blue", "Disabled", "Disabled"]),
+				new Tuple<string, string[]>("Extend Health Recovery", ["Echo", "Green", "Disabled", "Disabled"]),
+				new Tuple<string, string[]>("Speed Boost + Evade Window", ["Echo", "Light_Blue", "Disabled", "Disabled"]),
+				new Tuple<string, string[]>("Elemental Effectiveness Up", ["Echo", "Yellow", "Disabled", "Disabled"]),
+			};
 
-        private static string ReplaceRomanNumerals(string? input)
-        {
-            if (input == null)
-            {
-                return "";
-            }
-            foreach (string numeral in new string[] { "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X" })
-            {
-                if (input.EndsWith(" " + numeral))
-                {
-                    input = input[..input.IndexOf(" " + numeral)];
-                }
-            }
-            return input;
-        }
+		}
 
-        private static string GetSharpnessTemplates(string? input)
-        {
-            if (input == null)
-            {
-                return "";
-            }
-            string[][] data = JsonConvert.DeserializeObject<string[][]>(input!)!;
-            string ret = $"|Sharpness               = {{{{MHWISharpnessBase|{data[0][0]}|{data[0][1]}|{data[0][2]}|{data[0][3]}|{data[0][4]}|{data[0][5]}|{data[0][6]}}}}}";
-            if (data.Length > 1)
-            {
-                ret += $"\r\n|Sharpness Handi+        = {{{{MHWISharpnessBase|{data[1][0]}|{data[1][1]}|{data[1][2]}|{data[1][3]}|{data[1][4]}|{data[1][5]}|{data[1][6]}}}}}";
-            }
-            return ret;
-        }
+		public static string GetGameFullName(string game, int? rarity = null)
+		{
+			return new Dictionary<string, string>()
+			{
+				{ "MH1", "Monster Hunter" },
+				{ "MHG", "Monster Hunter G" },
+				{ "MHF1", "Monster Hunter Freedom" },
+				{ "MH2", "Monster Hunter 2" },
+				{ "MHF2", "Monster Hunter Freedom 2" },
+				{ "MHFU", "Monster Hunter Freedom Unite" },
+				{ "MH3", "Monster Hunter 3" },
+				{ "MHP3", "Monster Hunter Portable 3rd" },
+				{ "MH3U", "Monster Hunter 3 Ultimate" },
+				{ "MH4", "Monster Hunter 4" },
+				{ "MH4U", "Monster Hunter 4 Ultimate" },
+				{ "MHGen", "Monster Hunter Generations" },
+				{ "MHGU", "Monster Hunter Generations Ultimate" },
+				{ "MHWorld", "Monster Hunter: World" },
+				{ "MHWI", rarity == null || rarity >= 9 ? "Monster Hunter World: Iceborne" : "Monster Hunter World" },
+				{ "MHRise", "Monster Hunter Rise" },
+				{ "MHRS", rarity == null || rarity >= 8 ? "Monster Hunter Rise: Sunbreak" : "Monster Hunter Rise" },
+				{ "MHWilds", "Monster Hunter Wilds" },
+				{ "MHNow", "Monster Hunter Now" },
+				{ "MHOutlanders", "Monster Hunter Outlanders" },
+				{ "MHST1", "Monster Hunter Stories" },
+				{ "MHST2", "Monster Hunter Stories 2: Wings of Ruin" },
+				{ "MHFrontier", "Monster Hunter Frontier" },
+				{ "MHOnline", "Monster Hunter Online" },
+				{ "MHExplore", "Monster Hunter Explore" },
+				{ "MHRiders", "Monster Hunter Riders" },
+				{ "MHGii", "Monster Hunter G (Wii)" },
+				{ "MHP1", "Monster Hunter Portable (PSP)" },
+				{ "MHP2", "Monster Hunter Portable 2nd (PSP)" },
+				{ "MHP2G", "Monster Hunter Portable 2nd G (PSP)" },
+				{ "MH3G", "Monster Hunter 3 G (Wii U, 3DS)" },
+				{ "MH4G", "Monster Hunter 4G (3DS)" },
+				{ "MHX", "Monster Hunter X (3DS)" },
+				{ "MHXX ", "Monster Hunter XX (3DS, Nintendo Switch)" },
+			}[game];
+		}
 
-        private static string GetMaterialsTemplates(string? input, string? game)
-        {
-            if (input == null)
-            {
-                return "";
-            }
-            StringBuilder ret = new();
-            Dictionary<string, string>[] data = JsonConvert.DeserializeObject<Dictionary<string, string>[]>(input!)!;
-            int cntr = 1;
-            foreach (Dictionary<string, string> dataObj in data)
-            {
-                string prefix = "";
-                string suffix = "";
-                if (cntr > 1)
-                {
-                    prefix = "-->";
-                }
-                if (cntr < data.Length)
-                {
-                    suffix = "<br><!--";
-                }
-                ret.AppendLine($@"{prefix}{{{{{game}ItemLink|{dataObj["name"]}|{dataObj["icon"]}|{dataObj["color"]}}}}} x{dataObj["quantity"]}{suffix}");
-                cntr++;
-            }
-            return ret.ToString();
-        }
-    }
+		public static string GenerateFromJson(string json)
+		{
+			return Generate(WebToolkitData.FromJson(json)).Result;
+		}
+
+		public static void MassGenerate(string game)
+		{
+			WebToolkitData[] src = [];
+			if (game == "MHWI")
+			{
+				WebToolkitData[] bmData = BlademasterData.GetToolkitData();
+				WebToolkitData[] gData = GunnerData.GetToolkitData();
+				src = new WebToolkitData[bmData.Length + gData.Length];
+				bmData.CopyTo(src, 0);
+				gData.CopyTo(src, bmData.Length);
+			}
+			else
+			{
+
+			}
+			foreach (WebToolkitData data in src)
+			{
+				string wepName = GetWeaponTypeFullName(data.Type!).Item1;
+				Directory.CreateDirectory($@"C:\Users\mkast\Desktop\MHWiki Generated Pages\{game}\{wepName}\");
+				File.WriteAllText($@"C:\Users\mkast\Desktop\MHWiki Generated Pages\{game}\{wepName}\{data.Name!.Replace("\"", "")}.txt", Generate(data).Result);
+			}
+		}
+
+		public static async Task<string> GenerateFromXlsx(string xlsxBase64, string game)
+		{
+			DirectoryInfo workspace = Utilities.GetWorkspace();
+			string xlsxPath = Path.Combine(workspace.FullName, Guid.NewGuid().ToString() + ".xlsx");
+			File.WriteAllBytes(xlsxPath, Convert.FromBase64String(xlsxBase64));
+			Dictionary<string, Dictionary<string, XlsxData>> retData = [];
+			IXLWorksheet[] sheets = [];
+			using (XLWorkbook wb = new(xlsxPath))
+			{
+				sheets = [.. wb.Worksheets];
+				foreach (IXLWorksheet sheet in sheets)
+				{
+					Dictionary<string, XlsxData> weaponData = [];
+					Dictionary<string, int> headers = [];
+					int cntr = 1;
+					foreach (IXLRow row in sheet.Rows())
+					{
+						if (cntr == 1)
+						{
+							int cellCntr = 1;
+							string lastVal = "";
+							foreach (IXLCell cell in row.Cells())
+							{
+								string? val = !cell.Value.IsBlank ? cell.Value.GetText().Replace(" ", "").Replace("?", "") : null;
+								if (val != null && val != "Name")
+								{
+									if (!string.IsNullOrEmpty(lastVal))
+									{
+										if (lastVal == "CosttoUpgradeTo" && (val.Contains("Amount") || val.Contains("Material")))
+										{
+											int amountCntr = 1;
+											if (val == "Amount")
+											{
+												while (headers.ContainsKey(val + amountCntr + "Upgrade"))
+												{
+													amountCntr++;
+												}
+												val += amountCntr;
+											}
+											val += "Upgrade";
+										}
+										else if (lastVal == "CosttoForge")
+										{
+											int amountCntr = 1;
+											if (val == "Amount")
+											{
+												while (headers.ContainsKey(val + amountCntr + "Forge"))
+												{
+													amountCntr++;
+												}
+												val += amountCntr;
+											}
+											val += "Forge";
+										}
+									}
+									headers.Add(val, cellCntr);
+									if (!val.Contains("Amount") && !val.Contains("Material"))
+									{
+										lastVal = val;
+									}
+								}
+								cellCntr++;
+							}
+						}
+						else
+						{
+							string? name = !row.Cell(1).Value.IsBlank ? row.Cell(1).Value.GetText() : null;
+							if (!string.IsNullOrEmpty(name))
+							{
+								XlsxData data = new()
+								{
+									Name = name
+								};
+								foreach (PropertyInfo pi in data.GetType().GetProperties())
+								{
+									if (headers.TryGetValue(pi.Name, out int value))
+									{
+										XLCellValue val = row.Cell(value).Value;
+										Type propertyType = pi.PropertyType;
+										if (propertyType.IsGenericType &&
+											propertyType.GetGenericTypeDefinition() == typeof(Nullable<>))
+										{
+											propertyType = propertyType.GetGenericArguments()[0];
+										}
+										try
+										{
+											if (propertyType == typeof(string))
+											{
+												pi.SetValue(data, !val.IsBlank ? val.GetText() : null);
+											}
+											else if (propertyType == typeof(int))
+											{
+												if (val.IsNumber)
+												{
+													pi.SetValue(data, Convert.ToInt32(val.GetNumber()));
+												}
+												else
+												{
+													string? cellVal = !val.IsBlank ? val.GetText() : null;
+													if (cellVal != null && int.TryParse(cellVal, out int cellIntVal))
+													{
+														pi.SetValue(data, cellIntVal);
+													}
+													else
+													{
+														pi.SetValue(data, null);
+													}
+												}
+											}
+										}
+										catch (Exception exc)
+										{
+											Debugger.Break();
+										}
+									}
+								}
+								weaponData.Add(name, data);
+							}
+						}
+						cntr++;
+					}
+					retData.Add(sheet.Name, weaponData);
+				}
+			}
+			DirectoryInfo zipDirInfo = Utilities.GetWorkspace();
+			string zipDir = Path.Combine(zipDirInfo.FullName, Guid.NewGuid().ToString());
+			Directory.CreateDirectory(zipDir);
+			foreach (KeyValuePair<string, Dictionary<string, XlsxData>> kvp in retData)
+			{
+				Dictionary<string, WebToolkitData> thisDict = kvp.Value.ToDictionary(x => x.Key, x => x.Value.ToToolkitData(game, kvp.Key));
+				thisDict = XlsxData.GetLinkedWeapons(thisDict);
+				DirectoryInfo rankDir = Directory.CreateDirectory(Path.Combine(zipDir, kvp.Key));
+				foreach (KeyValuePair<string, WebToolkitData> val in thisDict)
+				{
+					string txtPath = Path.Combine(rankDir.FullName, val.Key.Replace("\"", "'") + ".txt");
+					File.WriteAllText(txtPath, await Generate(val.Value));
+				}
+			}
+			DirectoryInfo zipPathInfo = Utilities.GetWorkspace();
+			string zipPath = Path.Combine(zipPathInfo.FullName, Guid.NewGuid() + ".zip");
+			ZipFile.CreateFromDirectory(zipDir, zipPath);
+			string zipBytes = Convert.ToBase64String(File.ReadAllBytes(zipPath));
+			File.Delete(zipPath);
+			Directory.Delete(workspace.FullName, true);
+			return zipBytes;
+		}
+
+		private static string GetSharpnessTemplates(string? input)
+		{
+			if (input == null)
+			{
+				return "";
+			}
+			string[][] data = JsonConvert.DeserializeObject<string[][]>(input!)!;
+			string ret = $"|Sharpness               = {{{{MHWISharpnessBase|{data[0][0]}|{data[0][1]}|{data[0][2]}|{data[0][3]}|{data[0][4]}|{data[0][5]}|{data[0][6]}}}}}";
+			if (data.Length > 1)
+			{
+				ret += $"\r\n|Sharpness Handi+        = {{{{MHWISharpnessBase|{data[1][0]}|{data[1][1]}|{data[1][2]}|{data[1][3]}|{data[1][4]}|{data[1][5]}|{data[1][6]}}}}}";
+			}
+			return ret;
+		}
+
+		public static string GetMaterialsTemplates(string? input, string? game)
+		{
+			if (input == null)
+			{
+				return "";
+			}
+			StringBuilder ret = new();
+			Dictionary<string, string>[] data = JsonConvert.DeserializeObject<Dictionary<string, string>[]>(input!)!;
+			int cntr = 1;
+			foreach (Dictionary<string, string> dataObj in data)
+			{
+				string prefix = "";
+				string suffix = "";
+				if (cntr > 1)
+				{
+					prefix = "-->";
+				}
+				if (cntr < data.Length)
+				{
+					suffix = "<br><!--";
+				}
+				ret.AppendLine($@"{prefix}{{{{{game}ItemLink|{dataObj["name"]}|{dataObj["icon"]}|{GetColorString(dataObj["color"])}}}}} x{dataObj["quantity"]}{suffix}");
+				cntr++;
+			}
+			return ret.ToString();
+		}
+
+		public static string GetColorString(string src)
+		{
+			return src.Replace("DarkBlue", "Dark Blue").Replace("LightBlue", "Light Blue").Replace("DarkPurple", "Dark Purple").Replace("LightGreen", "Light Green");
+		}
+	}
 }

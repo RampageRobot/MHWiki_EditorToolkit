@@ -10,54 +10,78 @@ namespace MediawikiTranslator.Generators
 {
 	public class Skills
 	{
-		public static void ParseSkills()
+		public static SimplifiedSkill[] GetSimplifiedSkillsMHRS()
 		{
-			Models.Data.MHWI.Skills[] mhwiSkills = Models.Data.MHWI.Skills.FromJson(File.ReadAllText(@"C:\Users\mkast\Desktop\mhwi skills.json"));
-			SkillsExtraInfo[] mhwiSkillsExtraInfo = SkillsExtraInfo.FromJson(File.ReadAllText(@"C:\Users\mkast\Desktop\mhwi skills extra info.json"));
-			Dictionary<int, string> mhwiColors = Items.GetMHWIWikiColors();
+			Dictionary<string, int> skillEnum = GetMHRISkillEnum();
+			Models.Data.MHRS.Skills skillDict = Models.Data.MHRS.Skills.FromJson(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Raw Data\MHRS\natives\stm\data\define\player\skill\plequipskill\plequipskillbasedata.user.2.json"));
+			Dictionary<int, string> mhrsColors = Items.GetMHRSWikiColors();
 			List<SimplifiedSkill> simplifiedSkills = [];
-			foreach (SkillsExtraInfo skill in mhwiSkillsExtraInfo)
+			foreach (SkillsParam data in skillDict.SnowDataPlEquipSkillBaseUserData.Param.Where(x => skillEnum.ContainsKey(x.Id!)))
 			{
+				string skillId = data.Id!.Substring(data.Id!.LastIndexOf('_') + 1);
 				SimplifiedSkill newSkill = new()
 				{
-					Name = skill.Name,
-					WikiIconColor = mhwiColors[(int)skill.IconColorId!.Value]
+					Id = (int)Models.Data.MHRS.Skills.GetSkillId(data.Id!),
+					Name = CommonMsgs.GetMsg("PlayerSkill_" + skillId + "_Name"),
+					MaxLevel = Convert.ToInt32(data.MaxLevel!.Substring(2)),
+					Description = CommonMsgs.GetMsg("PlayerSkill_" + skillId + "_Explain").Replace("\r\n", " ")
 				};
-				if (mhwiSkills.Any(x => x.Name == skill.Name + ": " + skill.Id))
+				if (mhrsColors.ContainsKey(Convert.ToInt32(data.IconColor!.Replace("ITEM_ICON_COLOR_", ""))))
 				{
-					newSkill.Description = mhwiSkills.First(x => x.Name == skill.Name + ": " + skill.Id).Description;
-					newSkill.MaxLevel = (int)mhwiSkills.Where(x => x.Name == skill.Name + ": " + skill.Id).OrderByDescending(x => x.Level).First().Level!.Value;
+					newSkill.WikiIconColor = mhrsColors[Convert.ToInt32(data.IconColor!.Replace("ITEM_ICON_COLOR_", ""))];
+				}
+				else
+				{
+					newSkill.WikiIconColor = "NOT AVAILABLE";
+				}
+				for (int lvl = 0; lvl < 8; lvl++)
+				{
+					string lvlDetails = CommonMsgs.GetMsg("PlayerSkill_" + skillId + "_" + lvl.ToString("D2") + "_Detail");
+					if (!string.IsNullOrEmpty(lvlDetails) && !lvlDetails.Contains("<COLOR FF0000>#Rejected#</COLOR>"))
+					{
+						newSkill.LevelDetails.Add(lvl + 1, new() {
+							Description = lvlDetails.Replace("\r\n", " ")
+						});
+					}
 				}
 				simplifiedSkills.Add(newSkill);
 			}
-			File.WriteAllText(@"C:\Users\mkast\Desktop\mhwi_skills_simplified.json", Newtonsoft.Json.JsonConvert.SerializeObject(simplifiedSkills.OrderBy(x => x.Name), Newtonsoft.Json.Formatting.Indented));
-			Dictionary<int, string> skillEnum = GetMHRISkillEnum();
-			Models.Data.MHRS.Skills skillDict = Models.Data.MHRS.Skills.FromJson(File.ReadAllText(@"C:\Users\mkast\Desktop\plequipskillbasedata.user.2.json"));
-			SkillsNames skillNameDict = SkillsNames.FromJson(File.ReadAllText(@"C:\Users\mkast\Desktop\skillnames.json"));
-			SkillsExplain skillExplainDict = SkillsExplain.FromJson(File.ReadAllText(@"C:\Users\mkast\Desktop\skillexplain.json"));
-			SkillsDetails skillDetailsDict = SkillsDetails.FromJson(File.ReadAllText(@"C:\Users\mkast\Desktop\skilldetails.json"));
+			return [.. simplifiedSkills];
+		}
+
+		public static void ParseSkills()
+		{
+			Models.Data.MHWI.Skills[] mhwiSkills = Models.Data.MHWI.Skills.FromJson(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWI\mhwi skills.json"));
+			SkillsExtraInfo[] mhwiSkillsExtraInfo = SkillsExtraInfo.FromJson(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWI\mhwi skills extra info.json"));
+			Dictionary<int, string> mhwiColors = Items.GetMHWIWikiColors();
+			File.WriteAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWI\mhwi_skills_simplified.json", Newtonsoft.Json.JsonConvert.SerializeObject(SkillDescriptions.GetSimplifiedSkills().OrderBy(x => x.Name), Newtonsoft.Json.Formatting.Indented));
+			Dictionary<string, int> skillEnum = GetMHRISkillEnum();
+			Models.Data.MHRS.Skills skillDict = Models.Data.MHRS.Skills.FromJson(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHRS\plequipskillbasedata.user.2.json"));
+			SkillsNames skillNameDict = SkillsNames.FromJson(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHRS\skillnames.json"));
+			SkillsExplain skillExplainDict = SkillsExplain.FromJson(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHRS\skillexplain.json"));
+			SkillsDetails skillDetailsDict = SkillsDetails.FromJson(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHRS\skilldetails.json"));
 			Dictionary<int, string> mhrsColors = Items.GetMHRSWikiColors();
-			simplifiedSkills = [];
-			foreach (Param data in skillDict.SnowDataPlEquipSkillBaseUserData.Param.Where(x => skillEnum.ContainsKey((int)x.Id!.Value)))
+			List<SimplifiedSkill> simplifiedSkills = [];
+			foreach (SkillsParam data in skillDict.SnowDataPlEquipSkillBaseUserData.Param.Where(x => skillEnum.ContainsKey(x.Id!)))
 			{
-				string nameKey = "PlayerSkill_" + skillEnum[(int)data.Id!.Value] + "_Name";
+				string nameKey = "PlayerSkill_" + skillEnum[data.Id!] + "_Name";
 				if (skillNameDict.NameToUuid.ContainsKey(nameKey))
 				{
 					SkillsNamesMsg skillName = skillNameDict.Msgs[skillNameDict.NameToUuid[nameKey].ToString()];
 					SimplifiedSkill newSkill = new()
 					{
 						Name = skillName.Content[1],
-						MaxLevel = (int)data.MaxLevel!,
+						MaxLevel = Convert.ToInt32(data.MaxLevel!.Substring(2)),
 					};
-					if (mhrsColors.ContainsKey((int)data.IconColor!.Value))
+					if (mhrsColors.ContainsKey(Convert.ToInt32(data.IconColor!.Replace("ITEM_ICON_COLOR_", ""))))
 					{
-						newSkill.WikiIconColor = mhrsColors[(int)data.IconColor!.Value];
+						newSkill.WikiIconColor = mhrsColors[Convert.ToInt32(data.IconColor!.Replace("ITEM_ICON_COLOR_", ""))];
 					}
 					else
 					{
 						newSkill.WikiIconColor = "NOT AVAILABLE";
 					}
-					string explainKey = "PlayerSkill_" + skillEnum[(int)data.Id!.Value] + "_Explain";
+					string explainKey = "PlayerSkill_" + skillEnum[data.Id!] + "_Explain";
 					if (skillExplainDict.Msgs.ContainsKey(skillExplainDict.NameToUuid[explainKey].ToString()))
 					{
 						SkillsExplainMsg msg = skillExplainDict.Msgs[skillExplainDict.NameToUuid[explainKey].ToString()];
@@ -67,201 +91,225 @@ namespace MediawikiTranslator.Generators
 						}
 					}
 					int lvl = 1;
-					foreach (string key in skillDetailsDict.NameToUuid.Keys.Where(x => x.StartsWith("PlayerSkill_" + skillEnum[(int)data.Id!.Value] + "_")))
+					foreach (string key in skillDetailsDict.NameToUuid.Keys.Where(x => x.StartsWith("PlayerSkill_" + skillEnum[data.Id!] + "_")))
 					{
 						Msg skillsDetails = skillDetailsDict.Msgs[skillDetailsDict.NameToUuid[key].ToString()];
 						if (!string.IsNullOrEmpty(skillsDetails.Content[1]) && !skillsDetails.Content[1].StartsWith("<COLOR FF0000>#Rejected#</COLOR>"))
 						{
-							newSkill.LevelDetails.Add(lvl, skillsDetails.Content[1].Replace("\r\n", " "));
+							newSkill.LevelDetails.Add(lvl, new()
+							{
+								Description = skillsDetails.Content[1].Replace("\r\n", " ")
+							});
 						}
 						lvl++;
 					}
 					simplifiedSkills.Add(newSkill);
 				}
 			}
-			File.WriteAllText(@"C:\Users\mkast\Desktop\mhrs_skills_simplified.json", Newtonsoft.Json.JsonConvert.SerializeObject(simplifiedSkills.OrderBy(x => x.Name), Newtonsoft.Json.Formatting.Indented));
+			File.WriteAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHRS\mhrs_skills_simplified.json", Newtonsoft.Json.JsonConvert.SerializeObject(simplifiedSkills.OrderBy(x => x.Name), Newtonsoft.Json.Formatting.Indented));
 		}
 
-		private static Dictionary<int, string> GetMHRISkillEnum()
+		private static Dictionary<string, int> GetMHRISkillEnum()
 		{
 			return new()
 			{
-				{ 1, "000" },
-				{ 2, "001" },
-				{ 3, "002" },
-				{ 4, "003" },
-				{ 5, "004" },
-				{ 6, "005" },
-				{ 7, "006" },
-				{ 8, "007" },
-				{ 9, "008" },
-				{ 10, "009" },
-				{ 11, "010" },
-				{ 12, "011" },
-				{ 13, "012" },
-				{ 14, "013" },
-				{ 15, "014" },
-				{ 16, "015" },
-				{ 17, "016" },
-				{ 18, "017" },
-				{ 19, "018" },
-				{ 20, "019" },
-				{ 21, "020" },
-				{ 22, "021" },
-				{ 23, "022" },
-				{ 24, "023" },
-				{ 25, "024" },
-				{ 26, "025" },
-				{ 27, "026" },
-				{ 28, "027" },
-				{ 29, "028" },
-				{ 30, "029" },
-				{ 31, "030" },
-				{ 32, "031" },
-				{ 33, "032" },
-				{ 34, "033" },
-				{ 35, "034" },
-				{ 36, "035" },
-				{ 37, "036" },
-				{ 38, "037" },
-				{ 39, "038" },
-				{ 40, "039" },
-				{ 41, "040" },
-				{ 42, "041" },
-				{ 43, "042" },
-				{ 44, "043" },
-				{ 45, "044" },
-				{ 46, "045" },
-				{ 47, "046" },
-				{ 48, "047" },
-				{ 49, "048" },
-				{ 50, "049" },
-				{ 51, "050" },
-				{ 52, "051" },
-				{ 53, "052" },
-				{ 54, "053" },
-				{ 55, "054" },
-				{ 56, "055" },
-				{ 57, "056" },
-				{ 58, "057" },
-				{ 59, "058" },
-				{ 60, "059" },
-				{ 61, "060" },
-				{ 62, "061" },
-				{ 63, "062" },
-				{ 64, "063" },
-				{ 65, "064" },
-				{ 66, "065" },
-				{ 67, "066" },
-				{ 68, "067" },
-				{ 69, "068" },
-				{ 70, "069" },
-				{ 71, "070" },
-				{ 72, "071" },
-				{ 73, "072" },
-				{ 74, "073" },
-				{ 75, "074" },
-				{ 76, "075" },
-				{ 77, "076" },
-				{ 78, "077" },
-				{ 79, "078" },
-				{ 80, "079" },
-				{ 81, "080" },
-				{ 82, "081" },
-				{ 83, "082" },
-				{ 84, "083" },
-				{ 85, "084" },
-				{ 86, "085" },
-				{ 87, "086" },
-				{ 88, "087" },
-				{ 89, "088" },
-				{ 90, "089" },
-				{ 91, "090" },
-				{ 92, "091" },
-				{ 93, "092" },
-				{ 94, "093" },
-				{ 95, "094" },
-				{ 96, "095" },
-				{ 97, "096" },
-				{ 98, "097" },
-				{ 99, "098" },
-				{ 100, "099" },
-				{ 101, "100" },
-				{ 102, "101" },
-				{ 103, "102" },
-				{ 104, "103" },
-				{ 105, "104" },
-				{ 106, "105" },
-				{ 107, "106" },
-				{ 108, "107" },
-				{ 109, "108" },
-				{ 110, "109" },
-				{ 111, "110" },
-				{ 112, "200" },
-				{ 113, "201" },
-				{ 114, "202" },
-				{ 115, "203" },
-				{ 116, "204" },
-				{ 117, "205" },
-				{ 118, "206" },
-				{ 119, "207" },
-				{ 120, "208" },
-				{ 121, "209" },
-				{ 122, "210" },
-				{ 123, "211" },
-				{ 124, "212" },
-				{ 125, "213" },
-				{ 126, "214" },
-				{ 127, "215" },
-				{ 128, "216" },
-				{ 129, "217" },
-				{ 130, "218" },
-				{ 131, "219" },
-				{ 132, "220" },
-				{ 133, "221" },
-				{ 134, "222" },
-				{ 135, "223" },
-				{ 136, "224" },
-				{ 137, "225" },
-				{ 138, "226" },
-				{ 139, "227" },
-				{ 140, "228" },
-				{ 141, "229" },
-				{ 142, "230" },
-				{ 143, "231" },
-				{ 144, "232" },
-				{ 145, "233" },
-				{ 146, "234" },
-				{ 147, "235" },
-				{ 148, "236" },
-				{ 149, "237" },
-				{ 150, "238" },
-				{ 151, "239" },
-				{ 152, "240" },
-				{ 153, "241" },
-				{ 154, "242" },
-				{ 155, "243" },
-				{ 156, "244" },
-				{ 157, "245" },
-				{ 158, "246" },
-				{ 159, "247" },
-				{ 160, "248" },
-				{ 161, "249" },
-				{ 162, "250" },
-				{ 163, "251" },
-				{ 164, "252" },
-				{ 165, "253" },
-				{ 166, "254" },
-				{ 167, "255" }
+				{ "Pl_EquipSkill_000", 1 },
+				{ "Pl_EquipSkill_001", 2 },
+				{ "Pl_EquipSkill_002", 3 },
+				{ "Pl_EquipSkill_003", 4 },
+				{ "Pl_EquipSkill_004", 5 },
+				{ "Pl_EquipSkill_005", 6 },
+				{ "Pl_EquipSkill_006", 7 },
+				{ "Pl_EquipSkill_007", 8 },
+				{ "Pl_EquipSkill_008", 9 },
+				{ "Pl_EquipSkill_009", 10 },
+				{ "Pl_EquipSkill_010", 11 },
+				{ "Pl_EquipSkill_011", 12 },
+				{ "Pl_EquipSkill_012", 13 },
+				{ "Pl_EquipSkill_013", 14 },
+				{ "Pl_EquipSkill_014", 15 },
+				{ "Pl_EquipSkill_015", 16 },
+				{ "Pl_EquipSkill_016", 17 },
+				{ "Pl_EquipSkill_017", 18 },
+				{ "Pl_EquipSkill_018", 19 },
+				{ "Pl_EquipSkill_019", 20 },
+				{ "Pl_EquipSkill_020", 21 },
+				{ "Pl_EquipSkill_021", 22 },
+				{ "Pl_EquipSkill_022", 23 },
+				{ "Pl_EquipSkill_023", 24 },
+				{ "Pl_EquipSkill_024", 25 },
+				{ "Pl_EquipSkill_025", 26 },
+				{ "Pl_EquipSkill_026", 27 },
+				{ "Pl_EquipSkill_027", 28 },
+				{ "Pl_EquipSkill_028", 29 },
+				{ "Pl_EquipSkill_029", 30 },
+				{ "Pl_EquipSkill_030", 31 },
+				{ "Pl_EquipSkill_031", 32 },
+				{ "Pl_EquipSkill_032", 33 },
+				{ "Pl_EquipSkill_033", 34 },
+				{ "Pl_EquipSkill_034", 35 },
+				{ "Pl_EquipSkill_035", 36 },
+				{ "Pl_EquipSkill_036", 37 },
+				{ "Pl_EquipSkill_037", 38 },
+				{ "Pl_EquipSkill_038", 39 },
+				{ "Pl_EquipSkill_039", 40 },
+				{ "Pl_EquipSkill_040", 41 },
+				{ "Pl_EquipSkill_041", 42 },
+				{ "Pl_EquipSkill_042", 43 },
+				{ "Pl_EquipSkill_043", 44 },
+				{ "Pl_EquipSkill_044", 45 },
+				{ "Pl_EquipSkill_045", 46 },
+				{ "Pl_EquipSkill_046", 47 },
+				{ "Pl_EquipSkill_047", 48 },
+				{ "Pl_EquipSkill_048", 49 },
+				{ "Pl_EquipSkill_049", 50 },
+				{ "Pl_EquipSkill_050", 51 },
+				{ "Pl_EquipSkill_051", 52 },
+				{ "Pl_EquipSkill_052", 53 },
+				{ "Pl_EquipSkill_053", 54 },
+				{ "Pl_EquipSkill_054", 55 },
+				{ "Pl_EquipSkill_055", 56 },
+				{ "Pl_EquipSkill_056", 57 },
+				{ "Pl_EquipSkill_057", 58 },
+				{ "Pl_EquipSkill_058", 59 },
+				{ "Pl_EquipSkill_059", 60 },
+				{ "Pl_EquipSkill_060", 61 },
+				{ "Pl_EquipSkill_061", 62 },
+				{ "Pl_EquipSkill_062", 63 },
+				{ "Pl_EquipSkill_063", 64 },
+				{ "Pl_EquipSkill_064", 65 },
+				{ "Pl_EquipSkill_065", 66 },
+				{ "Pl_EquipSkill_066", 67 },
+				{ "Pl_EquipSkill_067", 68 },
+				{ "Pl_EquipSkill_068", 69 },
+				{ "Pl_EquipSkill_069", 70 },
+				{ "Pl_EquipSkill_070", 71 },
+				{ "Pl_EquipSkill_071", 72 },
+				{ "Pl_EquipSkill_072", 73 },
+				{ "Pl_EquipSkill_073", 74 },
+				{ "Pl_EquipSkill_074", 75 },
+				{ "Pl_EquipSkill_075", 76 },
+				{ "Pl_EquipSkill_076", 77 },
+				{ "Pl_EquipSkill_077", 78 },
+				{ "Pl_EquipSkill_078", 79 },
+				{ "Pl_EquipSkill_079", 80 },
+				{ "Pl_EquipSkill_080", 81 },
+				{ "Pl_EquipSkill_081", 82 },
+				{ "Pl_EquipSkill_082", 83 },
+				{ "Pl_EquipSkill_083", 84 },
+				{ "Pl_EquipSkill_084", 85 },
+				{ "Pl_EquipSkill_085", 86 },
+				{ "Pl_EquipSkill_086", 87 },
+				{ "Pl_EquipSkill_087", 88 },
+				{ "Pl_EquipSkill_088", 89 },
+				{ "Pl_EquipSkill_089", 90 },
+				{ "Pl_EquipSkill_090", 91 },
+				{ "Pl_EquipSkill_091", 92 },
+				{ "Pl_EquipSkill_092", 93 },
+				{ "Pl_EquipSkill_093", 94 },
+				{ "Pl_EquipSkill_094", 95 },
+				{ "Pl_EquipSkill_095", 96 },
+				{ "Pl_EquipSkill_096", 97 },
+				{ "Pl_EquipSkill_097", 98 },
+				{ "Pl_EquipSkill_098", 99 },
+				{ "Pl_EquipSkill_099", 100 },
+				{ "Pl_EquipSkill_100", 101 },
+				{ "Pl_EquipSkill_101", 102 },
+				{ "Pl_EquipSkill_102", 103 },
+				{ "Pl_EquipSkill_103", 104 },
+				{ "Pl_EquipSkill_104", 105 },
+				{ "Pl_EquipSkill_105", 106 },
+				{ "Pl_EquipSkill_106", 107 },
+				{ "Pl_EquipSkill_107", 108 },
+				{ "Pl_EquipSkill_108", 109 },
+				{ "Pl_EquipSkill_109", 110 },
+				{ "Pl_EquipSkill_110", 111 },
+				{ "Pl_EquipSkill_200", 112 },
+				{ "Pl_EquipSkill_201", 113 },
+				{ "Pl_EquipSkill_202", 114 },
+				{ "Pl_EquipSkill_203", 115 },
+				{ "Pl_EquipSkill_204", 116 },
+				{ "Pl_EquipSkill_205", 117 },
+				{ "Pl_EquipSkill_206", 118 },
+				{ "Pl_EquipSkill_207", 119 },
+				{ "Pl_EquipSkill_208", 120 },
+				{ "Pl_EquipSkill_209", 121 },
+				{ "Pl_EquipSkill_210", 122 },
+				{ "Pl_EquipSkill_211", 123 },
+				{ "Pl_EquipSkill_212", 124 },
+				{ "Pl_EquipSkill_213", 125 },
+				{ "Pl_EquipSkill_214", 126 },
+				{ "Pl_EquipSkill_215", 127 },
+				{ "Pl_EquipSkill_216", 128 },
+				{ "Pl_EquipSkill_217", 129 },
+				{ "Pl_EquipSkill_218", 130 },
+				{ "Pl_EquipSkill_219", 131 },
+				{ "Pl_EquipSkill_220", 132 },
+				{ "Pl_EquipSkill_221", 133 },
+				{ "Pl_EquipSkill_222", 134 },
+				{ "Pl_EquipSkill_223", 135 },
+				{ "Pl_EquipSkill_224", 136 },
+				{ "Pl_EquipSkill_225", 137 },
+				{ "Pl_EquipSkill_226", 138 },
+				{ "Pl_EquipSkill_227", 139 },
+				{ "Pl_EquipSkill_228", 140 },
+				{ "Pl_EquipSkill_229", 141 },
+				{ "Pl_EquipSkill_230", 142 },
+				{ "Pl_EquipSkill_231", 143 },
+				{ "Pl_EquipSkill_232", 144 },
+				{ "Pl_EquipSkill_233", 145 },
+				{ "Pl_EquipSkill_234", 146 },
+				{ "Pl_EquipSkill_235", 147 },
+				{ "Pl_EquipSkill_236", 148 },
+				{ "Pl_EquipSkill_237", 149 },
+				{ "Pl_EquipSkill_238", 150 },
+				{ "Pl_EquipSkill_239", 151 },
+				{ "Pl_EquipSkill_240", 152 },
+				{ "Pl_EquipSkill_241", 153 },
+				{ "Pl_EquipSkill_242", 154 },
+				{ "Pl_EquipSkill_243", 155 },
+				{ "Pl_EquipSkill_244", 156 },
+				{ "Pl_EquipSkill_245", 157 },
+				{ "Pl_EquipSkill_246", 158 },
+				{ "Pl_EquipSkill_247", 159 },
+				{ "Pl_EquipSkill_248", 160 },
+				{ "Pl_EquipSkill_249", 161 },
+				{ "Pl_EquipSkill_250", 162 },
+				{ "Pl_EquipSkill_251", 163 },
+				{ "Pl_EquipSkill_252", 164 },
+				{ "Pl_EquipSkill_253", 165 },
+				{ "Pl_EquipSkill_254", 166 },
+				{ "Pl_EquipSkill_255", 167 },
 			};
 		}
 	}
 
-	class SimplifiedSkill
+	public class SimplifiedSkill
 	{
+		public int Id { get; set; }
 		public string Name { get; set; } = string.Empty;
+		public int Level { get; set; }
 		public int MaxLevel { get; set; } = 1;
 		public string WikiIconColor { get; set; } = string.Empty;
+		public string? SkillGrantedByBonus1 { get; set; }
+		public int? SkillGrantedByBonus1_PiecesRequired { get; set; }
+		public string? SkillGrantedByBonus2 { get; set; }
+		public int? SkillGrantedByBonus2_PiecesRequired { get; set; }
+		public string Description { get; set; } = string.Empty;
+		public Dictionary<int, SkillLevelInfo> LevelDetails { get; set; } = [];
+	}
+
+	public class SimplifiedSkill2
+	{
+		public long Id { get; set; }
+		public string Name { get; set; } = string.Empty;
+		public int Level { get; set; }
+		public int MaxLevel { get; set; } = 1;
+		public string WikiIconColor { get; set; } = string.Empty;
+		public string? SkillGrantedByBonus1 { get; set; }
+		public int? SkillGrantedByBonus1_PiecesRequired { get; set; }
+		public string? SkillGrantedByBonus2 { get; set; }
+		public int? SkillGrantedByBonus2_PiecesRequired { get; set; }
 		public string Description { get; set; } = string.Empty;
 		public Dictionary<int, string> LevelDetails { get; set; } = [];
 	}

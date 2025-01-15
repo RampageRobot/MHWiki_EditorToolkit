@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using MediawikiTranslator.Models.Data.MHWI;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using System.Globalization;
 namespace MediawikiTranslator.Models.Weapon
@@ -58,7 +59,7 @@ namespace MediawikiTranslator.Models.Weapon
         [JsonProperty("sharpness", NullValueHandling = NullValueHandling.Ignore)]
         public string? Sharpness { get; set; }
 
-        [JsonProperty("description", NullValueHandling = NullValueHandling.Ignore)]
+		[JsonProperty("description", NullValueHandling = NullValueHandling.Ignore)]
         public string? Description { get; set; }
 
         [JsonProperty("decos-1", NullValueHandling = NullValueHandling.Ignore)]
@@ -119,7 +120,16 @@ namespace MediawikiTranslator.Models.Weapon
         [JsonProperty("hbg-special-ammo-type", NullValueHandling = NullValueHandling.Ignore)]
         public string? HbgSpecialAmmoType { get; set; }
 
-        [JsonProperty("previous-name", NullValueHandling = NullValueHandling.Ignore)]
+		[JsonProperty("hbg-deviation", NullValueHandling = NullValueHandling.Ignore)]
+		public string? HbgDeviation { get; set; }
+
+		[JsonProperty("lbg-special-ammo-type", NullValueHandling = NullValueHandling.Ignore)]
+		public string? LbgSpecialAmmoType { get; set; }
+
+		[JsonProperty("lbg-deviation", NullValueHandling = NullValueHandling.Ignore)]
+		public string? LbgDeviation { get; set; }
+
+		[JsonProperty("previous-name", NullValueHandling = NullValueHandling.Ignore)]
         public string? PreviousName { get; set; }
 
         [JsonProperty("previous-rarity", NullValueHandling = NullValueHandling.Ignore)]
@@ -174,6 +184,8 @@ namespace MediawikiTranslator.Models.Weapon
 
         [JsonProperty("next-3-materials", NullValueHandling = NullValueHandling.Ignore)]
         public string? Next3Materials { get; set; }
+        [JsonIgnore]
+        public ShellTable[]? ShellTable { get; set; }
     }
 
 	public partial class WebToolkitData

@@ -1,4 +1,5 @@
 ﻿using ClosedXML.Excel;
+using DocumentFormat.OpenXml.Wordprocessing;
 using MediawikiTranslator.Models.ArmorSets;
 using System.IO.Compression;
 using System.Text;
@@ -9,12 +10,17 @@ namespace MediawikiTranslator.Generators
 	{
 		private static async Task<string> Generate(WebToolkitData set)
 		{
-
 			return await Task.Run(() =>
 			{
 				StringBuilder ret = new();
-				ret.AppendLine($@"{{{{GenericArmorSet
+				ret.AppendLine($@"{{{{GenericNav|{set.Game}}}}}
+<br>
+<br>
+The {set.SetName} Set is a {GetRankLink(set.Game, set.Rarity)} [[{set.Game}/Armor|Armor Set]] in [[{Weapon.GetGameFullName(set.Game, (int?)set.Rarity)}]].<br>
+{{{{GenericArmorSet
+|Game                               = {set.Game}
 |Set Name                           = {set.SetName}
+|Max Level                          = {set.Pieces.Max(x => x.MaxLevel)}
 |Male Image                         = {(string.IsNullOrEmpty(set.MaleFrontImg) ? "wiki.png" : set.MaleFrontImg)}
 |Female Image                       = {(string.IsNullOrEmpty(set.FemaleFrontImg) ? "wiki.png" : set.FemaleFrontImg)}
 |Male Image Back                    = {(string.IsNullOrEmpty(set.MaleBackImg) ? "wiki.png" : set.MaleBackImg)}
@@ -25,13 +31,13 @@ namespace MediawikiTranslator.Generators
 |Group Skill 1 Name                 = {set.GroupSkill1Name}
 |Group Skill 2 Name                 = {set.GroupSkill2Name}
 |Total Forging Cost                 = {set.Pieces.Sum(x => x.ForgingCost):n0}
-|Total Skills                       = {string.Join("<br>", set.Pieces.SelectMany(x => x.Skills).GroupBy(x => new { x.Name, x.Level }).OrderByDescending(x => x.Sum(y => y.Level)).ThenBy(x => x.Key.Name).Select(x => $"{{{{{(string.IsNullOrEmpty(set.Game) ? "MHWildsItem" : set.Game + "ItemLink")}|{x.Key.Name}}}}} {x.Sum(y => y.Level)}"))}
-|Total Forging Materials            = {string.Join("<br>", set.Pieces.SelectMany(x => x.Materials).GroupBy(x => new { x.Name, x.Icon, x.Color }).Select(x => new { x.Key, Quantity = set.Pieces.SelectMany(y => y.Materials).Where(y => y.Name == x.Key.Name).Sum(y => y.Quantity) }).OrderByDescending(x => x.Quantity).ThenBy(x => x.Key.Name).Select(x => $"{{{{{(string.IsNullOrEmpty(set.Game) ? "MHWildsItem" : set.Game + "ItemLink")}|{x.Key.Name}|{x.Key.Icon}|{x.Key.Color}}}}} {x.Quantity}"))}
+|Total Skills                       = {GetSetSkillsTemplates([..set.Pieces.SelectMany(x => x.Skills)], set.Game)}
+|Total Forging Materials            = {GetSetMaterialsTemplates([..set.Pieces.SelectMany(x => x.Materials)], set.Game)}
 |Total Decos 1                      = {set.Pieces.Sum(x => x.Decos1)}
 |Total Decos 2                      = {set.Pieces.Sum(x => x.Decos2)}
 |Total Decos 3                      = {set.Pieces.Sum(x => x.Decos3)}
 |Total Decos 4                      = {set.Pieces.Sum(x => x.Decos4)}
-|Total Defense                      = {set.Pieces.Sum(x => x.Defense) + (set.Pieces.Any(x => x.MaxDefense != null) ? (" (" + set.Pieces.Sum(x => x.MaxDefense)) + ")" : "")}
+|Total Defense                      = {set.Pieces.Sum(x => x.Defense) + (set.Pieces.Any(x => x.MaxDefense != null) ? " → " + set.Pieces.Sum(x => x.MaxDefense) : "")}
 |Total Fire Res                     = {set.Pieces.Sum(x => x.FireRes)}
 |Total Water Res                    = {set.Pieces.Sum(x => x.WaterRes)}
 |Total Thunder Res                  = {set.Pieces.Sum(x => x.ThunderRes)}
@@ -41,6 +47,8 @@ namespace MediawikiTranslator.Generators
 				foreach (Piece piece in set.Pieces)
 				{
 					ret.AppendLine($@"{{{{GenericArmorSetPiece
+|Game                  = {set.Game}
+|Max Level             = {piece.MaxLevel}
 |Piece Name            = {piece.Name}
 |Rarity                = {(piece.Rarity > 0 ? piece.Rarity : "")}
 |Item Icon Type        = {piece.IconType}
@@ -52,53 +60,167 @@ namespace MediawikiTranslator.Generators
 |Level 3 Decos         = {piece.Decos3}
 |Level 4 Decos         = {piece.Decos4}
 |Forging Cost          = {piece.ForgingCost:n0}
-|Defense               = {piece.Defense + "-" + piece.MaxDefense}
+|Defense               = {piece.Defense + " → " + piece.MaxDefense}
 |Fire Res              = {piece.FireRes}
 |Water Res             = {piece.WaterRes}
 |Thunder Res           = {piece.ThunderRes}
 |Ice Res               = {piece.IceRes}
 |Dragon Res            = {piece.DragonRes}
-|Skill Link Prefix     = {(string.IsNullOrEmpty(set.Game) ? "MHWilds:_Skills" : set.Game + ":_Skills")}
-|Skill 1               = {(piece.Skills.Length > 0 ? piece.Skills[0].Name : "")}
-|Skill 1 Level         = {(piece.Skills.Length > 0 ? piece.Skills[0].Level : "")}
-|Skill 2               = {(piece.Skills.Length > 1 ? piece.Skills[1].Name : "")}
-|Skill 2 Level         = {(piece.Skills.Length > 1 ? piece.Skills[1].Level : "")}
-|Skill 3               = {(piece.Skills.Length > 2 ? piece.Skills[2].Name : "")}
-|Skill 3 Level         = {(piece.Skills.Length > 2 ? piece.Skills[2].Level : "")}
-|Skill 4               = {(piece.Skills.Length > 3 ? piece.Skills[3].Name : "")}
-|Skill 4 Level         = {(piece.Skills.Length > 3 ? piece.Skills[3].Level : "")}
-|Material Template     = {(string.IsNullOrEmpty(set.Game) ? "MHWildsItem" : set.Game + "ItemLink")}
-|Material 1 Name       = {(piece.Materials.Length > 0 ? piece.Materials[0].Name : "")}
-|Material 1 Icon       = {(piece.Materials.Length > 0 ? piece.Materials[0].Icon : "")}
-|Material 1 Icon Color = {(piece.Materials.Length > 0 ? piece.Materials[0].Color : "")}
-|Material 1 Quantity   = {(piece.Materials.Length > 0 ? piece.Materials[0].Quantity : "")}
-|Material 2 Name       = {(piece.Materials.Length > 1 ? piece.Materials[1].Name : "")}
-|Material 2 Icon       = {(piece.Materials.Length > 1 ? piece.Materials[1].Icon : "")}
-|Material 2 Icon Color = {(piece.Materials.Length > 1 ? piece.Materials[1].Color : "")}
-|Material 2 Quantity   = {(piece.Materials.Length > 1 ? piece.Materials[1].Quantity : "")}
-|Material 3 Name       = {(piece.Materials.Length > 2 ? piece.Materials[2].Name : "")}
-|Material 3 Icon       = {(piece.Materials.Length > 2 ? piece.Materials[2].Icon : "")}
-|Material 3 Icon Color = {(piece.Materials.Length > 2 ? piece.Materials[2].Color : "")}
-|Material 3 Quantity   = {(piece.Materials.Length > 2 ? piece.Materials[2].Quantity : "")}
-|Material 4 Name       = {(piece.Materials.Length > 3 ? piece.Materials[3].Name : "")}
-|Material 4 Icon       = {(piece.Materials.Length > 3 ? piece.Materials[3].Icon : "")}
-|Material 4 Icon Color = {(piece.Materials.Length > 3 ? piece.Materials[3].Color : "")}
-|Material 4 Quantity   = {(piece.Materials.Length > 3 ? piece.Materials[3].Quantity : "")}
-|Material 5 Name       = {(piece.Materials.Length > 4 ? piece.Materials[4].Name : "")}
-|Material 5 Icon       = {(piece.Materials.Length > 4 ? piece.Materials[4].Icon : "")}
-|Material 5 Icon Color = {(piece.Materials.Length > 4 ? piece.Materials[4].Color : "")}
-|Material 5 Quantity   = {(piece.Materials.Length > 4 ? piece.Materials[4].Quantity : "")}
+|Skills                = {GetSkillsTemplates(piece.Skills, set.Game)}
+|Materials             = {GetMaterialsTemplates(piece.Materials, set.Game)}
 }}}}");
 				}
-				ret.AppendLine(@"}}");
 				return ret.ToString();
 			});
+		}
+
+		private static string GetRankLink(string game, long? rarity)
+		{
+			if (rarity == null)
+			{
+				return $"[[Armor Set List ({game})#Low Rank|Low Rank (LR)]]";
+			}
+			else
+			{
+				return game switch
+				{
+					"MHWI" => rarity < 5 ? $"[[Armor Set List ({game})#Low Rank|Low Rank (LR)]]" : rarity < 9 ? $"[[Armor Set List ({game})#High Rank|High Rank (HR)]]" : $"[[Armor Set List ({game})#Master Rank|Master Rank (MR)]]",
+					"MHRS" => rarity < 4 ? $"[[Armor Set List ({game})#Low Rank|Low Rank (LR)]]" : rarity < 8 ? $"[[Armor Set List ({game})#High Rank|High Rank (HR)]]" : $"[[Armor Set List ({game})#Master Rank|Master Rank (MR)]]",
+					_ => $"[[Armor Set List ({game})#Low Rank|Low Rank (LR)]]",
+				};
+			}
+		}
+
+		public static string GetRank(string game, long? rarity)
+		{
+			if (rarity == null)
+			{
+				return "Low Rank";
+			}
+			else
+			{
+				return game switch
+				{
+					"MHWI" => rarity < 5 ? "Low Rank" : rarity < 9 ? "High Rank" : "Master Rank",
+					"MHRS" => rarity < 4 ? "Low Rank" : rarity < 8 ? "High Rank" : "Master Rank",
+					_ => "Low Rank",
+				};
+			}
+		}
+
+		private static string GetSetSkillsTemplates(Skill[] skills, string game)
+		{
+			return GetSkillsTemplates([..skills.GroupBy(x => new { x.Name, x.WikiIconColor })
+				.Select(x => new Skill() { 
+					Name = x.Key.Name, 
+					Level = x.Sum(y => y.Level),
+					WikiIconColor = x.Key.WikiIconColor
+				})], game);
+		}
+
+		private static string GetSetMaterialsTemplates(Material[] materials, string game)
+		{
+			return GetMaterialsTemplates([.. materials.GroupBy(x => new { x.Name, x.Color, x.Icon })
+				.Select(x => new Material() { 
+					Name = x.Key.Name, 
+					Color = x.Key.Color,
+					Icon = x.Key.Icon,
+					Quantity = x.Sum(y => y.Quantity) 
+				})], game);
+		}
+
+		private static string GetSkillsTemplates(Skill[] skills, string game)
+		{
+			StringBuilder sb = new();
+			foreach (Skill skill in skills.OrderByDescending(x => x.Level))
+			{
+				sb.Append($"\r\n<div>{{{{GenericSkillLink|{game}|{skill.Name.Replace("/", "-")}|Armor|{skill.WikiIconColor}{(skill.Name.Contains('/') ? "|" + skill.Name : "")}}}}} x{skill.Level}</div>");
+			}
+			return sb.ToString();
+		}
+
+		private static string GetMaterialsTemplates(Material[] materials, string game)
+		{
+			StringBuilder sb = new();
+			foreach (Material material in materials.OrderByDescending(x => x.Quantity))
+			{
+				sb.Append($"\r\n<div>{{{{GenericItemLink|{game}|{material.Name}|{material.Icon}|{material.Color}}}}} x{material.Quantity}</div>");
+			}
+			return sb.ToString();
 		}
 
 		public static string GenerateFromJson(string json)
 		{
 			return Generate(WebToolkitData.FromJson(json)).Result;
         }
+
+		public static void MassGenerate(string game)
+		{
+			WebToolkitData[] src = [];
+			if (game == "MHWI")
+			{
+				src = Models.Data.MHWI.Armor.GetWebToolkitData();
+			}
+			else
+			{
+				src = Models.Data.MHRS.Armor.GetWebToolkitData();
+			}
+			foreach (WebToolkitData data in src)
+			{
+				Directory.CreateDirectory($@"C:\Users\mkast\Desktop\MHWiki Generated Armor Sets\{game}");
+				File.WriteAllText($@"C:\Users\mkast\Desktop\MHWiki Generated Armor Sets\{game}\{data.SetName!.Replace("\"", "")} Set.txt", Generate(data).Result);
+			}
+			StringBuilder setList = new();
+			string gameNameFull = Weapon.GetGameFullName(src[0].Game);
+			setList.Append($@"{{{{Meta
+|MetaTitle     = {src[0].Game} Armor Sets
+|MetaDesc      = A list of all Armor Sets from {gameNameFull}
+|MetaKeywords  = {src[0].Game}, {gameNameFull}, Armor, Armor Sets
+|MetaImage     = {src[0].Game}-Logo.png
+}}}}
+{{{{GenericNav|{src[0].Game}}}}}
+<br>
+<br>
+The following is a list of all armor sets that appear in [[{gameNameFull}]] and their corresponding armor pieces.
+__TOC__");
+			string lastRank = "";
+			long? lastRarity = null;
+			foreach (WebToolkitData data in src.OrderBy(x => x.Rarity))
+			{
+				bool newRarity = false;
+				if (lastRarity == null || lastRarity != data.Rarity)
+				{
+					newRarity = true;
+					setList.AppendLine("</div>");
+				}
+				string rank = GetRank(data.Game, data.Rarity);
+				if (rank != lastRank)
+				{
+					setList.AppendLine("=" + rank + "=");
+				}
+				if (newRarity)
+				{
+					setList.AppendLine($@"==Rarity {data.Rarity!.Value}==
+<div style=""display:flex; flex-wrap:wrap; height: 100%; align-items:stretch; justify-content:space-around; margin-bottom:20px;"">");
+				}
+				setList.AppendLine($@"{{{{ArmorSetListItem
+|Game               = {data.Game}
+|Set Rarity         = {data.Rarity!.Value}
+|Set Name           = {data.SetName}
+|Male Image         = {(string.IsNullOrEmpty(data.MaleFrontImg) ? "wiki.png" : data.MaleFrontImg)}
+|Female Image       = {(string.IsNullOrEmpty(data.FemaleFrontImg) ? "wiki.png" : data.FemaleFrontImg)}
+|Head Piece Name    = {data.Pieces.FirstOrDefault(x => x.IconType == "Helmet")?.Name ?? "None"}
+|Chest Piece Name   = {data.Pieces.FirstOrDefault(x => x.IconType == "Chestplate")?.Name ?? "None"}
+|Arm Piece Name     = {data.Pieces.FirstOrDefault(x => x.IconType == "Armguards")?.Name ?? "None"}
+|Waist Piece Name   = {data.Pieces.FirstOrDefault(x => x.IconType == "Waist")?.Name ?? "None"}
+|Leg Piece Name     = {data.Pieces.FirstOrDefault(x => x.IconType == "Leggings")?.Name ?? "None"}
+}}}}");
+				lastRank = rank;
+				lastRarity = data.Rarity;
+			}
+			setList.AppendLine("</div>");
+			File.WriteAllText($@"C:\Users\mkast\Desktop\MHWiki Generated Armor Sets\{game}\_setlist.txt", setList.ToString());
+		}
 
 		public static async Task<string> GenerateFromXlsx(string xlsxBase64, string game)
 		{
@@ -225,7 +347,7 @@ namespace MediawikiTranslator.Generators
 |Female Image       = {(!string.IsNullOrEmpty(setData.FemaleFrontImg) ? setData.FemaleFrontImg : "Placeholder-Female-Armorset.png")}
 |Head Piece Name    = {setData.Pieces.FirstOrDefault(x => x.IconType == "Helmet")?.Name ?? "None"}
 |Chest Piece Name   = {setData.Pieces.FirstOrDefault(x => x.IconType == "Chestplate")?.Name ?? "None"}
-|Arm Piece Name     = {setData.Pieces.FirstOrDefault(x => x.IconType == "Armguard")?.Name ?? "None"}
+|Arm Piece Name     = {setData.Pieces.FirstOrDefault(x => x.IconType == "Armguards")?.Name ?? "None"}
 |Waist Piece Name   = {setData.Pieces.FirstOrDefault(x => x.IconType == "Waist")?.Name ?? "None"}
 |Leg Piece Name     = {setData.Pieces.FirstOrDefault(x => x.IconType == "Leggings")?.Name ?? "None"}
 }}}}");
