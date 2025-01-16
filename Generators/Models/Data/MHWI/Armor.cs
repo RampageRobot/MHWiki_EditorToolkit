@@ -175,11 +175,12 @@ namespace MediawikiTranslator.Models.Data.MHWI
 					Game = "MHWI",
 					SetName = armor.SetName,
 					Rarity = armor.Rarity,
-					Rank = armor.Variant.Replace("_", "")
+					Rank = armor.Variant.Replace("_", ""),
+					OnlyForGender = (armor.Gender != "Unisex" ? armor.Gender : null)
 				};
-				if (ret.Any(x => x.SetName == newArmor.SetName))
+				if (ret.Any(x => x.SetName == newArmor.SetName && x.OnlyForGender == newArmor.OnlyForGender))
 				{
-					newArmor = ret.First(x => x.SetName == newArmor.SetName);
+					newArmor = ret.First(x => x.SetName == newArmor.SetName && x.OnlyForGender == newArmor.OnlyForGender);
 				}
 				if (armor.SetSkill != null)
 				{
@@ -263,7 +264,7 @@ namespace MediawikiTranslator.Models.Data.MHWI
 				newPiece.Decos4 = (armor.Slot1Size == 4 ? 1 : 0) + (armor.Slot2Size == 4 ? 1 : 0) + (armor.Slot3Size == 4 ? 1 : 0);
 				pieces.Add(newPiece);
 				newArmor.Pieces = [.. pieces];
-				if (!ret.Any(x => x.SetName == newArmor.SetName))
+				if (!ret.Any(x => x.SetName == newArmor.SetName && x.OnlyForGender == newArmor.OnlyForGender))
 				{
 					ret.Add(newArmor);
 				}

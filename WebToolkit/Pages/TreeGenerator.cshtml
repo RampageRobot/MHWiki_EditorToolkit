@@ -49,6 +49,7 @@
 				<div class="col-2">
 					<label for="ddlGameSelect">Game</label>
 					<select class="form-control form-select" onchange="updateIcons()" id="ddlGameSelect">
+						<option value="MHWI">Monster Hunter Generations Ultimate</option>
 						<option value="MHWI">Monster Hunter World: Iceborne</option>
 						<option value="MHRS">Monster Hunter Rise: Sunbreak</option>
 					</select>
@@ -83,7 +84,6 @@
 							<div class="card-header">
 								<div class="row">
 									<div class="col-2">
-										ck
 										<div class="row pb-1">
 											<div class="col">
 												<button style="padding: .25rem; margin-right:.25rem;" class="btn btn-primary bi bi-arrow-up float-start" onclick="$(this).parents('.card-holder').after($(this).parents('.card-holder').prev())"></button>
@@ -193,6 +193,20 @@
 				<div class="row">
 					<div class="col">
 						<p>Ping or message @@rampagerobot on Discord if you have any issues.</p>
+					</div>
+				</div>
+				<div class="row py-2">
+					<div class="col">
+						<div class="card">
+							<div class="card-header">
+								<h4>v1.5</h4>
+							</div>
+							<div class="card-body">
+								<h6>Added support for MHGU.</h6>
+								<h6>Added weapon-specific fields.</h6>
+								<h6>Added support for empty values.</h6>
+							</div>
+						</div>
 					</div>
 				</div>
 				<div class="row py-2">

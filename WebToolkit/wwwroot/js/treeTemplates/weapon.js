@@ -192,11 +192,11 @@ class WeaponTemplate
 						<div class="row">
 							<div class="col-6">
 								<label>Attack</label>
-								<input type="text" class="form-control weapon-attack-input data-value" data-label="attack">
+								<input type="number" class="form-control weapon-attack-input data-value default-to-zero" data-label="attack" value="0">
 							</div>
 							<div class="col-6">
 								<label>Defense</label>
-								<input type="number" onblur="validateInput(this);" class="form-control weapon-defense-input data-value" data-label="defense">
+								<input type="number" onblur="validateInput(this);" class="form-control weapon-defense-input data-value default-to-zero" data-label="defense" value="0">
 							</div>
 						</div>
 						<div class="row">
@@ -217,7 +217,7 @@ class WeaponTemplate
 							</div>
 							<div class="col-6">
 								<label>Element Damage</label>
-								<input class="form-control weapon-element-damage-input data-value" type="text" data-label="element-damage">
+								<input class="form-control weapon-element-damage-input data-value" type="number" data-label="element-damage">
 							</div>
 						</div>
 						<div class="row">
@@ -238,13 +238,13 @@ class WeaponTemplate
 							</div>
 							<div class="col-6">
 								<label>Element Damage 2</label>
-								<input class="form-control weapon-element-damage-2-input data-value" type="text" data-label="element-damage-2">
+								<input class="form-control weapon-element-damage-2-input data-value" type="number" data-label="element-damage-2">
 							</div>
 						</div>
 						<div class="row">
 							<div class="col-6">
 								<label>Affinity</label>
-								<input type="number" onblur="validateInput(this);" class="form-control weapon-affinity-input data-value" data-label="affinity">
+								<input type="number" onblur="validateInput(this);" class="form-control weapon-affinity-input data-value default-to-zero" data-label="affinity" value="0">
 							</div>
 							<div class="col-6 hide-on-invalid-game" data-valid-games="MHWI">
 								<label>Elderseal</label>
@@ -270,6 +270,8 @@ class WeaponTemplate
 								<label>Armor Skill 2</label>
 								<input type="text" class="form-control weapon-armor-skill-2-input data-value" data-label="armor-skill-2">
 							</div>
+						</div>
+						<div class="row hide-on-invalid-weapon" id="divSpecialWeaponField" data-valid-weapons="Bo,CB,GL,HH,IG,SA,HBG,LBG">
 						</div>
 					</div>
 					<div class="modal-footer">
@@ -347,13 +349,13 @@ class WeaponTemplate
 	</td>
 	<td style="text-align:center; align-content:center">
 		<input class="form-control weapon-stats-input data-value" hidden="hidden" type="text" data-label="stats"/>
-		<button class="btn btn-primary ignore-generate" type="button" onclick="WeaponTemplate.modifyStats($(this).parent().parent(), validateComplexData, this, $(this).parent().children().first(), WeaponTemplate.modifyStats);">Modify</button>
+		<button class="btn btn-primary ignore-generate" type="button" onclick="WeaponTemplate.modifyStats($(this).parent().parent(), validateComplexData, this, $(this).parent().children().first(), WeaponTemplate.validateStats);">Modify</button>
 	</td>
 	<td style="text-align:center; align-content:center">
 		<input class="form-control weapon-decos-input data-value" hidden="hidden" type="text" data-label="decos"/>
 		<button class="btn btn-primary ignore-generate" type="button" onclick="WeaponTemplate.modifyDecos($(this).parent().parent(), validateComplexData, this, $(this).parent().children().first(), WeaponTemplate.validateDecos);">Modify</button>
 	</td>
-	<td style="text-align:center; align-content:center">
+	<td style="text-align:center; align-content:center" class="hide-on-invalid-weapon" data-invalid-weapons="Bo,HBG,LBG">
 		<input class="form-control weapon-sharpness-input data-value" hidden="hidden" type="text" data-label="sharpness"/>
 		<button class="btn btn-primary ignore-generate" type="button" onclick="WeaponTemplate.modifySharpness($(this).parent().parent(), validateComplexData, this, $(this).parent().children().first(), WeaponTemplate.validateSharpness);">Modify</button>
 	</td>
@@ -377,14 +379,10 @@ class WeaponTemplate
 		{
 			for (var i2 = 1; i2 <= 2; i2++)
 			{
-				var val = "";
+				var val = "0";
 				if (prevVal != null)
 				{
 					val = prevVal[i2 - 1][i];
-					if (val == "0")
-					{
-						val = "";
-					}
 				}
 				$("#txt" + bars[i] + "SharpnessHits" + i2).val(val);
 				$($("#divPreviewBar" + i2 + " div div")[i]).attr("style", "background-color:#" + colorHexes[i] + ";height: inherit;flex:0 0 " + (val == 0 ? "0" : (parseInt(val) / 4)) + "%");
@@ -396,7 +394,14 @@ class WeaponTemplate
 	}
 	static modifyStats(row, statsCallback, arg1, arg2, arg3) {
 		WeaponTemplate.currentStatsRow = row;
-		$("#mdlModifyStats .modal-body").find(".data-value").val("");
+		$("#mdlModifyStats .modal-body").find(".data-value").each(function () {
+			if ($(this).attr("type") == "number" && $(this).hasClass("default-to-zero")) {
+				$(this).val("0");
+			}
+			else {
+				$(this).val("");
+			}
+		})
 		var prevVal = null;
 		var prevValStr = $(WeaponTemplate.currentStatsRow).find(".weapon-stats-input").first().val();
 		if (prevValStr != '') {
@@ -404,7 +409,14 @@ class WeaponTemplate
 			if (prevVal != null) {
 				var propertyNames = Object.getOwnPropertyNames(prevVal);
 				for (var i = 0; i < propertyNames.length; i++) {
-					$("#mdlModifyStats .modal-body").find(".weapon-" + propertyNames[i] + "-input").val(prevVal[propertyNames[i]]);
+					var el = $("#mdlModifyStats .modal-body").find(".weapon-" + propertyNames[i] + "-input");
+					var val = prevVal[propertyNames[i]];
+					if (el.attr("type") == "number" && val == "") {
+						el.val("0");
+					}
+					else {
+						el.val(val);
+					}
 				}
 			}
 		}
@@ -483,10 +495,10 @@ class WeaponTemplate
 	{
 		$("#tblDecos tbody").append(`<tr style="vertical-align:middle;">
 			<td>
-				<input type="number" onblur="validateInput(this);" class="form-control decoration-level-input" data-label="level" />
+				<input type="number" onblur="validateInput(this);" class="form-control decoration-level-input" data-label="level" value="0" />
 			</td>
 			<td>
-				<input type="number" onblur="validateInput(this);" class="form-control decoration-qty-input" data-label="qty" />
+				<input type="number" onblur="validateInput(this);" class="form-control decoration-qty-input" data-label="qty" value="0" />
 			</td>
 			<td style="text-align:center; align-content:center">
 				<input style="font-size:1.5rem;" class="form-check-input decoration-rampage-input data-value m-auto" data-label="rampage" type="checkbox" value="">
@@ -516,6 +528,9 @@ class WeaponTemplate
 
 			return WeaponTemplate.currentDecosCallback(WeaponTemplate.currentDecosCallbackArgs[0], WeaponTemplate.currentDecosCallbackArgs[1], WeaponTemplate.currentDecosCallbackArgs[2]);
 		}
+	}
+	static validateStats(value) {
+		return true;
 	}
 	static validateDecos(value)
 	{
@@ -615,7 +630,7 @@ class WeaponTemplate
 					<option value="LBG">Light Bowgun</option>
 					<option value="HBG">Heavy Bowgun</option>`;
 				break;
-			case "MHWI":
+			case "MHGU":
 				icons = `<option value=""></option>
 					<option value="GS">Great Sword</option>
 					<option value="LS">Long Sword</option>
@@ -625,14 +640,12 @@ class WeaponTemplate
 					<option value="HH">Hunting Horn</option>
 					<option value="Ln">Lance</option>
 					<option value="GL">Gunlance</option>
-					<option value="SA">Switch Axe</option>
-					<option value="CB">Charge Blade</option>
-					<option value="IG">Insect Glaive</option>
-					<option value="Bo">Bow</option>
 					<option value="LBG">Light Bowgun</option>
 					<option value="HBG">Heavy Bowgun</option>`;
 				break;
+			case "MHWI":
 			case "MHRS":
+			case "MHWilds":
 				icons = `<option value=""></option>
 					<option value="GS">Great Sword</option>
 					<option value="LS">Long Sword</option>
@@ -654,6 +667,9 @@ class WeaponTemplate
 		$("#ddlIconSelect option").remove();
 		$("#ddlIconSelect").append(icons);
 		$("#ddlIconSelect").val(oldIcon);
+		$("#ddlIconSelect").on("change", function () {
+			WeaponTemplate.weaponLoadSpecialTypes();
+		});
 		$(".weapon-icon-type-input").each(function () {
 			var oldVal = $(this).val();
 			$(this).children("option").remove();
@@ -661,6 +677,96 @@ class WeaponTemplate
 			$(this).val(oldVal);
 		});
 	}
+
+	static weaponLoadSpecialTypes() {
+		var weaponType = $("#ddlIconSelect").val();
+		$(".hide-on-invalid-weapon").each(function () {
+			var invalidWeapons = $(this).attr("data-invalid-weapons");
+			if (invalidWeapons != "" && typeof (invalidWeapons) !== "undefined" && invalidWeapons.split(',').some(function (item) { return item == weaponType; })) {
+				$(this).hide();
+			}
+			else {
+				$(this).show();
+			}
+			var validWeapons = $(this).attr("data-valid-weapons");
+			if (validWeapons != "" && typeof (validWeapons) !== "undefined" && !validWeapons.split(',').some(function (item) { return item == weaponType; })) {
+				$(this).hide();
+			}
+			else {
+				$(this).show();
+			}
+		});
+		$("#divSpecialWeaponField").empty();
+		switch (weaponType) {
+			case "DB":
+			case "GS":
+			case "Hm":
+			case "Ln":
+			case "LS":
+			case "SnS":
+				break;
+			case "Bo":
+				$("#divSpecialWeaponField").append(`<div class="col-6">
+								<label>Coatings (Comma-Separated)</label>
+								<input type="text" class="form-control weapon-bo-coatings-input data-value" data-label="bo-coatings">
+							</div>`);
+				break;
+			case "CB":
+			case "SA":
+				$("#divSpecialWeaponField").append(`<div class="col-6">
+								<label>Phial Type</label>
+								<input type="text" class="form-control weapon-` + weaponType.toLowerCase() + `-phial-type-input data-value" data-label="` + weaponType.toLowerCase() + `-phial-type">
+							</div>`);
+				break;
+			case "GL":
+				$("#divSpecialWeaponField").append(`<div class="col-6">
+								<label>Shelling Type</label>
+								<input type="text" class="form-control weapon-gl-shelling-type-input data-value" data-label="gl-shelling-type">
+							</div>`);
+				break;
+			case "HH":
+				$("#divSpecialWeaponField").append(`<div class="col-6">
+								<label>Note 1</label>
+								<input type="text" class="form-control weapon-hh-note-1-input data-value" data-label="hh-note-1">
+							</div>
+							<div class="col-6">
+								<label>Note 2</label>
+								<input type="text" class="form-control weapon-hh-note-2-input data-value" data-label="hh-note-2">
+							</div>
+							<div class="col-6">
+								<label>Note 3</label>
+								<input type="text" class="form-control weapon-hh-note-3-input data-value" data-label="hh-note-3">
+							</div>`);
+				break;
+			case "IG":
+				$("#divSpecialWeaponField").append(`
+							<div class="col-6">
+								<label>Kinsect Bonus</label>
+								<input type="text" class="form-control weapon-ig-kinsect-bonus-input data-value" data-label="ig-kinsect-bonus">
+							</div>`);
+				break;
+			case "HBG":
+			case "LBG":
+				if ($("#ddlGameSelect").val() != "MHWI") {
+					$("#divSpecialWeaponField").append(`<div class="col-6">
+								<label>Reload / Recoil</label>
+								<input type="text" class="form-control weapon-` + weaponType.toLowerCase() + `-reload-recoil-input data-value" data-label="` + weaponType.toLowerCase() + `-reload-recoil">
+							</div>
+							<div class="col-6">
+								<label>Special Ammo Type</label>
+								<input type="text" class="form-control weapon-` + weaponType.toLowerCase() + `-special-ammo-type-input data-value" data-label="` + weaponType.toLowerCase() + `-special-ammo-type">
+							</div>`);
+				}
+				else {
+					$("#divSpecialWeaponField").append(`<div class="col-6">
+								<label>Special Ammo Type</label>
+								<input type="text" class="form-control weapon-` + weaponType.toLowerCase() + `-special-ammo-type-input data-value" data-label="` + weaponType.toLowerCase() + `-special-ammo-type">
+							</div>`);
+				}
+				break;
+		}
+	}
+
 	static pageLoadData(loadedData) {
 		var pathLinkDict = [];
 		var parentNameDict = [];

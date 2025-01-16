@@ -40,11 +40,12 @@ namespace MediawikiTranslator.Models.Data.MHRS
 					FemaleBackImg = $"MHRS-{armor.SetName} Set Female Back Render.png",
 					SetName = armor.SetName,
 					Rarity = rarity,
-					Rank = MediawikiTranslator.Generators.ArmorSets.GetRank("MHRS", rarity)
+					Rank = MediawikiTranslator.Generators.ArmorSets.GetRank("MHRS", rarity),
+					OnlyForGender = (armor.SexualEquipable != "Both" ? armor.SexualEquipable.Replace("Only", "") : null)
 				};
-				if (ret.Any(x => x.SetName == newArmor.SetName))
+				if (ret.Any(x => x.SetName == newArmor.SetName && x.OnlyForGender == newArmor.OnlyForGender))
 				{
-					newArmor = ret.First(x => x.SetName == newArmor.SetName);
+					newArmor = ret.First(x => x.SetName == newArmor.SetName && x.OnlyForGender == newArmor.OnlyForGender);
 				}
 				List<Piece> pieces = [];
 				if (newArmor.Pieces != null)
@@ -67,8 +68,8 @@ namespace MediawikiTranslator.Models.Data.MHRS
 					ForgingCost = armor.Value,
 					Rarity = rarity,
 					IconType = TranslateArmorTypeToIcon(armor.Id),
-					FemaleImage = "MHWI-" + armor.Name + " Female Render.png",
-					MaleImage = "MHWI-" + armor.Name + " Male Render.png"
+					FemaleImage = "MHRS-" + armor.Name + " Female Render.png",
+					MaleImage = "MHRS-" + armor.Name + " Male Render.png"
 				};
 				if (armor.CraftingData != null && armor.CraftingData.Materials != null)
 				{
@@ -317,8 +318,8 @@ namespace MediawikiTranslator.Models.Data.MHRS
 			ArmorParam[] armorData = FromJson(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Raw Data\MHRS\natives\stm\data\define\player\armor\armorbasedata.user.2.json")).SnowDataArmorBaseUserData.Param;
 			foreach (ArmorParam armor in armorData)
 			{
-				armor.Name = CommonMsgs.GetMsg(armor.Id! + "_Name");
-				armor.SetName = CommonMsgs.GetMsg("ArmorSeries_Hunter_" + armor.Id!.Substring(armor.Id!.LastIndexOf('_') + 1));
+				armor.Name = CommonMsgs.GetMsg(armor.Id.Substring(0, armor.Id.LastIndexOf("_") + 1) + armor.Series!.Substring(armor.Series!.LastIndexOf('_') + 1) + "_Name");
+				armor.SetName = CommonMsgs.GetMsg("ArmorSeries_Hunter_" + armor.Series!.Substring(armor.Series!.LastIndexOf('_') + 1));
 				if (armor.Name.StartsWith("Silver Sol"))
 				{
 					armor.SetName = "Silver Sol";

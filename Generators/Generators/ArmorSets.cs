@@ -8,18 +8,19 @@ namespace MediawikiTranslator.Generators
 {
     public class ArmorSets
 	{
-		private static async Task<string> Generate(WebToolkitData set)
+		private static async Task<string> Generate(WebToolkitData set, WebToolkitData[] src)
 		{
 			return await Task.Run(() =>
 			{
 				StringBuilder ret = new();
+				string setGenderMark = set.OnlyForGender != null && src.Any(x => x.SetName == set.SetName && x.OnlyForGender != set.OnlyForGender) ? " (" + set.OnlyForGender + ")" : "";
 				ret.AppendLine($@"{{{{GenericNav|{set.Game}}}}}
 <br>
 <br>
-The {set.SetName} Set is a {GetRankLink(set.Game, set.Rarity)} [[{set.Game}/Armor|Armor Set]] in [[{Weapon.GetGameFullName(set.Game, (int?)set.Rarity)}]].<br>
+The {set.SetName}{setGenderMark} Set is a {GetRankLink(set.Game, set.Rarity)} [[{set.Game}/Armor|Armor Set]] in [[{Weapon.GetGameFullName(set.Game, (int?)set.Rarity)}]].<br>
 {{{{GenericArmorSet
 |Game                               = {set.Game}
-|Set Name                           = {set.SetName}
+|Set Name                           = {set.SetName}{setGenderMark}
 |Max Level                          = {set.Pieces.Max(x => x.MaxLevel)}
 |Male Image                         = {(string.IsNullOrEmpty(set.MaleFrontImg) ? "wiki.png" : set.MaleFrontImg)}
 |Female Image                       = {(string.IsNullOrEmpty(set.FemaleFrontImg) ? "wiki.png" : set.FemaleFrontImg)}
@@ -151,7 +152,7 @@ The {set.SetName} Set is a {GetRankLink(set.Game, set.Rarity)} [[{set.Game}/Armo
 
 		public static string GenerateFromJson(string json)
 		{
-			return Generate(WebToolkitData.FromJson(json)).Result;
+			return Generate(WebToolkitData.FromJson(json), new WebToolkitData[0]).Result;
         }
 
 		public static void MassGenerate(string game)
@@ -167,8 +168,9 @@ The {set.SetName} Set is a {GetRankLink(set.Game, set.Rarity)} [[{set.Game}/Armo
 			}
 			foreach (WebToolkitData data in src)
 			{
+				string setGenderMark = data.OnlyForGender != null && src.Any(x => x.SetName == data.SetName && x.OnlyForGender != data.OnlyForGender) ? " (" + data.OnlyForGender + ")" : "";
 				Directory.CreateDirectory($@"C:\Users\mkast\Desktop\MHWiki Generated Armor Sets\{game}");
-				File.WriteAllText($@"C:\Users\mkast\Desktop\MHWiki Generated Armor Sets\{game}\{data.SetName!.Replace("\"", "")} Set.txt", Generate(data).Result);
+				File.WriteAllText($@"C:\Users\mkast\Desktop\MHWiki Generated Armor Sets\{game}\{data.SetName!.Replace("\"", "")}{setGenderMark} Set.txt", Generate(data, src).Result);
 			}
 			StringBuilder setList = new();
 			string gameNameFull = Weapon.GetGameFullName(src[0].Game);
@@ -203,10 +205,11 @@ __TOC__");
 					setList.AppendLine($@"==Rarity {data.Rarity!.Value}==
 <div style=""display:flex; flex-wrap:wrap; height: 100%; align-items:stretch; justify-content:space-around; margin-bottom:20px;"">");
 				}
+				string setGenderMark = data.OnlyForGender != null && src.Any(x => x.SetName == data.SetName && x.OnlyForGender != data.OnlyForGender) ? " (" + data.OnlyForGender + ")" : "";
 				setList.AppendLine($@"{{{{ArmorSetListItem
 |Game               = {data.Game}
 |Set Rarity         = {data.Rarity!.Value}
-|Set Name           = {data.SetName}
+|Set Name           = {data.SetName}{setGenderMark}
 |Male Image         = {(string.IsNullOrEmpty(data.MaleFrontImg) ? "wiki.png" : data.MaleFrontImg)}
 |Female Image       = {(string.IsNullOrEmpty(data.FemaleFrontImg) ? "wiki.png" : data.FemaleFrontImg)}
 |Head Piece Name    = {data.Pieces.FirstOrDefault(x => x.IconType == "Helmet")?.Name ?? "None"}
@@ -221,146 +224,6 @@ __TOC__");
 			setList.AppendLine("</div>");
 			File.WriteAllText($@"C:\Users\mkast\Desktop\MHWiki Generated Armor Sets\{game}\_setlist.txt", setList.ToString());
 		}
-
-		public static async Task<string> GenerateFromXlsx(string xlsxBase64, string game)
-		{
-			DirectoryInfo workspace = Utilities.GetWorkspace();
-			string xlsxPath = Path.Combine(workspace.FullName, Guid.NewGuid().ToString() + ".xlsx");
-			File.WriteAllBytes(xlsxPath, Convert.FromBase64String(xlsxBase64));
-			List<Dictionary<string, XlsxData>> retData = [];
-			string[] ranks = ["Low Rank", "High Rank", "Master Rank"];
-			using (XLWorkbook wb = new(xlsxPath))
-			{
-				foreach (string rank in ranks)
-				{
-					Dictionary<string, XlsxData> rankData = [];
-					IXLWorksheet sets = wb.Worksheet(rank + " Sets");
-					int cntr = 0;
-					foreach (IXLRow row in sets.Rows())
-					{
-						if (cntr > 0)
-						{
-							string? name = !row.Cell(1).Value.IsBlank ? row.Cell(1).Value.GetText() : null;
-							if (!string.IsNullOrEmpty(name))
-							{
-								rankData.Add(name, new()
-								{
-									Name = name,
-									BonusName = !row.Cell(2).Value.IsBlank ? row.Cell(2).Value.GetText() : null,
-									BonusSkill1 = !row.Cell(3).Value.IsBlank ? row.Cell(3).Value.GetText() : null,
-									PiecesRequired1 = row.Cell(4).Value.IsNumber ? (int)row.Cell(4).Value.GetNumber() : null,
-									BonusSkill2 = !row.Cell(5).Value.IsBlank ? row.Cell(5).Value.GetText() : null,
-									PiecesRequired2 = row.Cell(6).Value.IsNumber ? (int)row.Cell(6).Value.GetNumber() : null
-								});
-							}
-						}
-						cntr++;
-					}
-					IXLWorksheet pieces = wb.Worksheet(rank + " Pieces");
-					cntr = 0;
-					foreach (IXLRow row in pieces.Rows())
-					{
-						if (cntr > 0)
-						{
-							string? name = !row.Cell(3).Value.IsBlank ? row.Cell(3).Value.GetText() : null;
-							if (!string.IsNullOrEmpty(name))
-							{
-								string? setName = !row.Cell(1).Value.IsBlank ? row.Cell(1).Value.GetText() : null;
-								if (!string.IsNullOrEmpty(setName))
-								{
-                                    ArmorSetPiece piece = new()
-									{
-										PieceType = !row.Cell(2).IsEmpty() ? (ArmorSetPieceType)Enum.Parse(typeof(ArmorSetPieceType), row.Cell(2).Value.GetText()) : null,
-										Name = name,
-										Rarity = row.Cell(4).Value.IsNumber ? (int)row.Cell(4).Value.GetNumber() : null,
-										Cost = row.Cell(5).Value.IsNumber ? (int)row.Cell(5).Value.GetNumber() : null,
-										Material1 = !row.Cell(6).IsEmpty() ? row.Cell(6).Value.GetText() : null,
-										Material1Quantity = row.Cell(7).Value.IsNumber ? (int)row.Cell(7).Value.GetNumber() : null,
-										Material2 = !row.Cell(8).IsEmpty() ? row.Cell(8).Value.GetText() : null,
-										Material2Quantity = row.Cell(9).Value.IsNumber ? (int)row.Cell(9).Value.GetNumber() : null,
-										Material3 = !row.Cell(10).IsEmpty() ? row.Cell(10).Value.GetText() : null,
-										Material3Quantity = row.Cell(11).Value.IsNumber ? (int)row.Cell(11).Value.GetNumber() : null,
-										Material4 = !row.Cell(12).IsEmpty() ? row.Cell(12).Value.GetText() : null,
-										Material4Quantity = row.Cell(13).Value.IsNumber ? (int)row.Cell(13).Value.GetNumber() : null,
-										BaseDefense = row.Cell(14).Value.IsNumber ? (int)row.Cell(14).Value.GetNumber() : null,
-										MaxDefense = row.Cell(15).Value.IsNumber ? (int)row.Cell(15).Value.GetNumber() : null,
-										FireRes = row.Cell(16).Value.IsNumber ? (int)row.Cell(16).Value.GetNumber() : null,
-										WaterRes = row.Cell(17).Value.IsNumber ? (int)row.Cell(17).Value.GetNumber() : null,
-										ThunderRes = row.Cell(18).Value.IsNumber ? (int)row.Cell(18).Value.GetNumber() : null,
-										IceRes = row.Cell(19).Value.IsNumber ? (int)row.Cell(19).Value.GetNumber() : null,
-										DragonRes = row.Cell(20).Value.IsNumber ? (int)row.Cell(20).Value.GetNumber() : null,
-										Skill1 = !row.Cell(24).IsEmpty() ? row.Cell(24).Value.GetText() : null,
-										Skill1Level = row.Cell(25).Value.IsNumber ? (int)row.Cell(25).Value.GetNumber() : null,
-										Skill2 = !row.Cell(26).IsEmpty() ? row.Cell(26).Value.GetText() : null,
-										Skill2Level = row.Cell(27).Value.IsNumber ? (int)row.Cell(27).Value.GetNumber() : null,
-										Description = !row.Cell(28).IsEmpty() ? row.Cell(28).Value.GetText() : null
-									};
-									int[] jewelSlots = [row.Cell(21).Value.IsNumber ? (int)row.Cell(21).Value.GetNumber() : 0,
-										row.Cell(22).Value.IsNumber ? (int)row.Cell(22).Value.GetNumber() : 0,
-										row.Cell(23).Value.IsNumber ? (int)row.Cell(23).Value.GetNumber() : 0];
-									piece.Level1Slots = jewelSlots.Where(x => x == 1).Sum();
-									piece.Level2Slots = jewelSlots.Where(x => x == 2).Sum();
-									piece.Level3Slots = jewelSlots.Where(x => x == 3).Sum();
-									piece.Level4Slots = jewelSlots.Where(x => x == 4).Sum();
-                                    rankData[setName].Pieces.Add(piece);
-								}
-							}
-						}
-						cntr++;
-                    }
-                    retData.Add(rankData);
-                }
-			}
-			DirectoryInfo zipDirInfo = Utilities.GetWorkspace();
-            string zipDir = Path.Combine(zipDirInfo.FullName, Guid.NewGuid().ToString());
-			Directory.CreateDirectory(zipDir);
-			for (int i = 0; i < 3; i++)
-			{
-				Dictionary<string, XlsxData> thisDict = retData[i];
-				DirectoryInfo rankDir = Directory.CreateDirectory(Path.Combine(zipDir, ranks[i]));
-				foreach (KeyValuePair<string, XlsxData> val in thisDict)
-				{
-					string txtPath = Path.Combine(rankDir.FullName, val.Key + ".txt");
-					File.WriteAllText(txtPath, await Generate(val.Value.ToToolkitData(game)));
-				}
-			}
-			StringBuilder setList = new();
-			setList.AppendLine("__TOC__");
-			string lastRarity = "0";
-			foreach (WebToolkitData setData in retData.SelectMany(x => x.Values.Select(x => x.ToToolkitData(game))).OrderBy(x => x.Rarity))
-			{
-				if (lastRarity != (setData.Rarity?.ToString() ?? "???"))
-				{
-					if (lastRarity != "0")
-					{
-						setList.AppendLine("</div>");
-					}
-					setList.AppendLine(@$"=Rarity {setData.Rarity?.ToString() ?? "???"}=
-<div style=""display:flex; flex-wrap:wrap; height: 100%; align-items:stretch; justify-content:space-around; margin-bottom:20px;"">");
-					lastRarity = setData.Rarity?.ToString() ?? "???";
-                }
-				setList.AppendLine($@"{{{{ArmorSetListItem
-|Game               = {game}
-|Set Rarity         = {(setData.Rarity != null ? setData.Rarity : 1)}
-|Set Name           = {setData.SetName}
-|Male Image         = {(!string.IsNullOrEmpty(setData.MaleFrontImg) ? setData.MaleFrontImg : "Placeholder-Male-Armorset.png")}
-|Female Image       = {(!string.IsNullOrEmpty(setData.FemaleFrontImg) ? setData.FemaleFrontImg : "Placeholder-Female-Armorset.png")}
-|Head Piece Name    = {setData.Pieces.FirstOrDefault(x => x.IconType == "Helmet")?.Name ?? "None"}
-|Chest Piece Name   = {setData.Pieces.FirstOrDefault(x => x.IconType == "Chestplate")?.Name ?? "None"}
-|Arm Piece Name     = {setData.Pieces.FirstOrDefault(x => x.IconType == "Armguards")?.Name ?? "None"}
-|Waist Piece Name   = {setData.Pieces.FirstOrDefault(x => x.IconType == "Waist")?.Name ?? "None"}
-|Leg Piece Name     = {setData.Pieces.FirstOrDefault(x => x.IconType == "Leggings")?.Name ?? "None"}
-}}}}");
-			}
-			File.WriteAllText(Path.Combine(zipDir, game + "_Armor_Set_List.txt"), setList.ToString());
-            DirectoryInfo zipPathInfo = Utilities.GetWorkspace();
-            string zipPath = Path.Combine(zipPathInfo.FullName, Guid.NewGuid() + ".zip");
-			ZipFile.CreateFromDirectory(zipDir, zipPath);
-			string zipBytes = Convert.ToBase64String(File.ReadAllBytes(zipPath));
-			File.Delete(zipPath);
-			Directory.Delete(workspace.FullName, true);
-			return zipBytes;
-        }
 	}
 
 	public class ArmorSetPiece

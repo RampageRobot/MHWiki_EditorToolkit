@@ -239,7 +239,7 @@ The {weapon.Name} is {(weapon.Type == "IG" ? "an" : "a")} [[{weaponNames.Item1} 
 			});
 		}
 
-		private static double GetWeaponBloat(string type)
+		public static double GetWeaponBloat(string type)
 		{
 			return new Dictionary<string, double>()
 			{

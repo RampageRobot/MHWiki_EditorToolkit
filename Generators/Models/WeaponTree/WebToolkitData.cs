@@ -111,6 +111,42 @@ namespace MediawikiTranslator.Models.WeaponTree
 
 		[JsonProperty("sharpness", NullValueHandling = NullValueHandling.Ignore)]
 		public string Sharpness { get; set; }
+
+		[JsonProperty("bo-coatings", NullValueHandling = NullValueHandling.Ignore)]
+		public string BoCoatings { get; set; }
+
+		[JsonProperty("sa-phial-type", NullValueHandling = NullValueHandling.Ignore)]
+		public string SAPhialType { get; set; }
+
+		[JsonProperty("cb-phial-type", NullValueHandling = NullValueHandling.Ignore)]
+		public string CBPhialType { get; set; }
+
+		[JsonProperty("gl-shelling-type", NullValueHandling = NullValueHandling.Ignore)]
+		public string GLShellingType { get; set; }
+
+		[JsonProperty("hh-note-1", NullValueHandling = NullValueHandling.Ignore)]
+		public string HHNote1 { get; set; }
+
+		[JsonProperty("hh-note-2", NullValueHandling = NullValueHandling.Ignore)]
+		public string HHNote2 { get; set; }
+
+		[JsonProperty("hh-note-3", NullValueHandling = NullValueHandling.Ignore)]
+		public string HHNote3 { get; set; }
+
+		[JsonProperty("ig-kinsect-bonus", NullValueHandling = NullValueHandling.Ignore)]
+		public string IGKinsectBonus { get; set; }
+
+		[JsonProperty("hbg-reload-recoil", NullValueHandling = NullValueHandling.Ignore)]
+		public string HBGReloadRecoil { get; set; }
+
+		[JsonProperty("hbg-special-ammo-type", NullValueHandling = NullValueHandling.Ignore)]
+		public string HBGSpecialAmmoType { get; set; }
+
+		[JsonProperty("lbg-reload-recoil", NullValueHandling = NullValueHandling.Ignore)]
+		public string LBGReloadRecoil { get; set; }
+
+		[JsonProperty("lbg-special-ammo-type", NullValueHandling = NullValueHandling.Ignore)]
+		public string LBGSpecialAmmoType { get; set; }
 	}
 
 	public class Decoration

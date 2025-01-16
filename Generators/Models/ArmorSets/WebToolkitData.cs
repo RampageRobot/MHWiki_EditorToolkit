@@ -45,6 +45,9 @@ namespace MediawikiTranslator.Models.ArmorSets
 
         [JsonIgnore]
         public string Rank { get; set; } = string.Empty;
+
+        [JsonIgnore]
+        public string? OnlyForGender { get; set; }
     }
 
     public partial class Piece
