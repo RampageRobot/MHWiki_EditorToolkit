@@ -80,8 +80,11 @@ class WeaponTemplate
 						</div>
 						<hr/>
 						<div class="row">
-							<div class="col">
+							<div class="col-6">
 								<h5>Second Bar</h5>
+							</div>
+							<div class="col-6" style="display: flex;justify-content: flex-end;">
+								<button type="button" onclick="WeaponTemplate.duplicateSharpness()" class="btn btn-primary" title="Duplicate first bar sharpness in the second bar."><i class="bi bi-copy"></i></button>
 							</div>
 						</div>
 						<div class="row">
@@ -479,6 +482,16 @@ class WeaponTemplate
 		if (typeof (WeaponTemplate.currentSharpnessCallback) !== 'undefined') {
 			return WeaponTemplate.currentSharpnessCallback(WeaponTemplate.currentSharpnessCallbackArgs[0], WeaponTemplate.currentSharpnessCallbackArgs[1], WeaponTemplate.currentSharpnessCallbackArgs[2]);
 		}
+	}
+	static duplicateSharpness() {
+		$("#txtRedSharpnessHits2").val($("#txtRedSharpnessHits1").val());
+		$("#txtOrangeSharpnessHits2").val($("#txtOrangeSharpnessHits1").val());
+		$("#txtYellowSharpnessHits2").val($("#txtYellowSharpnessHits1").val());
+		$("#txtGreenSharpnessHits2").val($("#txtGreenSharpnessHits1").val());
+		$("#txtBlueSharpnessHits2").val($("#txtBlueSharpnessHits1").val());
+		$("#txtWhiteSharpnessHits2").val($("#txtWhiteSharpnessHits1").val());
+		$("#txtPurpleSharpnessHits2").val($("#txtPurpleSharpnessHits1").val());
+		WeaponTemplate.updatePreviewBar("2");
 	}
 	static applyStats() {
 		if (typeof (WeaponTemplate.currentStatsRow) !== 'undefined') {
