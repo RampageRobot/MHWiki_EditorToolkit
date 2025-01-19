@@ -304,7 +304,7 @@ class WeaponTemplate
     <th scope="col" style="width:4rem;">Stats</th>
     <th scope="col" style="width:4rem;">Decos</th>
     <th scope="col" style="width:4rem;">Sharpness</th>
-    <th scope="col" style="width:0.375rem">Delete</th>
+    <th scope="col" style="width:0.375rem">Options</th>
 </tr>`;
     }
     static getRow()
@@ -360,6 +360,7 @@ class WeaponTemplate
 		<button class="btn btn-primary ignore-generate" type="button" onclick="WeaponTemplate.modifySharpness($(this).parent().parent(), validateComplexData, this, $(this).parent().children().first(), WeaponTemplate.validateSharpness);">Modify</button>
 	</td>
 	<td class="ignore-generate" style="text-align:center">
+		<button type="button" onclick="duplicateRow($(this).parent().parent())" class="btn btn-primary" title="Duplicate the weapon."><i class="bi bi-copy"></i></button>
 		<button type="button" onclick="$(this).parent().parent().remove();" class="btn btn-danger btn-delete-row" title="Delete this weapon."><i class="bi bi-trash"></i></button>
 	</td>
 </tr>`;
