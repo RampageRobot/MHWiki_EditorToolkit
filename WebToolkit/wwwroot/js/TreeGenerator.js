@@ -56,17 +56,30 @@ function loadTemplate()
             getFinalData = WeaponTemplate.getFinalData;
             pageLoadData = WeaponTemplate.pageLoadData;
             getSaveData = WeaponTemplate.getSaveData;
-            addRow($(".card .table-tree tbody"));
+            addEmptyRow($(".card .table-tree tbody"));
             break;
     }
     initTemplate();
 }
 
-function addRow(table)
+function addEmptyRow(table)
 {
-    $(table).append($(srcTreeRow).clone(true));
-    initRow();
-    updateIcons();
+    addRow(table, $(srcTreeRow).clone(true));
+}
+
+function addRow(table, row, index = -1) {
+    // Append in the end of the table
+    if (index == -1) {
+        $(table).append(row);
+        initRow();
+        updateIcons();
+    }
+    // Append at specified index
+    else {
+        $(table).find("tbody > tr").eq(index).after(row);
+        initRow();
+        updateIcons();
+    }
 }
 
 function collapseCard(button) {
@@ -91,4 +104,38 @@ function addTreeCard()
     $(el).find(".table-tree tbody").append($(srcTreeRow).clone(true));
     initRow();
     updateIcons();
+}
+
+function duplicateRow(row) {
+    
+    var duplicatedRow = $(srcTreeRow).clone(true);
+    var table = $(row).parent().parent();
+    addRow(table, duplicatedRow, row.index())
+
+    duplicatedRow.find("[data-label=can-rollback]").prop("checked", row.find("[data-label=can-rollback]").is(":checked"))
+
+    duplicatedRow.find("[data-label=parent]").val(row.find("[data-label=name]").val())
+
+    var icontype = row.find("[data-label=icon-type]").find(":selected").val()
+    if (icontype) {
+        duplicatedRow.find("[data-label=icon-type]").val(icontype).change()
+    }
+
+    var stats = row.find("[data-label=stats]").val()
+    if (stats) {
+        duplicatedRow.find("[data-label=stats]").val(stats)
+        duplicatedRow.find("[data-label=stats]").parent().find("button").addClass("btn-success")
+    }
+
+    var decos = row.find("[data-label=decos]").val()
+    if (decos) {
+        duplicatedRow.find("[data-label=decos]").val(decos)
+        duplicatedRow.find("[data-label=decos]").parent().find("button").addClass("btn-success")
+    }
+
+    var sharpness = row.find("[data-label=sharpness]").val()
+    if (sharpness) {
+        duplicatedRow.find("[data-label=sharpness]").val(sharpness)
+        duplicatedRow.find("[data-label=sharpness]").parent().find("button").addClass("btn-success")
+    }
 }
