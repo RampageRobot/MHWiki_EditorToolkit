@@ -770,7 +770,7 @@ class WeaponTemplate
 			for (var i = 0; i < pathData.data.length; i++) {
 				var dataObj = pathData.data[i];
 				if ($(card).find(".card .card-body .table-tree tbody tr").length < (i + 1)) {
-					addRow($(card).find(".card .card-body .table-tree"));
+					addEmptyRow($(card).find(".card .card-body .table-tree"));
 				}
 				var row = $($(card).find(".card .card-body .table-tree tbody tr")[i]);
 				var classes = [".weapon-parent-input", ".weapon-path-link-input", ".weapon-name-input", ".weapon-icon-type-input", ".weapon-rarity-input", ".weapon-affinity-input", ".weapon-attack-input", ".weapon-defense-input", ".weapon-element-input", ".weapon-element-damage-input", ".weapon-sharpness-input", ".weapon-decos-input"];

@@ -20,5 +20,21 @@ namespace WebToolkit.Controllers
 				return string.Empty;
 			}
 		}
-	}
+
+        [HttpPost("ParseCsv")]
+        public string ParseCsv(string csvFile)
+        {
+            try
+            {
+                return MediawikiTranslator.Generators.WeaponTree.ParseCsv(csvFile);
+            }
+            catch (Exception ex)
+            {
+                Response.Clear();
+                Response.StatusCode = 500;
+                Response.WriteAsync(ex.Message);
+                return string.Empty;
+            }
+        }
+    }
 }
