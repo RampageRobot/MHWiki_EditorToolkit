@@ -23,7 +23,22 @@ namespace MediawikiTranslator.Generators
 					return "";
 				}
 				StringBuilder ret = new();
-				ret.AppendLine($@"{{{{WeaponTreeLegend|{srcData.FirstOrDefault()?.Game ?? "MHWI"}|{(WebToolkitData.GetWeaponName(string.IsNullOrEmpty(srcData.FirstOrDefault()?.Data?.FirstOrDefault()?.IconType) ? defaultIcon : srcData.FirstOrDefault()?.Data?.FirstOrDefault()?.IconType))}}}}}");
+				ret.AppendLine($@"{{{{#css:
+  @media screen and (max-width:600px)
+  {{ 
+    .hide-on-mobile {{
+      display:none;
+    }}
+    table.wikitable.mobile-sm tr td span.divot {{
+      font-size:smaller!important;
+    }}
+    table.wikitable.mobile-sm td {{
+      padding-left:0px!important;
+      padding-right:0px!important;
+    }}
+  }}
+}}}}
+{{{{WeaponTreeLegend|{srcData.FirstOrDefault()?.Game ?? "MHWI"}|{(WebToolkitData.GetWeaponName(string.IsNullOrEmpty(srcData.FirstOrDefault()?.Data?.FirstOrDefault()?.IconType) ? defaultIcon : srcData.FirstOrDefault()?.Data?.FirstOrDefault()?.IconType))}}}}}");
 				foreach (WebToolkitData dataArray in srcData)
 				{
 					bool tableHasElderseal = dataArray.Data.Any(x => !string.IsNullOrEmpty(x.Elderseal));
@@ -31,15 +46,16 @@ namespace MediawikiTranslator.Generators
 					bool tableHasRampageDecos = dataArray.Data.Any(x => !string.IsNullOrEmpty(x.RampageDeco) && x.RampageDeco != "0");
 					bool tableHasArmorSkills = dataArray.Data.Any(x => !string.IsNullOrEmpty(x.ArmorSkill));
 					int cntr = 0;
+					string sourceTree = srcData.FirstOrDefault(x => x.Data.Any(y => y.PathLink == dataArray.PathName))?.PathName ?? "";
 					ret.AppendLine($@"<br>
 {{| class=""wikitable center wide mw-collapsible mw-collapsed""
-! colspan=12 | <h4 style=""margin:0px;"">{dataArray.PathName} Path</h4>
+! colspan=12 | <h4 style=""margin:0px;"">{dataArray.PathName} Tree{(!string.IsNullOrEmpty(sourceTree) ? $" [[#{sourceTree} Tree|(Return to source)]]" : "")}</h4>
 |-
 !Name 
-!Rarity
-!{{{{Element|Attack}}}}
-!{{{{Element|Element}}}}
-!{{{{Element|Affinity}}}}");
+!class=""hide-on-mobile""|Rarity
+!class=""hide-on-mobile""|{{{{UI|MHWI|Attack}}}}
+!class=""hide-on-mobile""|{{{{UI|MHWI|Element}}}}
+!class=""hide-on-mobile""|{{{{UI|MHWI|Affinity}}}}");
 					string tableIconType = dataArray.Data.Length > 0 ? dataArray.Data[0].IconType : "GS";
 					if (string.IsNullOrEmpty(tableIconType))
 					{
@@ -48,65 +64,65 @@ namespace MediawikiTranslator.Generators
 					switch (tableIconType)
 					{
 						case "Bo":
-							ret.AppendLine("!{{UI|MHWI|Bow Coatings}}");
+							ret.AppendLine("!class=\"hide-on-mobile\"|{{UI|MHWI|Bow Coatings}}");
 							break;
 						case "CB":
-							ret.AppendLine("!{{UI|MHWI|CB Phial Type}}");
+							ret.AppendLine("!class=\"hide-on-mobile\"|{{UI|MHWI|CB Phial Type}}");
 							break;
 						case "SA":
-							ret.AppendLine("!{{UI|MHWI|SA Phial Type}}");
+							ret.AppendLine("!class=\"hide-on-mobile\"|{{UI|MHWI|SA Phial Type}}");
 							break;
 						case "GL":
-							ret.AppendLine("!{{UI|MHWI|GL Shelling Type}}");
+							ret.AppendLine("!class=\"hide-on-mobile\"|{{UI|MHWI|GL Shelling Type}}");
 							break;
 						case "HH":
-							ret.AppendLine("!{{UI|MHWI|HH Menu Notes}}");
+							ret.AppendLine("!class=\"hide-on-mobile\"|{{UI|MHWI|HH Menu Notes}}");
 							break;
 						case "IG":
-							ret.AppendLine("!{{UI|MHWI|IG Kinsect Bonus}}");
+							ret.AppendLine("!class=\"hide-on-mobile\"|{{UI|MHWI|IG Kinsect Bonus}}");
 							break;
 						case "HBG":
-							ret.AppendLine("!{{UI|MHWI|HBG Special Ammo}}");
+							ret.AppendLine("!class=\"hide-on-mobile\"|{{UI|MHWI|HBG Special Ammo}}");
 							if (dataArray.Game != "MHWI")
 							{
-								ret.AppendLine("!Reload / Recoil");
+								ret.AppendLine("!class=\"hide-on-mobile\"|Reload / Recoil");
 							}
 							break;
 						case "LBG":
 							ret.AppendLine("!{{UI|MHWI|LBG Special Ammo}}");
 							if (dataArray.Game != "MHWI")
 							{
-								ret.AppendLine("!Reload / Recoil");
+								ret.AppendLine("!class=\"hide-on-mobile\"|Reload / Recoil");
 							}
 							break;
 						default: break;
 					}
 					if (tableHasElderseal)
 					{
-						ret.AppendLine(@"!{{Element|Elderseal}}");
+						ret.AppendLine(@"!class=""hide-on-mobile""|{{UI|MHWI|Elderseal}}");
 					}
 					if (tableHasRampageSlots)
 					{
-						ret.AppendLine(@"!Rmpg. Slots");
+						ret.AppendLine(@"!class=""hide-on-mobile""|Rmpg. Slots");
 					}
 					if (tableHasRampageDecos)
 					{
-						ret.AppendLine(@"![[File:UI-Rampage Decoration 3.png|20x20px|center|link=]]");
+						ret.AppendLine(@"!class=""hide-on-mobile""|[[File:UI-Rampage Decoration 3.png|20x20px|center|link=]]");
 					}
 					if (tableHasArmorSkills)
 					{
-						ret.AppendLine(@"![[File:UI-Blights Negated.png|20x20px|center|Link=]]");
+						ret.AppendLine(@"!class=""hide-on-mobile""|[[File:UI-Blights Negated.png|20x20px|center|Link=]]");
 					}
 					if (!new string[] { "Bo", "HBG", "LBG" }.Contains(tableIconType))
 					{
-						ret.AppendLine(@"![[File:2ndGen-Whetstone Icon Yellow.png|24x24px|link=]]");
+						ret.AppendLine(@"!class=""hide-on-mobile""|[[File:2ndGen-Whetstone Icon Yellow.png|24x24px|link=]]");
 					}
 					else
 					{
 						ret.AppendLine("!");
 					}
-					ret.AppendLine(@"![[File:2ndGen-Decoration Icon Blue.png|24x24px|link=]] 
-!{{Element|Defense}}");
+					ret.AppendLine(@"!class=""hide-on-mobile""|[[File:2ndGen-Decoration Icon Blue.png|24x24px|link=]] 
+!class=""hide-on-mobile""|{{UI|MHWI|Defense}}");
 					foreach (Datum dataObj in dataArray.Data)
 					{
 						string iconType = dataObj.IconType;
@@ -148,93 +164,93 @@ namespace MediawikiTranslator.Generators
 							}
 						}
 						ret.AppendLine($@"|-
-| style=""text-align:left"" | {prefix}{{{{GenericWeaponLink|{dataArray.Game}|{dataObj.Name}|{iconType}|{dataObj.Rarity}{(dataObj.CanForge == true ? "|true" : "")}{(dataObj.CanRollback == true ? (dataObj.CanForge != true ? "||true" : "|true") : "")}}}}}{(!string.IsNullOrEmpty(dataObj.PathLink) ? $" [[#{dataObj.PathLink} Path|(Go to path)]]" : "")}
-| {dataObj.Rarity}
-| {dataObj.Attack + " (" + Convert.ToInt32(Math.Round(Convert.ToInt32(dataObj.Attack) / Weapon.GetWeaponBloat(iconType, dataArray.Game))) + ")"}
-| {(string.IsNullOrEmpty(dataObj.Element) && dataObj.Element != "0" ? "-" : $"{{{{Element|{dataObj.Element}|{dataObj.ElementDamage}}}}}")}
-| {((dataObj.Affinity == 0 || dataObj.Affinity == null) ? "0%" : dataObj.Affinity + "%")}");
+| style=""text-align:left"" | {prefix}{{{{GenericWeaponLink|{dataArray.Game}|{dataObj.Name}|{iconType}|{dataObj.Rarity}{(dataObj.CanForge == true ? "|true" : "")}{(dataObj.CanRollback == true ? (dataObj.CanForge != true ? "||true" : "|true") : "")}}}}}{(!string.IsNullOrEmpty(dataObj.PathLink) ? $" [[#{dataObj.PathLink} Tree|(Go to tree)]]" : "")}
+| class=""hide-on-mobile""|{dataObj.Rarity}
+| class=""hide-on-mobile""|{dataObj.Attack + " (" + Convert.ToInt32(Math.Round(Convert.ToInt32(dataObj.Attack) / Weapon.GetWeaponBloat(iconType, dataArray.Game))) + ")"}
+| class=""hide-on-mobile""|{(string.IsNullOrEmpty(dataObj.Element) && dataObj.Element != "0" ? "-" : $"{{{{UI|MHWI|{dataObj.Element}|{dataObj.ElementDamage}}}}}")}
+| class=""hide-on-mobile""|{((dataObj.Affinity == 0 || dataObj.Affinity == null) ? "0%" : dataObj.Affinity + "%")}");
 						switch (iconType)
 						{
 							case "Bo":
-								ret.AppendLine($"|{string.Join(", ", dataObj.BoCoatings.Split(',').Select(x => x.Trim()))}");
+								ret.AppendLine($"|class=\"hide-on-mobile\"|{string.Join(", ", dataObj.BoCoatings.Split(',').Select(x => x.Trim()))}");
 								break;
 							case "CB":
-								ret.AppendLine($"|{dataObj.CBPhialType}");
+								ret.AppendLine($"|class=\"hide-on-mobile\"|{dataObj.CBPhialType}");
 								break;
 							case "SA":
-								ret.AppendLine($"|{dataObj.SAPhialType}");
+								ret.AppendLine($"|class=\"hide-on-mobile\"|{dataObj.SAPhialType}");
 								break;
 							case "GL":
-								ret.AppendLine($"|{dataObj.GLShellingType}");
+								ret.AppendLine($"|class=\"hide-on-mobile\"|{dataObj.GLShellingType}");
 								break;
 							case "HH":
-								ret.AppendLine($"|{{{{UI|MHWI|HH Note|1 {dataObj.HHNote1}}}}}{{{{UI|MHWI|HH Note|2 {dataObj.HHNote2}}}}}{{{{UI|MHWI|HH Note|3 {dataObj.HHNote3}}}}}");
+								ret.AppendLine($"|class=\"hide-on-mobile\"|{{{{UI|MHWI|HH Note|1 {dataObj.HHNote1}}}}}{{{{UI|MHWI|HH Note|2 {dataObj.HHNote2}}}}}{{{{UI|MHWI|HH Note|3 {dataObj.HHNote3}}}}}");
 								break;
 							case "IG":
-								ret.AppendLine($"|{dataObj.IGKinsectBonus}");
+								ret.AppendLine($"|class=\"hide-on-mobile\"|{dataObj.IGKinsectBonus}");
 								break;
 							case "HBG":
-								ret.AppendLine($"|{dataObj.HBGSpecialAmmoType}");
+								ret.AppendLine($"|class=\"hide-on-mobile\"|{dataObj.HBGSpecialAmmoType}");
 								if (dataArray.Game != "MHWI")
 								{
-									ret.AppendLine($"|{dataObj.HBGReloadRecoil}");
+									ret.AppendLine($"|class=\"hide-on-mobile\"|{dataObj.HBGReloadRecoil}");
 								}
 								else
 								{
-									ret.AppendLine("|");
+									ret.AppendLine("|class=\"hide-on-mobile\"| -");
 								}
 								break;
 							case "LBG":
-								ret.AppendLine($"|{dataObj.LBGSpecialAmmoType}");
+								ret.AppendLine($"|class=\"hide-on-mobile\"|{dataObj.LBGSpecialAmmoType}");
 								if (dataArray.Game != "MHWI")
 								{
-									ret.AppendLine($"|{dataObj.LBGReloadRecoil}");
+									ret.AppendLine($"|class=\"hide-on-mobile\"|{dataObj.LBGReloadRecoil}");
 								}
 								else
 								{
-									ret.AppendLine("|");
+									ret.AppendLine("|class=\"hide-on-mobile\"| -");
 								}
 								break;
 							default: break;
 						}
 						if (!string.IsNullOrEmpty(dataObj.Elderseal))
 						{
-							ret.AppendLine($@"| {dataObj.Elderseal}");
+							ret.AppendLine($@"|class=""hide-on-mobile""| {dataObj.Elderseal}");
 						}
 						else if (tableHasElderseal)
 						{
-							ret.AppendLine("| -");
+							ret.AppendLine("|class=\"hide-on-mobile\"| -");
 						}
 						if (!string.IsNullOrEmpty(dataObj.RampageSlots) && dataObj.RampageSlots != "0")
 						{
-							ret.AppendLine($@"| {dataObj.RampageSlots}");
+							ret.AppendLine($@"|class=""hide-on-mobile""| {dataObj.RampageSlots}");
 						}
 						else if (tableHasRampageSlots)
 						{
-							ret.AppendLine("| -");
+							ret.AppendLine("|class=\"hide-on-mobile\"| -");
 						}
 						if (!string.IsNullOrEmpty(dataObj.RampageDeco) && dataObj.RampageDeco != "0")
 						{
-							ret.AppendLine($@"| [[File:UI-Rampage Decoration {dataObj.RampageDeco}.png|20x20px|center]]");
+							ret.AppendLine($@"|class=""hide-on-mobile""| [[File:UI-Rampage Decoration {dataObj.RampageDeco}.png|20x20px|center]]");
 						}
 						else if (tableHasRampageDecos)
 						{
-							ret.AppendLine("| -");
+							ret.AppendLine("|class=\"hide-on-mobile\"| -");
 						}
 						if (!string.IsNullOrEmpty(dataObj.ArmorSkill))
 						{
-							ret.AppendLine($@"| {dataObj.ArmorSkill}{(!string.IsNullOrEmpty(dataObj.ArmorSkill2) ? ", " + dataObj.ArmorSkill2 : "")}");
+							ret.AppendLine($@"|class=""hide-on-mobile""| {dataObj.ArmorSkill}{(!string.IsNullOrEmpty(dataObj.ArmorSkill2) ? ", " + dataObj.ArmorSkill2 : "")}");
 						}
 						else if (tableHasArmorSkills)
 						{
-							ret.AppendLine("| -");
+							ret.AppendLine("|class=\"hide-on-mobile\"| -");
 						}
 						if (!new string[] {"Bo", "HBG", "LBG"}.Contains(iconType))
 						{
-							ret.AppendLine($@"| {(string.IsNullOrEmpty(sharpness) ? "-" : sharpness)}");
+							ret.AppendLine($@"|class=""hide-on-mobile""| {(string.IsNullOrEmpty(sharpness) ? "-" : sharpness)}");
 						}
-						ret.AppendLine($@"| {(string.IsNullOrEmpty(decos) ? "-" : decos)}
-| {(string.IsNullOrEmpty(dataObj.Defense) && dataObj.Defense != "0" ? "-" : dataObj.Defense)}");
+						ret.AppendLine($@"|class=""hide-on-mobile""| {(string.IsNullOrEmpty(decos) ? "-" : decos)}
+|class=""hide-on-mobile""| {(string.IsNullOrEmpty(dataObj.Defense) && dataObj.Defense != "0" ? "-" : dataObj.Defense)}");
 						cntr++;
 					}
 					ret.AppendLine("|}");

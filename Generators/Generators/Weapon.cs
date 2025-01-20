@@ -258,7 +258,7 @@ The {weapon.Name} is {(weapon.Type == "IG" ? "an" : "a")} [[{weaponNames.Item1} 
 					{ "HH", 4.2f },
 					{ "HBG", 1.5f },
 					{ "Ln", 2.3f },
-					{ "Bo", 1.2f }
+					{ "Bo", 1.2f },
 				}[type];
 			}
 			else
