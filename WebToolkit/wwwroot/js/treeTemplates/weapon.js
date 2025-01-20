@@ -80,8 +80,11 @@ class WeaponTemplate
 						</div>
 						<hr/>
 						<div class="row">
-							<div class="col">
+							<div class="col-6">
 								<h5>Second Bar</h5>
+							</div>
+							<div class="col-6" style="display: flex;justify-content: flex-end;">
+								<button type="button" onclick="WeaponTemplate.duplicateSharpness()" class="btn btn-primary" title="Duplicate first bar sharpness in the second bar."><i class="bi bi-copy"></i></button>
 							</div>
 						</div>
 						<div class="row">
@@ -304,7 +307,7 @@ class WeaponTemplate
     <th scope="col" style="width:4rem;">Stats</th>
     <th scope="col" style="width:4rem;">Decos</th>
     <th scope="col" style="width:4rem;">Sharpness</th>
-    <th scope="col" style="width:0.375rem">Delete</th>
+    <th scope="col" style="width:0.375rem">Options</th>
 </tr>`;
     }
     static getRow()
@@ -360,6 +363,7 @@ class WeaponTemplate
 		<button class="btn btn-primary ignore-generate" type="button" onclick="WeaponTemplate.modifySharpness($(this).parent().parent(), validateComplexData, this, $(this).parent().children().first(), WeaponTemplate.validateSharpness);">Modify</button>
 	</td>
 	<td class="ignore-generate" style="text-align:center">
+		<button type="button" onclick="duplicateRow($(this).parent().parent())" class="btn btn-primary" title="Duplicate the weapon."><i class="bi bi-copy"></i></button>
 		<button type="button" onclick="$(this).parent().parent().remove();" class="btn btn-danger btn-delete-row" title="Delete this weapon."><i class="bi bi-trash"></i></button>
 	</td>
 </tr>`;
@@ -478,6 +482,16 @@ class WeaponTemplate
 		if (typeof (WeaponTemplate.currentSharpnessCallback) !== 'undefined') {
 			return WeaponTemplate.currentSharpnessCallback(WeaponTemplate.currentSharpnessCallbackArgs[0], WeaponTemplate.currentSharpnessCallbackArgs[1], WeaponTemplate.currentSharpnessCallbackArgs[2]);
 		}
+	}
+	static duplicateSharpness() {
+		$("#txtRedSharpnessHits2").val($("#txtRedSharpnessHits1").val());
+		$("#txtOrangeSharpnessHits2").val($("#txtOrangeSharpnessHits1").val());
+		$("#txtYellowSharpnessHits2").val($("#txtYellowSharpnessHits1").val());
+		$("#txtGreenSharpnessHits2").val($("#txtGreenSharpnessHits1").val());
+		$("#txtBlueSharpnessHits2").val($("#txtBlueSharpnessHits1").val());
+		$("#txtWhiteSharpnessHits2").val($("#txtWhiteSharpnessHits1").val());
+		$("#txtPurpleSharpnessHits2").val($("#txtPurpleSharpnessHits1").val());
+		WeaponTemplate.updatePreviewBar("2");
 	}
 	static applyStats() {
 		if (typeof (WeaponTemplate.currentStatsRow) !== 'undefined') {

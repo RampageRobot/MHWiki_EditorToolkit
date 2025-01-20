@@ -81,6 +81,17 @@ function applySharpness() {
         return currentSharpnessCallback(currentSharpnessCallbackArgs[0], currentSharpnessCallbackArgs[1], currentSharpnessCallbackArgs[2]);
     }
 }
+function duplicateSharpness() {
+    $("#txtRedSharpnessHits2").val($("#txtRedSharpnessHits1").val());
+    $("#txtOrangeSharpnessHits2").val($("#txtOrangeSharpnessHits1").val());
+    $("#txtYellowSharpnessHits2").val($("#txtYellowSharpnessHits1").val());
+    $("#txtGreenSharpnessHits2").val($("#txtGreenSharpnessHits1").val());
+    $("#txtBlueSharpnessHits2").val($("#txtBlueSharpnessHits1").val());
+    $("#txtWhiteSharpnessHits2").val($("#txtWhiteSharpnessHits1").val());
+    $("#txtPurpleSharpnessHits2").val($("#txtPurpleSharpnessHits1").val());
+    updatePreviewBar("2");
+}
+
 function validateSharpness(value) {
     var valid = true;
     try {
