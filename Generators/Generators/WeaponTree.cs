@@ -1,20 +1,24 @@
-﻿using DocumentFormat.OpenXml.Wordprocessing;
-using MediawikiTranslator.Models.DamageTable.PartsData;
-using MediawikiTranslator.Models.WeaponTree;
-using System.Linq;
-using System.Reflection.Emit;
+﻿using MediawikiTranslator.Models.WeaponTree;
+using Microsoft.VisualBasic.FileIO;
 using System.Text;
+using System.Text.Json;
 
 namespace MediawikiTranslator.Generators
 {
-	public class WeaponTree
+    public class WeaponTree
 	{
 		public static string ParseJson(string json, string sharpnessBase, int maxSharpnessCount, string pathName, string defaultIcon)
 		{
 			return Generate(WebToolkitData.FromJson(json), sharpnessBase, maxSharpnessCount, pathName, defaultIcon).Result;
 		}
 
-		public static async Task<string> Generate(WebToolkitData[] srcData, string sharpnessBase, int maxSharpnessCount, string pathName, string defaultIcon)
+		public static string ParseCsv(string csvFile, string delimiter = ",")
+		{
+			return JsonSerializer.Serialize(ParseWeaponsFromCsv(csvFile, delimiter));
+		}
+
+
+        public static async Task<string> Generate(WebToolkitData[] srcData, string sharpnessBase, int maxSharpnessCount, string pathName, string defaultIcon)
 		{
 			return await Task.Run(() =>
 			{
@@ -312,5 +316,84 @@ namespace MediawikiTranslator.Generators
 			}
 			return prefix;
 		}
-	}
+	
+		private static List<WeaponCsv> ParseWeaponsFromCsv(string csvFile, string delimiter = ",")
+		{
+			var weapons = new List<WeaponCsv>();
+			using (var parser = new TextFieldParser(GenerateStreamFromString(csvFile)))
+			{
+				parser.TextFieldType = FieldType.Delimited;
+				parser.SetDelimiters(delimiter);
+				while (!parser.EndOfData)
+				{
+					//Processing row
+					string[]? fields = parser.ReadFields();
+					if(fields?.Length == 15) // Very manual thing that should be modified in case we want more row/make it more generic
+                    {
+                        var line = ParseWeaponFromLine(fields);
+                        weapons.Add(line);
+                    }
+				}
+			}
+
+            return weapons;
+        }
+		
+		// Very straightforward but also sensible
+		private static WeaponCsv ParseWeaponFromLine(string[] lineFields)
+		{
+			return new WeaponCsv()
+			{
+				Name = lineFields[0],
+				Parent = lineFields[1],
+				Rarity = GetIntFieldOrEmpty(lineFields[2]),
+				Attack = GetIntFieldOrEmpty(lineFields[3]),
+				Affinity = GetIntFieldOrEmpty(lineFields[4]),
+				Defense = GetIntFieldOrEmpty(lineFields[5]),
+				ElementHidden = GetBoolFieldOrEmpty(lineFields[6]),
+				Element1 = lineFields[7],
+				Element1Attack = GetIntFieldOrEmpty(lineFields[8]),
+				Element2 = lineFields[9],
+				Element2Attack = GetIntFieldOrEmpty(lineFields[10]),
+				ElderSeal = lineFields[11],
+				DecoSlot1 = GetIntFieldOrEmpty(lineFields[12]),
+				DecoSlot2 = GetIntFieldOrEmpty(lineFields[13]),
+				DecoSlot3 = GetIntFieldOrEmpty(lineFields[14]),
+			};
+        }
+
+		private static int GetIntFieldOrEmpty(string field)
+		{
+			return !string.IsNullOrWhiteSpace(field) ? int.Parse(field) : 0;
+        }
+
+        private static bool? GetBoolFieldOrEmpty(string field)
+        {
+            return !string.IsNullOrWhiteSpace(field) ? bool.Parse(field) : null;
+        }
+
+        private static MemoryStream GenerateStreamFromString(string value)
+        {
+            return new MemoryStream(Encoding.UTF8.GetBytes(value ?? ""));
+        }
+
+		private class WeaponCsv
+		{
+			public string Name { get; set; }
+            public string Parent { get; set; }
+			public int Rarity { get; set; }
+            public int Attack { get; set; }
+            public int Affinity { get; set; }
+            public int Defense { get; set; }
+            public bool? ElementHidden { get; set; }
+            public string Element1 { get; set; }
+            public int Element1Attack { get; set; }
+            public string Element2 { get; set; }
+            public int Element2Attack { get; set; }
+            public string ElderSeal { get; set; }
+            public int DecoSlot1 { get; set; }
+            public int DecoSlot2 { get; set; }
+            public int DecoSlot3 { get; set; }
+        }
+    }
 }

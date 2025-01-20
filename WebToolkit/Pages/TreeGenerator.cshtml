@@ -34,6 +34,30 @@
 				}
 			});
 		}
+		function parseCsv() {
+			var text = $("#inputCsvFile").val();
+
+			$.ajax({
+				url: '@(Url.Action("ParseCsv", "WeaponTree"))/',
+				data: {
+					csvFile: text,
+				},
+				type: "POST",
+				dataType: "text",
+				statusCode: {
+					200: function (result) {
+						var json = JSON.parse(result);
+						for(var i = 0; i < json.length; i++) {
+							addRowFromCsv(json[i])
+						}
+					},
+					500: function (jqXHR) {
+						alert(jqXHR.responseText);
+					}
+				}
+			});
+			bootstrap.Modal.getInstance($("#mdlCsv")).hide();
+		}
 	</script>
 }
 <div class="container-fluid" style="height: 97vh">
@@ -76,6 +100,7 @@
 					<div class="float-end">
 						<button type="button" onclick="save()" class="btn btn-success" title="Save your progress to your local machine to reload later."><i class="bi bi-floppy"></i></button>
 						<button type="button" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#mdlLoad" title="Load previously saved progress."><i class="bi bi-upload"></i></button>
+						<button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#mdlCsv" title="Generate weapons from csv"><i class="bi bi-filetype-csv"></i></button>
 						<button type="button" onclick="generateTree();" class="btn btn-primary btn-generate-wiki-data" title="When finished, click here to generate the final product.">Generate Tree</button>
 						<button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#mdlHelp" title="Help"><i class="bi bi-question-circle"></i></button>
 						<button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#mdlChangeLog" title="View Change Log"><i class="bi bi-info-circle"></i></button>
@@ -314,6 +339,34 @@
 			</div>
 			<div class="modal-footer">
 				<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+			</div>
+		</div>
+	</div>
+</div>
+<div class="modal fade" id="mdlCsv" tabindex="-1" aria-labelledby="csvModalLabel" aria-hidden="true">
+	<div class="modal-dialog modal-xl">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title" id="csvModalLabel">Generate weapons from a csv file.</h5>
+				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+			</div>
+			<div class="modal-body">
+				<div class="row">
+					<span>Delimiter must be ','</span>
+					<span>Format should be :</span>
+					<span>Name,Parent,Rarity,Attack,Affinity,Defense,Element_hidden_bool,Element1,ElementAttack1,Element2,ElementAttack2,Elderseal,Deco1,Deco2,Deco3</span>
+					<div class="row" style="margin-top: 10px; margin-bottom:10px;">
+						<div class="col-10">
+							<textarea class="form-control" type="file" id="inputCsvFile" rows="12"></textarea>
+						</div>
+						<div class="col" style="align-content:end;">
+							<button class="btn btn-success" onclick="parseCsv()" type="button">Load csv</button>
+						</div>
+					</div>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+				</div>
 			</div>
 		</div>
 	</div>

@@ -139,3 +139,55 @@ function duplicateRow(row) {
         duplicatedRow.find("[data-label=sharpness]").parent().find("button").addClass("btn-success")
     }
 }
+
+function addRowFromCsv(weaponDict) {
+    var row = $(srcTreeRow).clone(true);
+    var table = $(".card .table-tree tbody");
+    addRow(table, row)
+
+    row.find("[data-label=name]").val(weaponDict["Name"])
+    row.find("[data-label=parent]").val(weaponDict["Parent"])
+    row.find("[data-label=rarity]").val(weaponDict["Rarity"])
+
+    var attackObject = {
+        "attack": weaponDict["Attack"],
+        "defense": weaponDict["Defense"],
+        "element": weaponDict["Element1"],
+        "element-damage": weaponDict["Element1Attack"],
+        "element-2": weaponDict["Element2"],
+        "element-damage-2": weaponDict["Element2Attack"],
+        "affinity": weaponDict["Affinity"],
+        "elderseal": weaponDict["Elderseal"],
+        "rampage-slots": "",
+        "rampage-deco": "",
+        "armor-skill": "",
+        "armor-skill-2": ""
+    }
+    row.find("[data-label=stats]").val(JSON.stringify(attackObject))
+    row.find("[data-label=stats]").parent().find("button").addClass("btn-success")
+
+    var decos = getDecos(parseInt(weaponDict["DecoSlot1"]), parseInt(weaponDict["DecoSlot2"]), parseInt(weaponDict["DecoSlot3"]));
+    row.find("[data-label=decos]").val(decos);
+    row.find("[data-label=decos]").parent().find("button").addClass("btn-success");
+}
+
+function getDecos(levelSlot1, levelSlot2, levelSlot3) {
+    var decos = [];
+    var amountPerLevel = [0, 0, 0, 0];
+    if (levelSlot1) {
+        amountPerLevel[levelSlot1 - 1] += 1
+    }
+    if (levelSlot2) {
+        amountPerLevel[levelSlot2 - 1] += 1
+    }
+    if (levelSlot3) {
+        amountPerLevel[levelSlot3 - 1] += 1
+    }
+    for (var i = 0; i < amountPerLevel.length; i++) {
+        if (amountPerLevel[i] > 0)
+            decos.push({ "Level": (i + 1).toString(), "Qty": amountPerLevel[i].toString(), "IsRampage": false });
+    }
+
+    var returnValue = JSON.stringify(decos);
+    return returnValue;
+}
