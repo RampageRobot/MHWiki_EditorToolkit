@@ -47,9 +47,10 @@ namespace MediawikiTranslator.Generators
 					bool tableHasArmorSkills = dataArray.Data.Any(x => !string.IsNullOrEmpty(x.ArmorSkill));
 					int cntr = 0;
 					string sourceTree = srcData.FirstOrDefault(x => x.Data.Any(y => y.PathLink == dataArray.PathName))?.PathName ?? "";
+					string sourceWeapon = srcData.Select(x => x.Data.FirstOrDefault(y => y.PathLink == dataArray.PathName))?.FirstOrDefault()?.Parent ?? "";
 					ret.AppendLine($@"<br>
-{{| class=""wikitable center wide mw-collapsible mw-collapsed""
-! colspan=12 | <h4 style=""margin:0px;"">{dataArray.PathName} Tree{(!string.IsNullOrEmpty(sourceTree) ? $" [[#{sourceTree} Tree|(Return to source)]]" : "")}</h4>
+{{| class=""wikitable center wide mw-collapsible mw-collapsed mobile-sm""
+! colspan=12 | <h4 style=""margin:0px;"">{dataArray.PathName} Tree</h4>{(!string.IsNullOrEmpty(sourceTree) ? $" [[#{sourceWeapon.Replace(" ", "_")}_{sourceTree.Replace(" ", "_")}|(Return to {sourceWeapon})]]" : "")}
 |-
 !Name 
 !class=""hide-on-mobile""|Rarity
@@ -163,11 +164,12 @@ namespace MediawikiTranslator.Generators
 								}
 							}
 						}
+						int trueRaw = Convert.ToInt32(Math.Round(Convert.ToInt32(dataObj.Attack) / Weapon.GetWeaponBloat(iconType, dataArray.Game)));
 						ret.AppendLine($@"|-
-| style=""text-align:left"" | {prefix}{{{{GenericWeaponLink|{dataArray.Game}|{dataObj.Name}|{iconType}|{dataObj.Rarity}{(dataObj.CanForge == true ? "|true" : "")}{(dataObj.CanRollback == true ? (dataObj.CanForge != true ? "||true" : "|true") : "")}}}}}{(!string.IsNullOrEmpty(dataObj.PathLink) ? $" [[#{dataObj.PathLink} Tree|(Go to tree)]]" : "")}
+| style=""text-align:left"" id=""{dataObj.Name.Replace(" ", "_")}_{dataArray.PathName.Replace(" ", "_")}"" | {prefix}{{{{GenericWeaponLink|{dataArray.Game}|{dataObj.Name}|{iconType}|{dataObj.Rarity}{(dataObj.CanForge == true ? "|true" : "")}{(dataObj.CanRollback == true ? (dataObj.CanForge != true ? "||true" : "|true") : "")}}}}}{(!string.IsNullOrEmpty(dataObj.PathLink) ? $" [[#{dataObj.PathLink} Tree|(Go to tree)]]" : "")}
 | class=""hide-on-mobile""|{dataObj.Rarity}
-| class=""hide-on-mobile""|{dataObj.Attack + " (" + Convert.ToInt32(Math.Round(Convert.ToInt32(dataObj.Attack) / Weapon.GetWeaponBloat(iconType, dataArray.Game))) + ")"}
-| class=""hide-on-mobile""|{(string.IsNullOrEmpty(dataObj.Element) && dataObj.Element != "0" ? "-" : $"{{{{UI|MHWI|{dataObj.Element}|{dataObj.ElementDamage}}}}}")}
+| class=""hide-on-mobile""|{dataObj.Attack + (trueRaw == Convert.ToInt32(dataObj.Attack) ? "" : $" ({trueRaw})")}
+| class=""hide-on-mobile""|{(string.IsNullOrEmpty(dataObj.Element) && dataObj.Element != "0" ? "-" : $"{{{{UI|UI|{dataObj.Element}|text={dataObj.ElementDamage}}}}}")}
 | class=""hide-on-mobile""|{((dataObj.Affinity == 0 || dataObj.Affinity == null) ? "0%" : dataObj.Affinity + "%")}");
 						switch (iconType)
 						{
