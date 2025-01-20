@@ -3,6 +3,10 @@ using DocumentFormat.OpenXml.Wordprocessing;
 using MediawikiTranslator.Models.ArmorSets;
 using System.IO.Compression;
 using System.Text;
+using WikiClientLibrary;
+using WikiClientLibrary.Client;
+using WikiClientLibrary.Pages;
+using WikiClientLibrary.Sites;
 
 namespace MediawikiTranslator.Generators
 {
@@ -17,20 +21,18 @@ namespace MediawikiTranslator.Generators
 				ret.AppendLine($@"{{{{GenericNav|{set.Game}}}}}
 <br>
 <br>
-The {set.SetName}{setGenderMark} Set is a {GetRankLink(set.Game, set.Rarity)} [[{set.Game}/Armor|Armor Set]] in [[{Weapon.GetGameFullName(set.Game, (int?)set.Rarity)}]].<br>
+The {set.SetName}{setGenderMark} Set is a {GetRankLink(set.Game, set.Rarity)} armor set in [[{Weapon.GetGameFullName(set.Game, (int?)set.Rarity)}]].<br>
 {{{{GenericArmorSet
 |Game                               = {set.Game}
 |Set Name                           = {set.SetName}{setGenderMark}
 |Max Level                          = {set.Pieces.Max(x => x.MaxLevel)}
 |Male Image                         = {(string.IsNullOrEmpty(set.MaleFrontImg) ? "wiki.png" : set.MaleFrontImg)}
 |Female Image                       = {(string.IsNullOrEmpty(set.FemaleFrontImg) ? "wiki.png" : set.FemaleFrontImg)}
-|Male Image Back                    = {(string.IsNullOrEmpty(set.MaleBackImg) ? "wiki.png" : set.MaleBackImg)}
-|Female Image Back                  = {(string.IsNullOrEmpty(set.FemaleBackImg) ? "wiki.png" : set.FemaleBackImg)}
 |Set Rarity                         = {(set.Rarity > 0 ? set.Rarity : "1")}
-|Set Skill 1 Name                   = {set.SetSkill1Name}
-|Set Skill 2 Name                   = {set.SetSkill2Name}
-|Group Skill 1 Name                 = {set.GroupSkill1Name}
-|Group Skill 2 Name                 = {set.GroupSkill2Name}
+|Set Skill 1                        = {(set.SetSkill1 != null ? GetSkillsTemplates([set.SetSkill1], set.Game, true) : "None")}
+|Set Skill 2                        = {(set.SetSkill2 != null ? GetSkillsTemplates([set.SetSkill2], set.Game, true) : "")}
+|Group Skill 1                      = {(set.GroupSkill1 != null ? GetSkillsTemplates([set.GroupSkill1], set.Game, true) : "")}
+|Group Skill 2                      = {(set.GroupSkill2 != null ? GetSkillsTemplates([set.GroupSkill2], set.Game, true) : "")}
 |Total Forging Cost                 = {set.Pieces.Sum(x => x.ForgingCost):n0}
 |Total Skills                       = {GetSetSkillsTemplates([..set.Pieces.SelectMany(x => x.Skills)], set.Game)}
 |Total Forging Materials            = {GetSetMaterialsTemplates([..set.Pieces.SelectMany(x => x.Materials)], set.Game)}
@@ -130,12 +132,12 @@ The {set.SetName}{setGenderMark} Set is a {GetRankLink(set.Game, set.Rarity)} [[
 				})], game);
 		}
 
-		private static string GetSkillsTemplates(Skill[] skills, string game)
+		private static string GetSkillsTemplates(Skill[] skills, string game, bool isSet = false)
 		{
 			StringBuilder sb = new();
 			foreach (Skill skill in skills.OrderByDescending(x => x.Level))
 			{
-				sb.Append($"\r\n<div>{{{{GenericSkillLink|{game}|{skill.Name.Replace("/", "-")}|Armor|{skill.WikiIconColor}{(skill.Name.Contains('/') ? "|" + skill.Name : "")}}}}} x{skill.Level}</div>");
+				sb.Append($"\r\n<div>{{{{GenericSkillLink|{game}|{skill.Name.Replace("/", "-")}|Armor|{skill.WikiIconColor}{(skill.Name.Contains('/') ? "|" + skill.Name : "")}}}}}{(!isSet ? " x" + skill.Level : "")}</div>");
 			}
 			return sb.ToString();
 		}
@@ -152,7 +154,7 @@ The {set.SetName}{setGenderMark} Set is a {GetRankLink(set.Game, set.Rarity)} [[
 
 		public static string GenerateFromJson(string json)
 		{
-			return Generate(WebToolkitData.FromJson(json), new WebToolkitData[0]).Result;
+			return Generate(WebToolkitData.FromJson(json), []).Result;
         }
 
 		public static void MassGenerate(string game)
@@ -166,7 +168,7 @@ The {set.SetName}{setGenderMark} Set is a {GetRankLink(set.Game, set.Rarity)} [[
 			{
 				src = Models.Data.MHRS.Armor.GetWebToolkitData();
 			}
-			foreach (WebToolkitData data in src)
+			foreach (WebToolkitData data in src.Where(x => x.Pieces.Length > 0))
 			{
 				string setGenderMark = data.OnlyForGender != null && src.Any(x => x.SetName == data.SetName && x.OnlyForGender != data.OnlyForGender) ? " (" + data.OnlyForGender + ")" : "";
 				Directory.CreateDirectory($@"C:\Users\mkast\Desktop\MHWiki Generated Armor Sets\{game}");
@@ -222,7 +224,7 @@ __TOC__");
 				lastRarity = data.Rarity;
 			}
 			setList.AppendLine("</div>");
-			File.WriteAllText($@"C:\Users\mkast\Desktop\MHWiki Generated Armor Sets\{game}\_setlist.txt", setList.ToString());
+			//File.WriteAllText($@"C:\Users\mkast\Desktop\MHWiki Generated Armor Sets\{game}\_setlist.txt", setList.ToString());
 		}
 	}
 

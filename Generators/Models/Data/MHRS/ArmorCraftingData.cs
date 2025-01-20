@@ -7,7 +7,7 @@ namespace MediawikiTranslator.Models.Data.MHRS
 
 	public partial class ArmorCraftingData
 	{
-		[JsonProperty("snow.data.ArmorBaseUserData", NullValueHandling = NullValueHandling.Ignore)]
+		[JsonProperty("snow.data.ArmorProductUserData", NullValueHandling = NullValueHandling.Ignore)]
 		public SnowDataArmorBaseUserCraftingData SnowDataArmorBaseUserCraftingData { get; set; }
 
 		public static ArmorCraftingDataParam[] GetCraftingData()
@@ -18,7 +18,14 @@ namespace MediawikiTranslator.Models.Data.MHRS
 			{
 				for (int i = 0; i < armor.Item.Length; i++)
 				{
-					armor.Materials.Add(new Tuple<Items, int>(allItems.First(x => x.Id == armor.Item[i]), (int)armor.ItemNum[i]));
+					if (armor.Item[i] != "I_Unclassified_None")
+					{
+						if (armor.Materials == null)
+						{
+							armor.Materials = [];
+						}
+						armor.Materials.Add(new Tuple<Items, int>(allItems.First(x => x.Id == armor.Item[i]), (int)armor.ItemNum[i]));
+					}
 				}
 			}
 			return allArmor;

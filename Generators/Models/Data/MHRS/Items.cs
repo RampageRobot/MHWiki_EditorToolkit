@@ -11,7 +11,7 @@ namespace MediawikiTranslator.Models.Data.MHRS
 		public string Description { get; set; }
 		public string WikiIconColor { get; set; }
 		public string WikiIconName { get; set; }
-		public static Items[] Fetch() => [..RawItems.FromJson(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Raw Data\MHRS\natives\stm\data\system\contentsidsystem\item\normal\itemdata.user.2.json")).SnowDataItemUserData.Param.Select(x => new Items(x))];
+		public static Items[] Fetch() => [..RawItems.FromJson(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Raw Data\MHRS\natives\stm\data\system\contentsidsystem\item\normal\itemdata.user.2.json")).SnowDataItemUserData.Param.Where(x => x.IconColor != "ITEM_ICON_COLOR_00").Select(x => new Items(x))];
 		public Items() { }
 		public Items(ItemsParam src)
 		{
@@ -42,6 +42,7 @@ namespace MediawikiTranslator.Models.Data.MHRS
 			CategoryWorth = src.CategoryWorth;
 			MaterialCategory = src.MaterialCategory;
 			EvalutionValue = src.EvalutionValue;
+			Name = CommonMsgs.GetMsg("I_" + src.Id.Substring(src.Id.LastIndexOf("_") + 1) + "_Name");
 			WikiIconName = GetIconName(Convert.ToInt32(src.IconChara.Substring(src.IconChara.LastIndexOf("_") + 1)));
 			WikiIconColor = GetIconColor(Convert.ToInt32(src.IconColor.Substring(src.IconColor.LastIndexOf("_") + 1)));
 		}
@@ -63,6 +64,8 @@ namespace MediawikiTranslator.Models.Data.MHRS
 				{ 9, "Purple" },
 				{ 10, "Blue" },
 				{ 3, "Pink" },
+				{ 51, "Dark Purple" },
+				{ 14, "Dark Purple" },
 			}[colorId];
 		}
 
@@ -128,7 +131,7 @@ namespace MediawikiTranslator.Models.Data.MHRS
 				{ 0, "Pouch" },
 				{ 116, "NOT AVAILABLE" },
 				{ 204, "Pallium" },
-				{ 203, "NOT AVAILABLE" },
+				{ 203, "Shell" },
 				{ 201, "NOT AVAILABLE" },
 				{ 51, "Book" },
 				{ 205, "NOT AVAILABLE" }

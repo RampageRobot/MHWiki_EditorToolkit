@@ -25,16 +25,15 @@ namespace MediawikiTranslator.Models.ArmorSets
         public string FemaleBackImg { get; set; } = string.Empty;
 
         [JsonProperty("setSkill1Name")]
-        public string SetSkill1Name { get; set; } = string.Empty;
+        public Skill? SetSkill1 { get; set; }
 
         [JsonProperty("setSkill2Name")]
-        public string SetSkill2Name { get; set; } = string.Empty;
+        public Skill? SetSkill2 { get; set; }
 
         [JsonProperty("groupSkill1Name")]
-        public string GroupSkill1Name { get; set; } = string.Empty;
-
+        public Skill? GroupSkill1 { get; set; }
         [JsonProperty("groupSkill2Name")]
-        public string GroupSkill2Name { get; set; } = string.Empty;
+        public Skill? GroupSkill2 { get; set; }
 
         [JsonProperty("rarity")]
         [JsonConverter(typeof(ParseStringConverter))]

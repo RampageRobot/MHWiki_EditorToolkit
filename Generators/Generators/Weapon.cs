@@ -15,7 +15,7 @@ namespace MediawikiTranslator.Generators
 	public class Weapon
 	{
 		private static Models.Data.MHWI.Items[] _mhwiItems = Models.Data.MHWI.Items.Fetch();
-		private static async Task<string> Generate(WebToolkitData weapon)
+		private static async Task<string> Generate(WebToolkitData weapon, WebToolkitData[] src)
 		{
 			return await Task.Run(() =>
 			{
@@ -30,36 +30,36 @@ The {weapon.Name} is {(weapon.Type == "IG" ? "an" : "a")} [[{weaponNames.Item1} 
 |Weapon Name             = {weapon.Name}
 |Render File             = {weapon.Game}-{weapon.Name} Render.png
 |Weapon Type             = {weapon.Type}
-|Tree                    = {weapon.Tree}
+|Tree                    = {weapon.Tree!.Replace("Unavailable", (weapon.Name!.Contains("Safi's") ? "Safi Tree" : "Kulve Taroth Tree"))}
 |Rarity                  = {weapon.Rarity}
 |Description             = {weapon.Description}
-|Attack                  = {Convert.ToInt32(Math.Round(GetWeaponBloat(weapon.Type!) * Convert.ToInt32(weapon.Attack))) + " (" + weapon.Attack + ")"}
+|Attack                  = {Convert.ToInt32(Math.Round(GetWeaponBloat(weapon.Type!, weapon.Game!) * Convert.ToInt32(weapon.Attack))) + " (" + weapon.Attack + ")"}
 |Affinity                = {weapon.Affinity}" + 
-(weapon.Decos1 != null && weapon.Decos1!.Value > 0 ? $"|Level 1 Decos           = {weapon.Decos1.Value}" : "") +
-(weapon.Decos2 != null && weapon.Decos2!.Value > 0 ? $"|Level 2 Decos           = {weapon.Decos2.Value}" : "") +
-(weapon.Decos3 != null && weapon.Decos3!.Value > 0 ? $"|Level 3 Decos           = {weapon.Decos3.Value}" : "") +
-(weapon.Decos4 != null && weapon.Decos4!.Value > 0 ? $"|Level 4 Decos           = {weapon.Decos4.Value}" : "") +
-(!string.IsNullOrEmpty(weapon.Element1) && weapon.ElementDmg1 != null ? "|Elemental Damage        =" + weapon.ElementDmg1 : "") +
-(!string.IsNullOrEmpty(weapon.Element1) && weapon.ElementDmg1 != null ? "|Elemental Damage Type   =" + weapon.Element1 : "") +
-(!string.IsNullOrEmpty(weapon.Element2) && weapon.ElementDmg2 != null ? "|Elemental Damage 2      =" + weapon.ElementDmg2 : "") +
-(!string.IsNullOrEmpty(weapon.Element2) && weapon.ElementDmg2 != null ? "|Elemental Damage Type 2 =" + weapon.Element2 : "") +
-(!string.IsNullOrEmpty(weapon.Sharpness) ? GetSharpnessTemplates(weapon.Sharpness) : "") +
-(!string.IsNullOrEmpty(weapon.HhNote1) ? $"|HH Note 1               = {weapon.HhNote1.Replace("_", " ").Replace("Dark Blue", "Blue").Replace("Light Blue", "Cyan")}" : "") +
-(!string.IsNullOrEmpty(weapon.HhNote2) ? $"|HH Note 2               = {weapon.HhNote2.Replace("_", " ").Replace("Dark Blue", "Blue").Replace("Light Blue", "Cyan")}" : "") +
-(!string.IsNullOrEmpty(weapon.HhNote3) ? $"|HH Note 3               = {weapon.HhNote3.Replace("_", " ").Replace("Dark Blue", "Blue").Replace("Light Blue", "Cyan")}" : "") +
-(!string.IsNullOrEmpty(weapon.GlShellingType) ? $"|GL Shelling Type        = {weapon.GlShellingType} Lv {weapon.GlShellingLevel}" : "") +
-(!string.IsNullOrEmpty(weapon.SaPhialType) ? $"|SA Phial Type           = {weapon.SaPhialType}" : "") +
-(!string.IsNullOrEmpty(weapon.CbPhialType) ? $"|CB Phial Type           = {weapon.CbPhialType}" : "") +
-(!string.IsNullOrEmpty(weapon.IgKinsectBonus) ? $"|IG Kinsect Bonus        = {weapon.IgKinsectBonus}" : "") +
-(!string.IsNullOrEmpty(weapon.BoCoatings) ? $"|Bo Coatings             = {weapon.BoCoatings}" : "") +
-(!string.IsNullOrEmpty(weapon.HbgSpecialAmmoType) ? $"|HBG Special Ammo Type   = {weapon.HbgSpecialAmmoType}" : "") +
-(!string.IsNullOrEmpty(weapon.LbgSpecialAmmoType) ? $"|LBG Special Ammo Type   = {weapon.LbgSpecialAmmoType}" : "") +
-(!string.IsNullOrEmpty(weapon.HbgDeviation) ? $"|HBG Deviation        = {weapon.HbgDeviation}" : "") +
-(!string.IsNullOrEmpty(weapon.Elderseal) && weapon.Elderseal != "None" ? $"|Elderseal               = {weapon.Elderseal}" : "") +
-(!string.IsNullOrEmpty(weapon.ArmorSkills) ? $"|Armor Skills            = {weapon.ArmorSkills}" : "") +
-(!string.IsNullOrEmpty(weapon.RampageSkillSlots) ? $"|Rampage Slots           = {weapon.RampageSkillSlots}" : "") +
-(!string.IsNullOrEmpty(weapon.RampageDecoration) ? $"|Rampage Decoration      = {weapon.RampageDecoration}" : "") +
-(!string.IsNullOrEmpty(weapon.Rollback) ? $"|Can Rollback            = {weapon.Rollback}" : ""));
+(weapon.Decos1 != null && weapon.Decos1!.Value > 0 ? $"\r\n|Level 1 Decos           = {weapon.Decos1.Value}" : "") +
+(weapon.Decos2 != null && weapon.Decos2!.Value > 0 ? $"\r\n|Level 2 Decos           = {weapon.Decos2.Value}" : "") +
+(weapon.Decos3 != null && weapon.Decos3!.Value > 0 ? $"\r\n|Level 3 Decos           = {weapon.Decos3.Value}" : "") +
+(weapon.Decos4 != null && weapon.Decos4!.Value > 0 ? $"\r\n|Level 4 Decos           = {weapon.Decos4.Value}" : "") +
+(!string.IsNullOrEmpty(weapon.Element1) && weapon.ElementDmg1 != null ? "\r\n|Elemental Damage        =" + (weapon.ElementDmg1.Contains("(") ? "(" : "") + (Convert.ToInt32(weapon.ElementDmg1.Replace("(", "").Replace(")", "")) * 10) + (weapon.ElementDmg1.Contains("(") ? ")" : "") : "") +
+(!string.IsNullOrEmpty(weapon.Element1) && weapon.ElementDmg1 != null ? "\r\n|Elemental Damage Type   =" + weapon.Element1.Replace("Paralyze", "Paralysis").Replace("Explosion", "Blast").Replace("(", "").Replace(")", "") : "") +
+(!string.IsNullOrEmpty(weapon.Element2) && weapon.ElementDmg2 != null ? "\r\n|Elemental Damage 2      =" + (weapon.ElementDmg2.Contains("(") ? "(" : "") + (Convert.ToInt32(weapon.ElementDmg2.Replace("(", "").Replace(")", "")) * 10) + (weapon.ElementDmg2.Contains("(") ? ")" : "") : "") +
+(!string.IsNullOrEmpty(weapon.Element2) && weapon.ElementDmg2 != null ? "\r\n|Elemental Damage Type 2 =" + weapon.Element2.Replace("Paralyze", "Paralysis").Replace("Explosion", "Blast").Replace("(", "").Replace(")", "") : "") +
+(!string.IsNullOrEmpty(weapon.Sharpness) ? "\r\n" + GetSharpnessTemplates(weapon.Sharpness) : "") +
+(!string.IsNullOrEmpty(weapon.HhNote1) ? $"\r\n|HH Note 1               = {weapon.HhNote1.Replace("_", " ").Replace("Dark Blue", "Blue").Replace("Light Blue", "Cyan")}" : "") +
+(!string.IsNullOrEmpty(weapon.HhNote2) ? $"\r\n|HH Note 2               = {weapon.HhNote2.Replace("_", " ").Replace("Dark Blue", "Blue").Replace("Light Blue", "Cyan")}" : "") +
+(!string.IsNullOrEmpty(weapon.HhNote3) ? $"\r\n|HH Note 3               = {weapon.HhNote3.Replace("_", " ").Replace("Dark Blue", "Blue").Replace("Light Blue", "Cyan")}" : "") +
+(!string.IsNullOrEmpty(weapon.GlShellingType) ? $"\r\n|GL Shelling Type        = {weapon.GlShellingType} Lv {weapon.GlShellingLevel}" : "") +
+(!string.IsNullOrEmpty(weapon.SaPhialType) ? $"\r\n|SA Phial Type           = {weapon.SaPhialType}" : "") +
+(!string.IsNullOrEmpty(weapon.CbPhialType) ? $"\r\n|CB Phial Type           = {weapon.CbPhialType}" : "") +
+(!string.IsNullOrEmpty(weapon.IgKinsectBonus) ? $"\r\n|IG Kinsect Bonus        = {weapon.IgKinsectBonus}" : "") +
+(!string.IsNullOrEmpty(weapon.BoCoatings) ? $"\r\n|Bo Coatings             = {weapon.BoCoatings}" : "") +
+(!string.IsNullOrEmpty(weapon.HbgSpecialAmmoType) ? $"\r\n|HBG Special Ammo Type   = {weapon.HbgSpecialAmmoType}" : "") +
+(!string.IsNullOrEmpty(weapon.LbgSpecialAmmoType) ? $"\r\n|LBG Special Ammo Type   = {weapon.LbgSpecialAmmoType}" : "") +
+(!string.IsNullOrEmpty(weapon.HbgDeviation) ? $"\r\n|HBG Deviation        = {weapon.HbgDeviation}" : "") +
+(!string.IsNullOrEmpty(weapon.Elderseal) && weapon.Elderseal != "None" ? $"\r\n|Elderseal               = {weapon.Elderseal}" : "") +
+(!string.IsNullOrEmpty(weapon.ArmorSkills) ? $"\r\n|Armor Skills            = {weapon.ArmorSkills}" : "") +
+(!string.IsNullOrEmpty(weapon.RampageSkillSlots) ? $"\r\n|Rampage Slots           = {weapon.RampageSkillSlots}" : "") +
+(!string.IsNullOrEmpty(weapon.RampageDecoration) ? $"\r\n|Rampage Decoration      = {weapon.RampageDecoration}" : "") +
+(!string.IsNullOrEmpty(weapon.Rollback) ? $"\r\n|Can Rollback            = {weapon.Rollback}" : ""));
 				if (!string.IsNullOrEmpty(weapon.ForgeMaterials))
 				{
 					ret.AppendLine($@"|Forge Cost              = {weapon.ForgeCost:N0}
@@ -69,31 +69,31 @@ The {weapon.Name} is {(weapon.Type == "IG" ? "an" : "a")} [[{weaponNames.Item1} 
 				{
 					ret.AppendLine($@"|Upgrade Cost            = {weapon.UpgradeCost:N0}
 |Upgrade Materials       = {GetMaterialsTemplates(weapon.UpgradeMaterials, weapon.Game)}
-|Previous Name           = {weapon.PreviousName}
+|Previous Name           = {weapon.PreviousName + (src.Count(x => x.Name == weapon.PreviousName) > 1 && GetRank(weapon.Game!, weapon.PreviousRarity + 1) == "MR" ? " (MR)" : "")}
 |Previous Type           = {weapon.Type}
-|Previous Rarity         = {weapon.PreviousRarity}");
+|Previous Rarity         = {weapon.PreviousRarity + 1}");
 				}
 				if (!string.IsNullOrEmpty(weapon.Next1Name))
 				{
-					ret.AppendLine($@"|Next 1 Name             = {weapon.Next1Name}
+					ret.AppendLine($@"|Next 1 Name             = {weapon.Next1Name + (src.Count(x => x.Name == weapon.Next1Name) > 1 && GetRank(weapon.Game!, weapon.Next1Rarity + 1) == "MR" ? " (MR)" : "")}
 |Next 1 Type             = {weapon.Type}
-|Next 1 Rarity           = {weapon.Next1Rarity}
+|Next 1 Rarity           = {weapon.Next1Rarity + 1}
 |Next 1 Cost             = {weapon.Next1Cost:N0}
 |Next 1 Materials        = {GetMaterialsTemplates(weapon.Next1Materials, weapon.Game)}");
 				}
 				if (!string.IsNullOrEmpty(weapon.Next2Name))
 				{
-					ret.AppendLine($@"|Next 2 Name             = {weapon.Next2Name}
+					ret.AppendLine($@"|Next 2 Name             = {weapon.Next2Name + (src.Count(x => x.Name == weapon.Next2Name) > 1 && GetRank(weapon.Game!, weapon.Next2Rarity + 1) == "MR" ? " (MR)" : "")}
 |Next 2 Type             = {weapon.Type}
-|Next 2 Rarity           = {weapon.Next2Rarity}
+|Next 2 Rarity           = {weapon.Next2Rarity + 1}
 |Next 2 Cost             = {weapon.Next2Cost:N0}
 |Next 2 Materials        = {GetMaterialsTemplates(weapon.Next2Materials, weapon.Game)}");
 				}
 				if (!string.IsNullOrEmpty(weapon.Next3Name))
 				{
-					ret.AppendLine($@"|Next 3 Name             = {weapon.Next3Name}
+					ret.AppendLine($@"|Next 3 Name             = {weapon.Next3Name + (src.Count(x => x.Name == weapon.Next3Name) > 1 && GetRank(weapon.Game!, weapon.Next3Rarity + 1) == "MR" ? " (MR)" : "")}
 |Next 3 Type             = {weapon.Type}
-|Next 3 Rarity           = {weapon.Next3Rarity}
+|Next 3 Rarity           = {weapon.Next3Rarity + 1}
 |Next 3 Cost             = {weapon.Next3Cost:N0}
 |Next 3 Materials        = {GetMaterialsTemplates(weapon.Next3Materials, weapon.Game)}");
 				}
@@ -239,25 +239,32 @@ The {weapon.Name} is {(weapon.Type == "IG" ? "an" : "a")} [[{weaponNames.Item1} 
 			});
 		}
 
-		public static double GetWeaponBloat(string type)
+		public static double GetWeaponBloat(string type, string game)
 		{
-			return new Dictionary<string, double>()
+			if (!new string[] { "MHR", "MHRS", "MHGU", "MHP3" }.Contains(game))
 			{
-				{ "GS", 4.8f },
-				{ "GL", 2.3f },
-				{ "LS", 3.3f },
-				{ "SA", 3.5f },
-				{ "SnS", 1.4f },
-				{ "CB", 3.6f },
-				{ "DB", 1.4f },
-				{ "IG", 3.1f },
-				{ "Hm", 5.2f },
-				{ "LBG", 1.3f },
-				{ "HH", 4.2f },
-				{ "HBG", 1.5f },
-				{ "Ln", 2.3f },
-				{ "Bo", 1.2f }
-			}[type];
+				return new Dictionary<string, double>()
+				{
+					{ "GS", 4.8f },
+					{ "GL", 2.3f },
+					{ "LS", 3.3f },
+					{ "SA", 3.5f },
+					{ "SnS", 1.4f },
+					{ "CB", 3.6f },
+					{ "DB", 1.4f },
+					{ "IG", 3.1f },
+					{ "Hm", 5.2f },
+					{ "LBG", 1.3f },
+					{ "HH", 4.2f },
+					{ "HBG", 1.5f },
+					{ "Ln", 2.3f },
+					{ "Bo", 1.2f }
+				}[type];
+			}
+			else
+			{
+				return 1.0f;
+			}
 		}
 
 		private static Tuple<string, string> GetMelodyEffect(string melody)
@@ -475,16 +482,18 @@ The {weapon.Name} is {(weapon.Type == "IG" ? "an" : "a")} [[{weaponNames.Item1} 
 
 		public static string GenerateFromJson(string json)
 		{
-			return Generate(WebToolkitData.FromJson(json)).Result;
+			WebToolkitData data = WebToolkitData.FromJson(json);
+			return Generate(data, [data]).Result;
 		}
 
-		public static void MassGenerate(string game)
+		public static Dictionary<WebToolkitData, string> MassGenerate(string game, bool genfiles = true)
 		{
+			Dictionary<WebToolkitData, string> ret = [];
 			WebToolkitData[] src = [];
 			if (game == "MHWI")
 			{
-				WebToolkitData[] bmData = BlademasterData.GetToolkitData();
-				WebToolkitData[] gData = GunnerData.GetToolkitData();
+				WebToolkitData[] bmData = [..BlademasterData.GetToolkitData().Where(x => x.Name != "HARDUMMY")];
+				WebToolkitData[] gData = [.. GunnerData.GetToolkitData().Where(x => x.Name != "HARDUMMY")];
 				src = new WebToolkitData[bmData.Length + gData.Length];
 				bmData.CopyTo(src, 0);
 				gData.CopyTo(src, bmData.Length);
@@ -493,159 +502,48 @@ The {weapon.Name} is {(weapon.Type == "IG" ? "an" : "a")} [[{weaponNames.Item1} 
 			{
 
 			}
+			if (genfiles)
+			{
+				Directory.CreateDirectory($@"C:\Users\mkast\Desktop\MHWiki Generated Pages\{game}");
+				foreach (string dir in Directory.EnumerateDirectories($@"C:\Users\mkast\Desktop\MHWiki Generated Pages\{game}"))
+				{
+					Directory.Delete(dir, true);
+				}
+			}
 			foreach (WebToolkitData data in src)
 			{
 				string wepName = GetWeaponTypeFullName(data.Type!).Item1;
-				Directory.CreateDirectory($@"C:\Users\mkast\Desktop\MHWiki Generated Pages\{game}\{wepName}\");
-				File.WriteAllText($@"C:\Users\mkast\Desktop\MHWiki Generated Pages\{game}\{wepName}\{data.Name!.Replace("\"", "")}.txt", Generate(data).Result);
+				string res = Generate(data, src).Result;
+				ret.Add(data, res);
+				if (genfiles)
+				{
+					Directory.CreateDirectory($@"C:\Users\mkast\Desktop\MHWiki Generated Pages\{game}\{wepName}\");
+					string path = $@"C:\Users\mkast\Desktop\MHWiki Generated Pages\{game}\{wepName}\{data.Name!.Replace("\"", "")}.txt";
+					if (File.Exists(path))
+					{
+						path = $@"C:\Users\mkast\Desktop\MHWiki Generated Pages\{game}\{wepName}\{data.Name!.Replace("\"", "")} ({GetRank(data.Game!, data.Rarity)}).txt";
+					}
+					File.WriteAllText(path, res);
+				}
 			}
+			return ret;
 		}
 
-		public static async Task<string> GenerateFromXlsx(string xlsxBase64, string game)
+		public static string GetRank(string game, long? rarity)
 		{
-			DirectoryInfo workspace = Utilities.GetWorkspace();
-			string xlsxPath = Path.Combine(workspace.FullName, Guid.NewGuid().ToString() + ".xlsx");
-			File.WriteAllBytes(xlsxPath, Convert.FromBase64String(xlsxBase64));
-			Dictionary<string, Dictionary<string, XlsxData>> retData = [];
-			IXLWorksheet[] sheets = [];
-			using (XLWorkbook wb = new(xlsxPath))
+			if (rarity == null)
 			{
-				sheets = [.. wb.Worksheets];
-				foreach (IXLWorksheet sheet in sheets)
-				{
-					Dictionary<string, XlsxData> weaponData = [];
-					Dictionary<string, int> headers = [];
-					int cntr = 1;
-					foreach (IXLRow row in sheet.Rows())
-					{
-						if (cntr == 1)
-						{
-							int cellCntr = 1;
-							string lastVal = "";
-							foreach (IXLCell cell in row.Cells())
-							{
-								string? val = !cell.Value.IsBlank ? cell.Value.GetText().Replace(" ", "").Replace("?", "") : null;
-								if (val != null && val != "Name")
-								{
-									if (!string.IsNullOrEmpty(lastVal))
-									{
-										if (lastVal == "CosttoUpgradeTo" && (val.Contains("Amount") || val.Contains("Material")))
-										{
-											int amountCntr = 1;
-											if (val == "Amount")
-											{
-												while (headers.ContainsKey(val + amountCntr + "Upgrade"))
-												{
-													amountCntr++;
-												}
-												val += amountCntr;
-											}
-											val += "Upgrade";
-										}
-										else if (lastVal == "CosttoForge")
-										{
-											int amountCntr = 1;
-											if (val == "Amount")
-											{
-												while (headers.ContainsKey(val + amountCntr + "Forge"))
-												{
-													amountCntr++;
-												}
-												val += amountCntr;
-											}
-											val += "Forge";
-										}
-									}
-									headers.Add(val, cellCntr);
-									if (!val.Contains("Amount") && !val.Contains("Material"))
-									{
-										lastVal = val;
-									}
-								}
-								cellCntr++;
-							}
-						}
-						else
-						{
-							string? name = !row.Cell(1).Value.IsBlank ? row.Cell(1).Value.GetText() : null;
-							if (!string.IsNullOrEmpty(name))
-							{
-								XlsxData data = new()
-								{
-									Name = name
-								};
-								foreach (PropertyInfo pi in data.GetType().GetProperties())
-								{
-									if (headers.TryGetValue(pi.Name, out int value))
-									{
-										XLCellValue val = row.Cell(value).Value;
-										Type propertyType = pi.PropertyType;
-										if (propertyType.IsGenericType &&
-											propertyType.GetGenericTypeDefinition() == typeof(Nullable<>))
-										{
-											propertyType = propertyType.GetGenericArguments()[0];
-										}
-										try
-										{
-											if (propertyType == typeof(string))
-											{
-												pi.SetValue(data, !val.IsBlank ? val.GetText() : null);
-											}
-											else if (propertyType == typeof(int))
-											{
-												if (val.IsNumber)
-												{
-													pi.SetValue(data, Convert.ToInt32(val.GetNumber()));
-												}
-												else
-												{
-													string? cellVal = !val.IsBlank ? val.GetText() : null;
-													if (cellVal != null && int.TryParse(cellVal, out int cellIntVal))
-													{
-														pi.SetValue(data, cellIntVal);
-													}
-													else
-													{
-														pi.SetValue(data, null);
-													}
-												}
-											}
-										}
-										catch (Exception exc)
-										{
-											Debugger.Break();
-										}
-									}
-								}
-								weaponData.Add(name, data);
-							}
-						}
-						cntr++;
-					}
-					retData.Add(sheet.Name, weaponData);
-				}
+				return "LR";
 			}
-			DirectoryInfo zipDirInfo = Utilities.GetWorkspace();
-			string zipDir = Path.Combine(zipDirInfo.FullName, Guid.NewGuid().ToString());
-			Directory.CreateDirectory(zipDir);
-			foreach (KeyValuePair<string, Dictionary<string, XlsxData>> kvp in retData)
+			else
 			{
-				Dictionary<string, WebToolkitData> thisDict = kvp.Value.ToDictionary(x => x.Key, x => x.Value.ToToolkitData(game, kvp.Key));
-				thisDict = XlsxData.GetLinkedWeapons(thisDict);
-				DirectoryInfo rankDir = Directory.CreateDirectory(Path.Combine(zipDir, kvp.Key));
-				foreach (KeyValuePair<string, WebToolkitData> val in thisDict)
+				return game switch
 				{
-					string txtPath = Path.Combine(rankDir.FullName, val.Key.Replace("\"", "'") + ".txt");
-					File.WriteAllText(txtPath, await Generate(val.Value));
-				}
+					"MHWI" => rarity < 5 ? "LR" : rarity < 9 ? "HR" : "MR",
+					"MHRS" => rarity < 4 ? "LR" : rarity < 8 ? "HR" : "MR",
+					_ => "LR",
+				};
 			}
-			DirectoryInfo zipPathInfo = Utilities.GetWorkspace();
-			string zipPath = Path.Combine(zipPathInfo.FullName, Guid.NewGuid() + ".zip");
-			ZipFile.CreateFromDirectory(zipDir, zipPath);
-			string zipBytes = Convert.ToBase64String(File.ReadAllBytes(zipPath));
-			File.Delete(zipPath);
-			Directory.Delete(workspace.FullName, true);
-			return zipBytes;
 		}
 
 		private static string GetSharpnessTemplates(string? input)

@@ -18,6 +18,10 @@ namespace MediawikiTranslator.Generators
 		{
 			return await Task.Run(() =>
 			{
+				if (srcData.Length == 0 || !srcData.Any(x => x.Data.Any(y => !string.IsNullOrEmpty(y.Name))))
+				{
+					return "";
+				}
 				StringBuilder ret = new();
 				ret.AppendLine($@"{{{{WeaponTreeLegend|{srcData.FirstOrDefault()?.Game ?? "MHWI"}|{(WebToolkitData.GetWeaponName(string.IsNullOrEmpty(srcData.FirstOrDefault()?.Data?.FirstOrDefault()?.IconType) ? defaultIcon : srcData.FirstOrDefault()?.Data?.FirstOrDefault()?.IconType))}}}}}");
 				foreach (WebToolkitData dataArray in srcData)
@@ -36,7 +40,7 @@ namespace MediawikiTranslator.Generators
 !{{{{Element|Attack}}}}
 !{{{{Element|Element}}}}
 !{{{{Element|Affinity}}}}");
-					string tableIconType = dataArray.Data[0].IconType;
+					string tableIconType = dataArray.Data.Length > 0 ? dataArray.Data[0].IconType : "GS";
 					if (string.IsNullOrEmpty(tableIconType))
 					{
 						tableIconType = defaultIcon;
@@ -134,7 +138,7 @@ namespace MediawikiTranslator.Generators
 						string decos = "";
 						if (!string.IsNullOrEmpty(dataObj.Decos))
 						{
-							Decoration[] objDecos = [.. Newtonsoft.Json.JsonConvert.DeserializeObject<Decoration[]>(dataObj.Decos)!.OrderBy(x => x.Level).ThenBy(x => x.IsRampage)];
+							Decoration[] objDecos = [.. Newtonsoft.Json.JsonConvert.DeserializeObject<Decoration[]>(dataObj.Decos)!.OrderBy(x => !x.IsRampage).ThenBy(x => x.Level)];
 							foreach (Decoration deco in objDecos)
 							{
 								for (int i = 0; i < deco.Qty; i++)
@@ -146,7 +150,7 @@ namespace MediawikiTranslator.Generators
 						ret.AppendLine($@"|-
 | style=""text-align:left"" | {prefix}{{{{GenericWeaponLink|{dataArray.Game}|{dataObj.Name}|{iconType}|{dataObj.Rarity}{(dataObj.CanForge == true ? "|true" : "")}{(dataObj.CanRollback == true ? (dataObj.CanForge != true ? "||true" : "|true") : "")}}}}}{(!string.IsNullOrEmpty(dataObj.PathLink) ? $" [[#{dataObj.PathLink} Path|(Go to path)]]" : "")}
 | {dataObj.Rarity}
-| {Convert.ToInt32(Math.Round(Weapon.GetWeaponBloat(iconType) * Convert.ToInt32(dataObj.Attack))) + " (" + dataObj.Attack + ")"}
+| {dataObj.Attack + " (" + Convert.ToInt32(Math.Round(Convert.ToInt32(dataObj.Attack) / Weapon.GetWeaponBloat(iconType, dataArray.Game))) + ")"}
 | {(string.IsNullOrEmpty(dataObj.Element) && dataObj.Element != "0" ? "-" : $"{{{{Element|{dataObj.Element}|{dataObj.ElementDamage}}}}}")}
 | {((dataObj.Affinity == 0 || dataObj.Affinity == null) ? "0%" : dataObj.Affinity + "%")}");
 						switch (iconType)
@@ -241,6 +245,10 @@ namespace MediawikiTranslator.Generators
 
 		private static string GetPrefix(WebToolkitData dataArray, Datum dataObj, int i)
 		{
+			if (dataArray.Data.Length == 0 || !dataArray.Data.Any(x => !string.IsNullOrEmpty(x.Name)))
+			{
+				return "";
+			}
 			string[] dataNames = dataArray.Data.Select(x => x.Name).ToArray();
 			Datum? iterAncestor = dataObj;
 			List<int> ancestors = [];

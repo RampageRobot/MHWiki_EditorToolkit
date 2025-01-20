@@ -28,16 +28,14 @@ namespace MediawikiTranslator.Models.Data.MHRS
 			ArmorSeriesParam[] armorSeries = ArmorSeries.GetArmorSeries();
 			List<WebToolkitData> ret = [];
 			Dictionary<int, string> mhrsColors = Generators.Items.GetMHRSWikiColors();
-			foreach (ArmorParam armor in allArmor)
+			foreach (ArmorParam armor in allArmor.Where(x => new long?[] { x.DefVal, x.FireRegVal, x.WaterRegVal, x.IceRegVal, x.ThunderRegVal, x.DragonRegVal }.Sum(y => y) > 0))
 			{
 				int rarity = Convert.ToInt32(armor.Rare!.Substring(2));
 				WebToolkitData newArmor = new()
 				{
 					Game = "MHRS",
-					MaleFrontImg = $"MHRS-{armor.SetName} Set Male Front Render.png",
-					MaleBackImg = $"MHRS-{armor.SetName} Set Male Back Render.png",
-					FemaleFrontImg = $"MHRS-{armor.SetName} Set Female Front Render.png",
-					FemaleBackImg = $"MHRS-{armor.SetName} Set Female Back Render.png",
+					MaleFrontImg = $"MHRS-{armor.SetName} Set Male Render.png",
+					FemaleFrontImg = $"MHRS-{armor.SetName} Set Female Render.png",
 					SetName = armor.SetName,
 					Rarity = rarity,
 					Rank = MediawikiTranslator.Generators.ArmorSets.GetRank("MHRS", rarity),
@@ -313,13 +311,93 @@ namespace MediawikiTranslator.Models.Data.MHRS
 
 		public static ArmorParam[] GetArmors()
 		{
+			ArmorCraftingDataParam[] craftingData = ArmorCraftingData.GetCraftingData();
 			SkillsParam[] allSkills = Skills.GetSkills();
 			ArmorSeriesParam[] allSeries = ArmorSeries.GetArmorSeries();
+			Dictionary<string, ArmorMsgMsg> armMessages = ArmorMsg.FromJson(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Raw Data\MHRS\natives\stm\data\define\player\armor\arm\a_arm_name.msg.539100710.json")).Msgs;
+			Dictionary<string, ArmorMsgMsg> armMessagesMR = ArmorMsg.FromJson(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Raw Data\MHRS\natives\stm\data\define\player\armor\arm\a_arm_name_mr.msg.539100710.json")).Msgs;
+			Dictionary<string, ArmorMsgMsg> armMessagesExplain = ArmorMsg.FromJson(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Raw Data\MHRS\natives\stm\data\define\player\armor\arm\a_arm_explain.msg.539100710.json")).Msgs;
+			Dictionary<string, ArmorMsgMsg> armMessagesExplainMR = ArmorMsg.FromJson(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Raw Data\MHRS\natives\stm\data\define\player\armor\arm\a_arm_explain_mr.msg.539100710.json")).Msgs;
+			Dictionary<string, ArmorMsgMsg> chestMessages = ArmorMsg.FromJson(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Raw Data\MHRS\natives\stm\data\define\player\armor\chest\a_chest_name.msg.539100710.json")).Msgs;
+			Dictionary<string, ArmorMsgMsg> chestMessagesMR = ArmorMsg.FromJson(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Raw Data\MHRS\natives\stm\data\define\player\armor\chest\a_chest_name_mr.msg.539100710.json")).Msgs;
+			Dictionary<string, ArmorMsgMsg> chestMessagesExplain = ArmorMsg.FromJson(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Raw Data\MHRS\natives\stm\data\define\player\armor\chest\a_chest_explain.msg.539100710.json")).Msgs;
+			Dictionary<string, ArmorMsgMsg> chestMessagesExplainMR = ArmorMsg.FromJson(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Raw Data\MHRS\natives\stm\data\define\player\armor\chest\a_chest_explain_mr.msg.539100710.json")).Msgs;
+			Dictionary<string, ArmorMsgMsg> headMessages = ArmorMsg.FromJson(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Raw Data\MHRS\natives\stm\data\define\player\armor\head\a_head_name.msg.539100710.json")).Msgs;
+			Dictionary<string, ArmorMsgMsg> headMessagesMR = ArmorMsg.FromJson(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Raw Data\MHRS\natives\stm\data\define\player\armor\head\a_head_name_mr.msg.539100710.json")).Msgs;
+			Dictionary<string, ArmorMsgMsg> headMessagesExplain = ArmorMsg.FromJson(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Raw Data\MHRS\natives\stm\data\define\player\armor\head\a_head_explain.msg.539100710.json")).Msgs;
+			Dictionary<string, ArmorMsgMsg> headMessagesExplainMR = ArmorMsg.FromJson(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Raw Data\MHRS\natives\stm\data\define\player\armor\head\a_head_explain_mr.msg.539100710.json")).Msgs;
+			Dictionary<string, ArmorMsgMsg> legMessages = ArmorMsg.FromJson(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Raw Data\MHRS\natives\stm\data\define\player\armor\leg\a_leg_name.msg.539100710.json")).Msgs;
+			Dictionary<string, ArmorMsgMsg> legMessagesMR = ArmorMsg.FromJson(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Raw Data\MHRS\natives\stm\data\define\player\armor\leg\a_leg_name_mr.msg.539100710.json")).Msgs;
+			Dictionary<string, ArmorMsgMsg> legMessagesExplain = ArmorMsg.FromJson(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Raw Data\MHRS\natives\stm\data\define\player\armor\leg\a_leg_explain.msg.539100710.json")).Msgs;
+			Dictionary<string, ArmorMsgMsg> legMessagesExplainMR = ArmorMsg.FromJson(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Raw Data\MHRS\natives\stm\data\define\player\armor\leg\a_leg_explain_mr.msg.539100710.json")).Msgs;
+			Dictionary<string, ArmorMsgMsg> waistMessages = ArmorMsg.FromJson(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Raw Data\MHRS\natives\stm\data\define\player\armor\waist\a_waist_name.msg.539100710.json")).Msgs;
+			Dictionary<string, ArmorMsgMsg> waistMessagesMR = ArmorMsg.FromJson(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Raw Data\MHRS\natives\stm\data\define\player\armor\waist\a_waist_name_mr.msg.539100710.json")).Msgs;
+			Dictionary<string, ArmorMsgMsg> waistMessagesExplain = ArmorMsg.FromJson(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Raw Data\MHRS\natives\stm\data\define\player\armor\waist\a_waist_explain.msg.539100710.json")).Msgs;
+			Dictionary<string, ArmorMsgMsg> waistMessagesExplainMR = ArmorMsg.FromJson(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Raw Data\MHRS\natives\stm\data\define\player\armor\waist\a_waist_explain_mr.msg.539100710.json")).Msgs;
+			Dictionary<string, ArmorMsgMsg> seriesNames = ArmorMsg.FromJson(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Raw Data\MHRS\natives\stm\data\define\player\armor\armorseries_hunter_name.msg.539100710.json")).Msgs;
+			Dictionary<string, ArmorMsgMsg> seriesNamesMR = ArmorMsg.FromJson(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Raw Data\MHRS\natives\stm\data\define\player\armor\armorseries_hunter_name_mr.msg.539100710.json")).Msgs;
 			ArmorParam[] armorData = FromJson(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Raw Data\MHRS\natives\stm\data\define\player\armor\armorbasedata.user.2.json")).SnowDataArmorBaseUserData.Param;
 			foreach (ArmorParam armor in armorData)
 			{
-				armor.Name = CommonMsgs.GetMsg(armor.Id.Substring(0, armor.Id.LastIndexOf("_") + 1) + armor.Series!.Substring(armor.Series!.LastIndexOf('_') + 1) + "_Name");
-				armor.SetName = CommonMsgs.GetMsg("ArmorSeries_Hunter_" + armor.Series!.Substring(armor.Series!.LastIndexOf('_') + 1));
+				int armorIdNum = Convert.ToInt32(armor.Id.Substring(armor.Id.LastIndexOf("_") + 1));
+				int seriesIdNum = Convert.ToInt32(armor.Series.Substring(armor.Series.LastIndexOf("_") + 1));
+				string rank = Generators.ArmorSets.GetRank("MHRS", Convert.ToInt32(armor.Rare!.Substring(2)));
+				if (rank == "Master Rank" || armorIdNum == 457)
+				{
+					armorIdNum -= 300;
+					seriesIdNum -= 300;
+					armor.SetName = seriesNamesMR.Values.ToArray()[seriesIdNum].Content.English;
+					switch (armor.Id)
+					{
+						case string a when a.Contains("Arm"):
+							armor.Name = armMessagesMR.Values.ToArray()[armorIdNum].Content.English;
+							armor.Explain = armMessagesExplainMR.Values.ToArray()[armorIdNum].Content.English;
+							break;
+						case string a when a.Contains("Leg"):
+							armor.Name = legMessagesMR.Values.ToArray()[armorIdNum].Content.English;
+							armor.Explain = legMessagesExplainMR.Values.ToArray()[armorIdNum].Content.English;
+							break;
+						case string a when a.Contains("Waist"):
+							armor.Name = waistMessagesMR.Values.ToArray()[armorIdNum].Content.English;
+							armor.Explain = waistMessagesExplainMR.Values.ToArray()[armorIdNum].Content.English;
+							break;
+						case string a when a.Contains("Head"):
+							armor.Name = headMessagesMR.Values.ToArray()[armorIdNum].Content.English;
+							armor.Explain = headMessagesExplainMR.Values.ToArray()[armorIdNum].Content.English;
+							break;
+						case string a when a.Contains("Chest"):
+							armor.Name = chestMessagesMR.Values.ToArray()[armorIdNum].Content.English;
+							armor.Explain = chestMessagesExplainMR.Values.ToArray()[armorIdNum].Content.English;
+							break;
+					}
+				}
+				else
+				{
+					armor.SetName = seriesNames.Values.ToArray()[seriesIdNum].Content.English;
+					switch (armor.Id)
+					{
+						case string a when a.Contains("Arm"):
+							armor.Name = armMessages.Values.ToArray()[armorIdNum].Content.English;
+							armor.Explain = armMessagesExplain.Values.ToArray()[armorIdNum].Content.English;
+							break;
+						case string a when a.Contains("Leg"):
+							armor.Name = legMessages.Values.ToArray()[armorIdNum].Content.English;
+							armor.Explain = legMessagesExplain.Values.ToArray()[armorIdNum].Content.English;
+							break;
+						case string a when a.Contains("Waist"):
+							armor.Name = waistMessages.Values.ToArray()[armorIdNum].Content.English;
+							armor.Explain = waistMessagesExplain.Values.ToArray()[armorIdNum].Content.English;
+							break;
+						case string a when a.Contains("Head"):
+							armor.Name = headMessages.Values.ToArray()[armorIdNum].Content.English;
+							armor.Explain = headMessagesExplain.Values.ToArray()[armorIdNum].Content.English;
+							break;
+						case string a when a.Contains("Chest"):
+							armor.Name = chestMessages.Values.ToArray()[armorIdNum].Content.English;
+							armor.Explain = chestMessagesExplain.Values.ToArray()[armorIdNum].Content.English;
+							break;
+					}
+				}
 				if (armor.Name.StartsWith("Silver Sol"))
 				{
 					armor.SetName = "Silver Sol";
@@ -328,7 +406,6 @@ namespace MediawikiTranslator.Models.Data.MHRS
 				{
 					armor.SetName = "Golden Lune";
 				}
-				armor.Explain = CommonMsgs.GetMsg(armor.Id! + "_Explain");
 				armor.Level1Decos = (int)armor.DecorationsNumList[0];
 				armor.Level2Decos = (int)armor.DecorationsNumList[1];
 				armor.Level3Decos = (int)armor.DecorationsNumList[2];
@@ -343,6 +420,7 @@ namespace MediawikiTranslator.Models.Data.MHRS
 						armor.Skills[i] = toAdd;
 					}
 				}
+				armor.CraftingData = craftingData.FirstOrDefault(x => x.Id == armor.Id);
 			}
 			return armorData;
 		}

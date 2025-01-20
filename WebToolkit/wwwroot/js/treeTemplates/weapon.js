@@ -217,7 +217,7 @@ class WeaponTemplate
 							</div>
 							<div class="col-6">
 								<label>Element Damage</label>
-								<input class="form-control weapon-element-damage-input data-value" type="number" data-label="element-damage">
+								<input class="form-control weapon-element-damage-input data-value" type="text" data-label="element-damage">
 							</div>
 						</div>
 						<div class="row">
@@ -238,7 +238,7 @@ class WeaponTemplate
 							</div>
 							<div class="col-6">
 								<label>Element Damage 2</label>
-								<input class="form-control weapon-element-damage-2-input data-value" type="number" data-label="element-damage-2">
+								<input class="form-control weapon-element-damage-2-input data-value" type="text" data-label="element-damage-2">
 							</div>
 						</div>
 						<div class="row">
@@ -614,39 +614,7 @@ class WeaponTemplate
 				$(this).show();
 			}
 		});
-		var icons = '';
-		switch ($("#ddlGameSelect").val())
-		{
-			case "MHG":
-				icons = `<option value=""></option>
-					<option value="GS">Great Sword</option>
-					<option value="LS">Long Sword</option>
-					<option value="SnS">Sword and Shield</option>
-					<option value="DB">Dual Blades</option>
-					<option value="Hm">Hammer</option>
-					<option value="HH">Hunting Horn</option>
-					<option value="Ln">Lance</option>
-					<option value="GL">Gunlance</option>
-					<option value="LBG">Light Bowgun</option>
-					<option value="HBG">Heavy Bowgun</option>`;
-				break;
-			case "MHGU":
-				icons = `<option value=""></option>
-					<option value="GS">Great Sword</option>
-					<option value="LS">Long Sword</option>
-					<option value="SnS">Sword and Shield</option>
-					<option value="DB">Dual Blades</option>
-					<option value="Hm">Hammer</option>
-					<option value="HH">Hunting Horn</option>
-					<option value="Ln">Lance</option>
-					<option value="GL">Gunlance</option>
-					<option value="LBG">Light Bowgun</option>
-					<option value="HBG">Heavy Bowgun</option>`;
-				break;
-			case "MHWI":
-			case "MHRS":
-			case "MHWilds":
-				icons = `<option value=""></option>
+		var icons = `<option value=""></option>
 					<option value="GS">Great Sword</option>
 					<option value="LS">Long Sword</option>
 					<option value="SnS">Sword and Shield</option>
@@ -660,9 +628,7 @@ class WeaponTemplate
 					<option value="IG">Insect Glaive</option>
 					<option value="Bo">Bow</option>
 					<option value="LBG">Light Bowgun</option>
-					<option value="HBG">Heavy Bowgun</option>`;
-				break;
-		}
+					<option value="HBG">Heavy Bowgun</option>`;;
 		var oldIcon = $("#ddlIconSelect").val();
 		$("#ddlIconSelect option").remove();
 		$("#ddlIconSelect").append(icons);
@@ -850,7 +816,7 @@ class WeaponTemplate
 				$(this).find("td:not(.ignore-generate)").children().each(function ()
 				{
 					if (!$(this).hasClass("ignore-generate")) {
-						if ($(this).hasClass("weapon-stats-input")) {
+						if ($(this).hasClass("weapon-stats-input") && $(this).val() != '') {
 							var statsObj = JSON.parse($(this).val());
 							var propertyNames = Object.getOwnPropertyNames(statsObj);
 							for (var i = 0; i < propertyNames.length; i++) {
@@ -873,27 +839,9 @@ class WeaponTemplate
 	}
     static generateTree()
     {
-		var sharpnessBase = '';
+		var sharpnessBase = 'MHWISharpnessBase';
 		var weaponLink = '';
 		var maxSharpnessCount = -1;
-		switch ($("#ddlGameSelect").val()) {
-			case "MHG":
-				{
-					sharpnessBase = "MHGSharpnessBase";
-					maxSharpnessCount = 6;
-				}
-				break;
-			case "MHWI":
-				{
-					sharpnessBase = "MHWISharpnessBase";
-				}
-				break;
-			case "MHRS":
-				{
-					sharpnessBase = "MHRSSharpnessBase";
-				}
-				break;
-		}
 		getFinalData();
 		callGenerator(WeaponTemplate.finalData, sharpnessBase, maxSharpnessCount, $("#txtPathName").val());
     }

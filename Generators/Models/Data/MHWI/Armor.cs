@@ -161,6 +161,7 @@ namespace MediawikiTranslator.Models.Data.MHWI
 		public static WebToolkitData[] GetWebToolkitData()
 		{
 			Armor[] allArmor = GetArmors();
+			SkillsExtraInfo[] extraInfo = SkillsExtraInfo.FromJson(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWI\mhwi skills extra info.json"));
 			List<WebToolkitData> ret = [];
 			Dictionary<int, string> colors = MediawikiTranslator.Generators.Items.GetMHWIWikiColors();
 			//21 is layered armor, anything higher is a placeholder
@@ -168,10 +169,8 @@ namespace MediawikiTranslator.Models.Data.MHWI
 			{
 				WebToolkitData newArmor = new WebToolkitData()
 				{
-					MaleFrontImg = $"MHWI-{armor.SetName} Set Male Front Render.png",
-					MaleBackImg = $"MHWI-{armor.SetName} Set Male Back Render.png",
-					FemaleFrontImg = $"MHWI-{armor.SetName} Set Female Front Render.png",
-					FemaleBackImg = $"MHWI-{armor.SetName} Set Female Back Render.png",
+					MaleFrontImg = $"MHWI-{armor.SetName} Set Male Render.png",
+					FemaleFrontImg = $"MHWI-{armor.SetName} Set Female Render.png",
 					Game = "MHWI",
 					SetName = armor.SetName,
 					Rarity = armor.Rarity,
@@ -184,7 +183,12 @@ namespace MediawikiTranslator.Models.Data.MHWI
 				}
 				if (armor.SetSkill != null)
 				{
-					newArmor.SetSkill1Name = armor.SetSkill.SetBonusName;
+					newArmor.SetSkill1 = new Skill()
+					{
+						Level = 1,
+						Name = armor.SetSkill.SetBonusName,
+						WikiIconColor = extraInfo.First(x => x.IsSetBonus!.Value == IsSetBonus.True && x.Name == armor.SetSkill.SetBonusName).WikiIconColor
+					};
 				}
 				List<Piece> pieces = [];
 				if (newArmor.Pieces != null)

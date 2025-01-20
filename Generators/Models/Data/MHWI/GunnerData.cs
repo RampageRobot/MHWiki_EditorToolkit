@@ -198,10 +198,10 @@ namespace MediawikiTranslator.Models.Data.MHWI
 					Description = obj.Description,
 					Name = obj.Name,
 					Elderseal = obj.Elderseal,
-					Element1 = obj.HiddenElement == "None" ? "(" + obj.HiddenElement + ")" : obj.Element == "None" ? null : obj.Element,
-					ElementDmg1 = obj.HiddenElement == "None" ? obj.HiddenElement == "None" ? null : "(" + obj.HiddenElementDamage!.Value.ToString() + ")" : obj.ElementDamage == null ? null : obj.ElementDamage!.Value.ToString(),
+					Element1 = obj.HiddenElement != "None" ? "(" + obj.HiddenElement + ")" : obj.Element == "None" ? null : obj.Element,
+					ElementDmg1 = obj.HiddenElement != "None" ? "(" + obj.HiddenElementDamage!.Value.ToString() + ")" : obj.ElementDamage == null ? null : obj.ElementDamage!.Value.ToString(),
 					Game = "MHWI",
-					Rarity = obj.Rarity,
+					Rarity = obj.Rarity + 1,
 					Tree = GetWeaponTree(obj.TreeId!.Value)
 				};
 #nullable enable
@@ -280,7 +280,10 @@ namespace MediawikiTranslator.Models.Data.MHWI
 					newObj.BoCoatings = GetBoCoatings(obj.SpecialAmmoType!.Value);
 				}
 				newObj.ShellTable = shellTables[obj.ShellTypeId!.Value.ToString()];
-				ret.Add(newObj);
+				if (!ret.Any(x => x.Name == newObj.Name && x.Rarity == newObj.Rarity))
+				{
+					ret.Add(newObj);
+				}
 			}
 			return [.. ret];
 		}
