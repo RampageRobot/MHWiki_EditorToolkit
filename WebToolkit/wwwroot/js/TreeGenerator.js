@@ -174,6 +174,24 @@ function addRowFromCsv(weaponDict) {
     var decos = getDecos(parseInt(weaponDict["DecoSlot1"]), parseInt(weaponDict["DecoSlot2"]), parseInt(weaponDict["DecoSlot3"]));
     row.find("[data-label=decos]").val(decos);
     row.find("[data-label=decos]").parent().find("button").addClass("btn-success");
+
+    if (weaponDict["Sharpness1"]) {
+        var sharpness = [parseSharpnessCsv(weaponDict["Sharpness1"]), parseSharpnessCsv(weaponDict["Sharpness2"])];
+        row.find("[data-label=sharpness]").val(JSON.stringify(sharpness));
+        row.find("[data-label=sharpness]").parent().find("button").addClass("btn-success");
+    }
+}
+
+function parseSharpnessCsv(sharpnessData) {
+    return [
+        sharpnessData["Red"] ? sharpnessData["Red"].toString() : "0",
+        sharpnessData["Orange"] ? sharpnessData["Orange"].toString() : "0",
+        sharpnessData["Yellow"] ? sharpnessData["Yellow"].toString() : "0",
+        sharpnessData["Green"] ? sharpnessData["Green"].toString() : "0",
+        sharpnessData["Blue"] ? sharpnessData["Blue"].toString() : "0",
+        sharpnessData["White"] ? sharpnessData["White"].toString() : "0",
+        sharpnessData["Purple"] ? sharpnessData["Purple"].toString() : "0",
+    ]
 }
 
 function getDecos(levelSlot1, levelSlot2, levelSlot3) {

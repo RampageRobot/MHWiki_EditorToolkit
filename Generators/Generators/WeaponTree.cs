@@ -1,4 +1,6 @@
-﻿using MediawikiTranslator.Models.WeaponTree;
+﻿using DocumentFormat.OpenXml.Vml;
+using MediawikiTranslator.Models.Data.MHWI;
+using MediawikiTranslator.Models.WeaponTree;
 using Microsoft.VisualBasic.FileIO;
 using System.Text;
 using System.Text.Json;
@@ -12,9 +14,9 @@ namespace MediawikiTranslator.Generators
 			return Generate(WebToolkitData.FromJson(json), sharpnessBase, maxSharpnessCount, pathName, defaultIcon).Result;
 		}
 
-		public static string ParseCsv(string csvFile, string delimiter = ",")
+		public static string ParseCsv(string csvFile, bool duplicateSharpness, string delimiter = ",")
 		{
-			return JsonSerializer.Serialize(ParseWeaponsFromCsv(csvFile, delimiter));
+			return JsonSerializer.Serialize(ParseWeaponsFromCsv(csvFile, duplicateSharpness, delimiter));
 		}
 
 
@@ -317,7 +319,7 @@ namespace MediawikiTranslator.Generators
 			return prefix;
 		}
 	
-		private static List<WeaponCsv> ParseWeaponsFromCsv(string csvFile, string delimiter = ",")
+		private static List<WeaponCsv> ParseWeaponsFromCsv(string csvFile, bool duplicateSharpness, string delimiter = ",")
 		{
 			var weapons = new List<WeaponCsv>();
 			using (var parser = new TextFieldParser(GenerateStreamFromString(csvFile)))
@@ -328,10 +330,29 @@ namespace MediawikiTranslator.Generators
 				{
 					//Processing row
 					string[]? fields = parser.ReadFields();
-					if(fields?.Length == 15) // Very manual thing that should be modified in case we want more row/make it more generic
+					if(fields?.Length == 15 || fields?.Length == 22 || fields?.Length == 29) // Very manual thing that should be modified in case we want more row/make it more generic
                     {
-                        var line = ParseWeaponFromLine(fields);
-                        weapons.Add(line);
+                        var weapon = ParseWeaponFromLine(fields);
+
+						if(fields.Length > 15)
+                        {
+							weapon.Sharpness1 = ParseSharpness1FromLine(fields);
+
+							
+							if (fields.Length == 29)
+                            {
+								weapon.Sharpness2 = ParseSharpness2FromLine(fields);
+                            }
+                            else if (duplicateSharpness)
+                            {
+                                weapon.Sharpness2 = weapon.Sharpness1;
+                            }
+                            else
+							{
+								weapon.Sharpness2 = new SharpnessData();
+							}
+                        }
+                        weapons.Add(weapon);
                     }
 				}
 			}
@@ -362,7 +383,35 @@ namespace MediawikiTranslator.Generators
 			};
         }
 
-		private static int GetIntFieldOrEmpty(string field)
+		private static SharpnessData ParseSharpness1FromLine(string[] fields)
+		{
+			return new SharpnessData()
+			{
+				Red = GetIntFieldOrEmpty(fields[15]),
+				Orange = GetIntFieldOrEmpty(fields[16]),
+				Yellow = GetIntFieldOrEmpty(fields[17]),
+				Green = GetIntFieldOrEmpty(fields[18]),
+				Blue = GetIntFieldOrEmpty(fields[19]),
+				White = GetIntFieldOrEmpty(fields[20]),
+				Purple = GetIntFieldOrEmpty(fields[21]),
+			};
+		}
+
+        private static SharpnessData ParseSharpness2FromLine(string[] fields)
+        {
+            return new SharpnessData()
+            {
+                Red = GetIntFieldOrEmpty(fields[22]),
+                Orange = GetIntFieldOrEmpty(fields[23]),
+                Yellow = GetIntFieldOrEmpty(fields[24]),
+                Green = GetIntFieldOrEmpty(fields[25]),
+                Blue = GetIntFieldOrEmpty(fields[26]),
+                White = GetIntFieldOrEmpty(fields[27]),
+                Purple = GetIntFieldOrEmpty(fields[28]),
+            };
+        }
+
+        private static int GetIntFieldOrEmpty(string field)
 		{
 			return !string.IsNullOrWhiteSpace(field) ? int.Parse(field) : 0;
         }
@@ -394,6 +443,10 @@ namespace MediawikiTranslator.Generators
             public int DecoSlot1 { get; set; }
             public int DecoSlot2 { get; set; }
             public int DecoSlot3 { get; set; }
+
+			public SharpnessData Sharpness1 { get; set; }
+            public SharpnessData Sharpness2 { get; set; }
+
         }
     }
 }
