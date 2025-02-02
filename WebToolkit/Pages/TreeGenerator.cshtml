@@ -58,6 +58,62 @@
 			});
 			bootstrap.Modal.getInstance($("#mdlCsv")).hide();
 		}
+		var pageLoadData = function (loadedData) {
+			var pathData = loadedData[0];
+			if (typeof (pathData.treeType) !== 'undefined') {
+				$("#ddlTemplateSelect").val(pathData.treeType);
+			}
+			if (typeof (pathData.game) !== 'undefined') {
+				$("#ddlGameSelect").val(pathData.game);
+			}
+			if (typeof (pathData.defaultIconType) !== 'undefined') {
+				$("#ddlIconSelect").val(pathData.defaultIconType);
+			}
+			$(".card-holder").remove();
+			$.ajax({
+				url: '@(Url.Action("LoadTree", "WeaponTree"))/',
+				data: { fileContents: JSON.stringify(loadedData) },
+				type: "POST",
+				dataType: "json",
+				statusCode: {
+					200: function (result) {
+						$("body").css("cursor", "default");
+						$("#divCardContainer").append(result["responseText"]);
+						$(".data-value-hidden").each(function () {
+							$(this).val($(this).attr("loaded-value"));
+						});
+						for (var i2 = 0; i2 < loadedData.length; i2++) {
+							var pathData = loadedData[i2];
+							var card = $($(".card-holder")[i2]);
+							for (var i = 0; i < pathData.data.length; i++) {
+								var dataObj = pathData.data[i];
+								var statsInput = $($(card).find(".card .card-body .table-tree tbody tr")[i]).find(".weapon-stats-input");
+								var statsEls = $("#mdlModifyStats .modal-body").find(".data-value");
+								var statObj = {};
+								for (var incr = 0; incr < statsEls.length; incr++) {
+									var statEl = $(statsEls[incr]);
+									statObj[statEl.attr("data-label")] = dataObj[statEl.attr("data-label")];
+								}
+								$(statsInput[0]).val(JSON.stringify(statObj));
+								validateComplexData($(statsInput.parent().children()[1]), statsInput[0], WeaponTemplate.validateStats);
+								var decosInput = $($(card).find(".card .card-body .table-tree tbody tr")[i]).find(".weapon-decos-input");
+								validateComplexData($(decosInput.parent().children()[1]), decosInput[0], WeaponTemplate.validateDecos);
+								var sharpnessInput = $($(card).find(".card .card-body .table-tree tbody tr")[i]).find(".weapon-sharpness-input");
+								validateComplexData($(sharpnessInput.parent().children()[1]), sharpnessInput[0], WeaponTemplate.validateSharpness);
+								$($(card).find(".card .card-body .table-tree tbody tr")[i]).find(".weapon-can-forge-input").prop("checked", dataObj["can-forge"] == true);
+								$($(card).find(".card .card-body .table-tree tbody tr")[i]).find(".weapon-can-rollback-input").prop("checked", dataObj["can-rollback"] == true);
+								$($(card).find(".card .card-body .table-tree tbody tr")[i]).find(".weapon-parent-input").first().val(dataObj["parent"]);
+								$($(card).find(".card .card-body .table-tree tbody tr")[i]).find(".weapon-path-link-input").first().val(dataObj["path-link"]);
+							}
+						}
+					},
+					500: function (jqXHR) {
+						$("body").css("cursor", "default");
+						alert(jqXHR.responseText);
+					}
+				}
+			});
+		}
 	</script>
 }
 <div class="container-fluid" style="height: 97vh">
@@ -230,6 +286,22 @@
 				<div class="row">
 					<div class="col">
 						<p>Ping or message @@rampagerobot on Discord if you have any issues.</p>
+					</div>
+				</div>
+				<div class="row py-2">
+					<div class="col">
+						<div class="card">
+							<div class="card-header">
+								<h4>v2.0</h4>
+							</div>
+							<div class="card-body">
+								<h6>Added support for all games.</h6>
+								<h6>Switched to DefaultLP's new collapsible mega-tree format.</h6>
+								<h6>Switched file loading to the backend for much quicker response times.</h6>
+								<h6>Added column wrapping for bow coatings.</h6>
+								<h6>Added item icons instead of coating names for bow coatings.</h6>
+							</div>
+						</div>
 					</div>
 				</div>
 				<div class="row py-2">

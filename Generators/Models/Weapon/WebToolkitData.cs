@@ -90,7 +90,10 @@ namespace MediawikiTranslator.Models.Weapon
         [JsonProperty("rampage-decoration", NullValueHandling = NullValueHandling.Ignore)]
         public string? RampageDecoration { get; set; }
 
-        [JsonProperty("hh-note-1", NullValueHandling = NullValueHandling.Ignore)]
+		[JsonProperty("hh-melodies", NullValueHandling = NullValueHandling.Ignore)]
+		public string? HhMelodies { get; set; }
+
+		[JsonProperty("hh-note-1", NullValueHandling = NullValueHandling.Ignore)]
         public string? HhNote1 { get; set; }
 
         [JsonProperty("hh-note-2", NullValueHandling = NullValueHandling.Ignore)]
@@ -182,10 +185,89 @@ namespace MediawikiTranslator.Models.Weapon
         [JsonConverter(typeof(ParseStringConverter))]
         public long? Next3Cost { get; set; }
 
-        [JsonProperty("next-3-materials", NullValueHandling = NullValueHandling.Ignore)]
-        public string? Next3Materials { get; set; }
-        [JsonIgnore]
+        [JsonProperty("next-4-materials", NullValueHandling = NullValueHandling.Ignore)]
+        public string? Next4Materials { get; set; }
+
+		[JsonProperty("next-4-name", NullValueHandling = NullValueHandling.Ignore)]
+		public string? Next4Name { get; set; }
+
+		[JsonProperty("next-4-rarity", NullValueHandling = NullValueHandling.Ignore)]
+		[JsonConverter(typeof(ParseStringConverter))]
+		public long? Next4Rarity { get; set; }
+
+		[JsonProperty("next-4-cost", NullValueHandling = NullValueHandling.Ignore)]
+		[JsonConverter(typeof(ParseStringConverter))]
+		public long? Next4Cost { get; set; }
+
+		[JsonProperty("next-3-materials", NullValueHandling = NullValueHandling.Ignore)]
+		public string? Next3Materials { get; set; }
+		[JsonIgnore]
         public ShellTable[]? ShellTable { get; set; }
+
+        [JsonIgnore]
+        public string ShellTableWikitext { get; set; } = string.Empty;
+
+        public WebToolkitData Clone()
+        {
+            return new WebToolkitData()
+            {
+                Attack = Attack,
+                Affinity = Affinity,
+                ArmorSkills = ArmorSkills,
+                HbgSpecialAmmoType = HbgSpecialAmmoType,
+                LbgSpecialAmmoType = LbgSpecialAmmoType,
+                BoCoatings = BoCoatings,
+                CbPhialType = CbPhialType,
+                Decos1 = Decos1,
+                Decos2 = Decos2,
+                Decos3 = Decos3,
+                Decos4 = Decos4,
+                Defense = Defense,
+                Description = Description,
+                Elderseal = Elderseal,
+                Element1 = Element1,
+                Element2 = Element2,
+                ElementDmg1 = ElementDmg1,
+                ElementDmg2 = ElementDmg2,
+                ForgeCost = ForgeCost,
+                ForgeMaterials = ForgeMaterials,
+                Game = Game,
+                GlShellingLevel = GlShellingLevel,
+                GlShellingType = GlShellingType,
+                HbgDeviation = HbgDeviation,
+                HhNote1 = HhNote1,
+                HhNote2 = HhNote2,
+                HhNote3 = HhNote3,
+                IgKinsectBonus = IgKinsectBonus,
+                LbgDeviation = LbgDeviation,
+                Name = Name,
+                Next1Cost = Next1Cost,
+                Next1Materials = Next1Materials,
+                Next1Name = Next1Name,
+                Next1Rarity = Next1Rarity,
+                Next2Cost = Next2Cost,
+                Next2Materials = Next2Materials,
+                Next2Name = Next2Name,
+                Next2Rarity = Next2Rarity,
+                Next3Cost = Next3Cost,
+                Next3Materials = Next3Materials,
+                Next3Name = Next3Name,
+                Next3Rarity = Next3Rarity,
+                PreviousName = PreviousName,
+                PreviousRarity = PreviousRarity,
+                RampageDecoration = RampageDecoration,
+                RampageSkillSlots = RampageSkillSlots,
+                Rarity = Rarity,
+                Rollback = Rollback,
+                SaPhialType = SaPhialType,
+                Sharpness = Sharpness,
+                ShellTable = ShellTable,
+                Tree = Tree,
+                Type = Type,
+                UpgradeCost = UpgradeCost,
+                UpgradeMaterials = UpgradeMaterials
+            };
+        }
     }
 
 	public partial class WebToolkitData

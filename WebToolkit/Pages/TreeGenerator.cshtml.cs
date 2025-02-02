@@ -4,9 +4,14 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 namespace WebToolkit.Pages
 {
     public class TreeGeneratorModel : PageModel
-    {
-        public void OnGet()
+	{
+		[BindProperty]
+		public IFormFile? LoadedData { get; set; }
+		[BindProperty]
+		public string LoadedSaveData { get; set; } = string.Empty;
+
+		public void OnGet()
         {
         }
-    }
+	}
 }

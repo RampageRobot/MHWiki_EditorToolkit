@@ -1,4 +1,5 @@
 ﻿using ClosedXML.Excel;
+using DocumentFormat.OpenXml.Drawing;
 using DocumentFormat.OpenXml.Wordprocessing;
 using MediawikiTranslator.Models.ArmorSets;
 using System.IO.Compression;
@@ -49,14 +50,15 @@ The {set.SetName}{setGenderMark} Set is a {GetRankLink(set.Game, set.Rarity)} ar
 }}}}");
 				foreach (Piece piece in set.Pieces)
 				{
+					//TODO: If you ever get set piece renders, add these commented lines to the template.	
+//|Male Image            = {piece.MaleImage}
+//|Female Image          = {piece.FemaleImage}
 					ret.AppendLine($@"{{{{GenericArmorSetPiece
 |Game                  = {set.Game}
 |Max Level             = {piece.MaxLevel}
 |Piece Name            = {piece.Name}
 |Rarity                = {(piece.Rarity > 0 ? piece.Rarity : "")}
 |Item Icon Type        = {piece.IconType}
-|Male Image            = {piece.MaleImage}
-|Female Image          = {piece.FemaleImage}
 |Description           = {piece.Description}
 |Level 1 Decos         = {piece.Decos1}
 |Level 2 Decos         = {piece.Decos2}
@@ -81,15 +83,15 @@ The {set.SetName}{setGenderMark} Set is a {GetRankLink(set.Game, set.Rarity)} ar
 		{
 			if (rarity == null)
 			{
-				return $"[[Armor Set List ({game})#Low Rank|Low Rank (LR)]]";
+				return $"[[{game}/Armor#Low Rank|Low Rank (LR)]]";
 			}
 			else
 			{
 				return game switch
 				{
-					"MHWI" => rarity < 5 ? $"[[Armor Set List ({game})#Low Rank|Low Rank (LR)]]" : rarity < 9 ? $"[[Armor Set List ({game})#High Rank|High Rank (HR)]]" : $"[[Armor Set List ({game})#Master Rank|Master Rank (MR)]]",
-					"MHRS" => rarity < 4 ? $"[[Armor Set List ({game})#Low Rank|Low Rank (LR)]]" : rarity < 8 ? $"[[Armor Set List ({game})#High Rank|High Rank (HR)]]" : $"[[Armor Set List ({game})#Master Rank|Master Rank (MR)]]",
-					_ => $"[[Armor Set List ({game})#Low Rank|Low Rank (LR)]]",
+					"MHWI" => rarity < 5 ? $"[[{game}/Armor#Low Rank|Low Rank (LR)]]" : rarity < 9 ? $"[[{game}/Armor#High Rank|High Rank (HR)]]" : $"[[{game}/Armor#Master Rank|Master Rank (MR)]]",
+					"MHRS" => rarity < 4 ? $"[[{game}/Armor#Low Rank|Low Rank (LR)]]" : rarity < 8 ? $"[[{game}/Armor#High Rank|High Rank (HR)]]" : $"[[{game}/Armor#Master Rank|Master Rank (MR)]]",
+					_ => $"[[{game}/Armor#Low Rank|Low Rank (LR)]]",
 				};
 			}
 		}
@@ -147,7 +149,14 @@ The {set.SetName}{setGenderMark} Set is a {GetRankLink(set.Game, set.Rarity)} ar
 			StringBuilder sb = new();
 			foreach (Material material in materials.OrderByDescending(x => x.Quantity))
 			{
-				sb.Append($"\r\n<div>{{{{GenericItemLink|{game}|{material.Name}|{material.Icon}|{material.Color}}}}} x{material.Quantity}</div>");
+				if (material.Icon == "MATERIAL_NOICON")
+				{
+					sb.Append($"\r\n<div>{{{{GenericMaterialLink|{game}|{material.Name}}}}} {material.Quantity} {(material.Quantity == 1 ? "pt" : "pts")}.</div>");
+				}
+				else
+				{
+					sb.Append($"\r\n<div>{{{{GenericItemLink|{game}|{material.Name}|{material.Icon}|{material.Color}}}}} x{material.Quantity}</div>");
+				}
 			}
 			return sb.ToString();
 		}
@@ -157,8 +166,9 @@ The {set.SetName}{setGenderMark} Set is a {GetRankLink(set.Game, set.Rarity)} ar
 			return Generate(WebToolkitData.FromJson(json), []).Result;
         }
 
-		public static void MassGenerate(string game)
+		public static Dictionary<WebToolkitData, string> MassGenerate(string game)
 		{
+			Dictionary<WebToolkitData, string> ret = [];
 			WebToolkitData[] src = [];
 			if (game == "MHWI")
 			{
@@ -171,59 +181,10 @@ The {set.SetName}{setGenderMark} Set is a {GetRankLink(set.Game, set.Rarity)} ar
 			foreach (WebToolkitData data in src.Where(x => x.Pieces.Length > 0))
 			{
 				string setGenderMark = data.OnlyForGender != null && src.Any(x => x.SetName == data.SetName && x.OnlyForGender != data.OnlyForGender) ? " (" + data.OnlyForGender + ")" : "";
-				Directory.CreateDirectory($@"C:\Users\mkast\Desktop\MHWiki Generated Armor Sets\{game}");
-				File.WriteAllText($@"C:\Users\mkast\Desktop\MHWiki Generated Armor Sets\{game}\{data.SetName!.Replace("\"", "")}{setGenderMark} Set.txt", Generate(data, src).Result);
+				ret.Add(data, Generate(data, src).Result);
+				//File.WriteAllText($@"C:\Users\mkast\Desktop\MHWiki Generated Armor Sets\{game}\{data.SetName!.Replace("\"", "")}{setGenderMark} Set.txt", Generate(data, src).Result);
 			}
-			StringBuilder setList = new();
-			string gameNameFull = Weapon.GetGameFullName(src[0].Game);
-			setList.Append($@"{{{{Meta
-|MetaTitle     = {src[0].Game} Armor Sets
-|MetaDesc      = A list of all Armor Sets from {gameNameFull}
-|MetaKeywords  = {src[0].Game}, {gameNameFull}, Armor, Armor Sets
-|MetaImage     = {src[0].Game}-Logo.png
-}}}}
-{{{{GenericNav|{src[0].Game}}}}}
-<br>
-<br>
-The following is a list of all armor sets that appear in [[{gameNameFull}]] and their corresponding armor pieces.
-__TOC__");
-			string lastRank = "";
-			long? lastRarity = null;
-			foreach (WebToolkitData data in src.OrderBy(x => x.Rarity))
-			{
-				bool newRarity = false;
-				if (lastRarity == null || lastRarity != data.Rarity)
-				{
-					newRarity = true;
-					setList.AppendLine("</div>");
-				}
-				string rank = GetRank(data.Game, data.Rarity);
-				if (rank != lastRank)
-				{
-					setList.AppendLine("=" + rank + "=");
-				}
-				if (newRarity)
-				{
-					setList.AppendLine($@"==Rarity {data.Rarity!.Value}==
-<div style=""display:flex; flex-wrap:wrap; height: 100%; align-items:stretch; justify-content:space-around; margin-bottom:20px;"">");
-				}
-				string setGenderMark = data.OnlyForGender != null && src.Any(x => x.SetName == data.SetName && x.OnlyForGender != data.OnlyForGender) ? " (" + data.OnlyForGender + ")" : "";
-				setList.AppendLine($@"{{{{ArmorSetListItem
-|Game               = {data.Game}
-|Set Rarity         = {data.Rarity!.Value}
-|Set Name           = {data.SetName}{setGenderMark}
-|Male Image         = {(string.IsNullOrEmpty(data.MaleFrontImg) ? "wiki.png" : data.MaleFrontImg)}
-|Female Image       = {(string.IsNullOrEmpty(data.FemaleFrontImg) ? "wiki.png" : data.FemaleFrontImg)}
-|Head Piece Name    = {data.Pieces.FirstOrDefault(x => x.IconType == "Helmet")?.Name ?? "None"}
-|Chest Piece Name   = {data.Pieces.FirstOrDefault(x => x.IconType == "Chestplate")?.Name ?? "None"}
-|Arm Piece Name     = {data.Pieces.FirstOrDefault(x => x.IconType == "Armguards")?.Name ?? "None"}
-|Waist Piece Name   = {data.Pieces.FirstOrDefault(x => x.IconType == "Waist")?.Name ?? "None"}
-|Leg Piece Name     = {data.Pieces.FirstOrDefault(x => x.IconType == "Leggings")?.Name ?? "None"}
-}}}}");
-				lastRank = rank;
-				lastRarity = data.Rarity;
-			}
-			setList.AppendLine("</div>");
+			return ret;
 			//File.WriteAllText($@"C:\Users\mkast\Desktop\MHWiki Generated Armor Sets\{game}\_setlist.txt", setList.ToString());
 		}
 	}

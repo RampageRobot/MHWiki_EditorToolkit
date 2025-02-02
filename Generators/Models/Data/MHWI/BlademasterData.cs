@@ -180,55 +180,99 @@ namespace MediawikiTranslator.Models.Data.MHWI
 					Rarity = obj.Rarity + 1,
 					Tree = GetWeaponTree(obj.TreeId!.Value)
 				};
+				int maxSharp = Convert.ToInt32((50 * obj.SharpnessAmount!.Value) + 150);
 				SharpnessData newSharp = new SharpnessData()
+				{
+					Red = obj.Sharpness.Red > maxSharp ? maxSharp : obj.Sharpness.Red,
+					Orange = obj.Sharpness.Orange > maxSharp ? maxSharp : obj.Sharpness.Orange,
+					Yellow = obj.Sharpness.Yellow > maxSharp ? maxSharp : obj.Sharpness.Yellow,
+					Green = obj.Sharpness.Green > maxSharp ? maxSharp : obj.Sharpness.Green,
+					Blue = obj.Sharpness.Blue > maxSharp ? maxSharp : obj.Sharpness.Blue,
+					White = obj.Sharpness.White > maxSharp ? maxSharp : obj.Sharpness.White,
+					Purple = obj.Sharpness.Purple > maxSharp ? maxSharp : obj.Sharpness.Purple
+				};
+				SharpnessData handi = new SharpnessData()
+				{
+					Red = newSharp.Red,
+					Orange = newSharp.Orange,
+					Yellow = newSharp.Yellow,
+					Green = newSharp.Green,
+					Blue = newSharp.Blue,
+					White = newSharp.White,
+					Purple = newSharp.Purple
+				};
+				long[] limits = new long[] { obj.Sharpness.Red!.Value, obj.Sharpness.Orange!.Value, obj.Sharpness.Yellow!.Value, obj.Sharpness.Green!.Value, obj.Sharpness.Blue!.Value, obj.Sharpness.White!.Value, obj.Sharpness.Purple!.Value };
+				long[] vals = new long[] { handi.Red!.Value, handi.Orange!.Value, handi.Yellow!.Value, handi.Green!.Value, handi.Blue!.Value, handi.White!.Value, handi.Purple!.Value };
+				long leftovers = 50;
+				long runningTotal = 0;
+				for (int cntr = 0; cntr < vals.Length; cntr++)
+				{
+					if (leftovers > 0)
+					{
+						long thisVal = vals[cntr];
+						long nextVal = 0;
+						if (cntr + 1 < vals.Length)
+						{
+							nextVal = vals[cntr + 1];
+						}
+						long limit = limits[cntr];
+						if (nextVal + leftovers > maxSharp && thisVal < limit)
+						{
+							if (thisVal + leftovers > limit)
+							{
+								vals[cntr] = limit;
+								leftovers -= (limit - thisVal);
+							}
+							else
+							{
+								thisVal += leftovers;
+								leftovers = 0;
+								if (thisVal > 400)
+								{
+									thisVal = 400;
+								}
+								vals[cntr] = thisVal;
+							}
+						}
+						runningTotal = vals[cntr];
+					}
+					else
+					{
+						vals[cntr] = limits[cntr] == 0 ? 0 : runningTotal;
+					}
+				}
+				handi = new SharpnessData()
+				{
+					Red = vals[0],
+					Orange = vals[1],
+					Yellow = vals[2],
+					Green = vals[3],
+					Blue = vals[4],
+					White = vals[5],
+					Purple = vals[6]
+				};
+				obj.Sharpness = newSharp;
+				//Comment the below out when switching to new sharpness template
+				handi = new SharpnessData()
+				{
+					Red = handi.Red,
+					Orange = handi.Orange - handi.Red,
+					Yellow = handi.Yellow - handi.Orange,
+					Green = handi.Green - handi.Yellow,
+					Blue = handi.Blue - handi.Green,
+					White = handi.White - handi.Blue < 0 ? 0 : handi.White - handi.Blue,
+					Purple = handi.Purple - handi.White < 0 ? 0 : handi.Purple - handi.White
+				};
+				obj.Sharpness = new SharpnessData()
 				{
 					Red = obj.Sharpness.Red,
 					Orange = obj.Sharpness.Orange - obj.Sharpness.Red,
 					Yellow = obj.Sharpness.Yellow - obj.Sharpness.Orange,
 					Green = obj.Sharpness.Green - obj.Sharpness.Yellow,
 					Blue = obj.Sharpness.Blue - obj.Sharpness.Green,
-					White = obj.Sharpness.White - obj.Sharpness.Blue,
-					Purple = obj.Sharpness.Purple == 0 ? 0 : obj.Sharpness.Purple - obj.Sharpness.White
+					White = obj.Sharpness.White - obj.Sharpness.Blue < 0 ? 0 : obj.Sharpness.White - obj.Sharpness.Blue,
+					Purple = obj.Sharpness.Purple - obj.Sharpness.White < 0 ? 0 : obj.Sharpness.Purple - obj.Sharpness.White
 				};
-				obj.Sharpness = newSharp;
-				SharpnessData handi = new SharpnessData()
-				{
-					Red = obj.Sharpness.Red,
-					Orange = obj.Sharpness.Orange,
-					Yellow = obj.Sharpness.Yellow,
-					Green = obj.Sharpness.Green,
-					Blue = obj.Sharpness.Blue,
-					White = obj.Sharpness.White,
-					Purple = obj.Sharpness.Purple
-				};
-				if (handi.Orange == 0)
-				{
-					handi.Red += 50;
-				}
-				else if (handi.Yellow == 0)
-				{
-					handi.Orange += 50;
-				}
-				else if (handi.Green == 0)
-				{
-					handi.Yellow += 50;
-				}
-				else if (handi.Blue == 0)
-				{
-					handi.Green += 50;
-				}
-				else if (handi.White == 0)
-				{
-					handi.Blue += 50;
-				}
-				else if (handi.Purple == 0)
-				{
-					handi.White += 50;
-				}
-				else
-				{
-					handi.Purple += 50;
-				}
 				newObj.Sharpness = $"[[{obj.Sharpness.Red},{obj.Sharpness.Orange},{obj.Sharpness.Yellow},{obj.Sharpness.Green},{obj.Sharpness.Blue},{obj.Sharpness.White},{obj.Sharpness.Purple}],[{handi.Red},{handi.Orange},{handi.Yellow},{handi.Green},{handi.Blue},{handi.White},{handi.Purple}]]";
 #nullable enable
 				WeaponCraftingData? thisCraft = craftingData.FirstOrDefault(x => x.EquipmentId!.Value == obj.Index!.Value && x.EquipmentCategory == obj.WeaponType.Replace("Great Sword", "Greatsword").Replace(" ", "_"));
@@ -771,7 +815,7 @@ namespace MediawikiTranslator.Models.Data.MHWI
 				{ "Hunting Horn", "HH" },
 				{ "Insect Glaive", "IG" },
 				{ "Lance", "Ln" },
-				{ "Longsword", "LS" },
+				{ "Long Sword", "LS" },
 				{ "Switch Axe", "SA" },
 				{ "Sword and Shield", "SnS" },
 				{ "Bow", "Bo" },

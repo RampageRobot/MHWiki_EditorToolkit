@@ -5,10 +5,12 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using System.Diagnostics;
 using MediawikiTranslator.Generators;
 using MediawikiTranslator.Models.Data.MHRS;
-using MediawikiTranslator.Models.ArmorSets;
+using MediawikiTranslator.Models.Weapon;
 using System.IO;
 using Newtonsoft.Json;
 using MediawikiTranslator;
+using MediawikiTranslator.Models.Data.MHWI;
+using System.Text;
 
 namespace WebToolkit.Pages
 {
@@ -23,7 +25,6 @@ namespace WebToolkit.Pages
 
         public void OnGet()
         {
-			//Utilities.UploadWeaponsWithAPI("MHWI").Wait();
 		}
     }
 }

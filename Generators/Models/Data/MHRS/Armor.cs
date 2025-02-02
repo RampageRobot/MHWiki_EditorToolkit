@@ -34,8 +34,8 @@ namespace MediawikiTranslator.Models.Data.MHRS
 				WebToolkitData newArmor = new()
 				{
 					Game = "MHRS",
-					MaleFrontImg = $"MHRS-{armor.SetName} Set Male Render.png",
-					FemaleFrontImg = $"MHRS-{armor.SetName} Set Female Render.png",
+					MaleFrontImg = $"MHRS-{armor.SetName} Armor Male Render.png",
+					FemaleFrontImg = $"MHRS-{armor.SetName} Armor Female Render.png",
 					SetName = armor.SetName,
 					Rarity = rarity,
 					Rank = MediawikiTranslator.Generators.ArmorSets.GetRank("MHRS", rarity),
@@ -77,6 +77,18 @@ namespace MediawikiTranslator.Models.Data.MHRS
 						Name = x.Item1.Name,
 						Quantity = x.Item2
 					})];
+					if (armor.CraftingData.MaterialCategory != "None")
+					{
+						int catNum = Convert.ToInt32(armor.CraftingData.MaterialCategory[(armor.CraftingData.MaterialCategory.LastIndexOf('_') + 1)..]);
+						string fullText = $"{CommonMsgs.GetMsg($"ICT_Name_{(catNum < 100 ? catNum.ToString("D2") : catNum.ToString("D3"))}")} Material(s) x{armor.CraftingData.MaterialCategoryNum} pt{(armor.CraftingData.MaterialCategoryNum > 1 ? "s" : "")}.";
+						newPiece.Materials.Append(new Material()
+						{
+							Color = "White",
+							Icon = "MATERIAL_NOICON",
+							Name = fullText,
+							Quantity = 1
+						});
+					}
 				}
 				newPiece.Skills = [..armor.Skills.Where(x => x != null).Select(x => new Skill()
 				{
@@ -415,9 +427,19 @@ namespace MediawikiTranslator.Models.Data.MHRS
 				{
 					if (armor.SkillList[i] != "Pl_EquipSkill_None")
 					{
-						SkillsParam toAdd = allSkills.FirstOrDefault(x => x.Id == armor.SkillList[i]);
-						toAdd.Level = (int)armor.SkillLvList[i];
-						armor.Skills[i] = toAdd;
+						armor.Skills[i] = allSkills.Where(x => x.Id == armor.SkillList[i]).Select(x => new SkillsParam()
+						{
+							CategoryId1 = x.CategoryId1,
+							CategoryId2 = x.CategoryId2,
+							CategoryId3 = x.CategoryId3,
+							Details = x.Details,
+							Explain = x.Explain,
+							IconColor = x.IconColor,
+							Id = x.Id,
+							Name = x.Name,
+							Level = (int)armor.SkillLvList[i],
+							MaxLevel = x.MaxLevel
+						}).FirstOrDefault();
 					}
 				}
 				armor.CraftingData = craftingData.FirstOrDefault(x => x.Id == armor.Id);

@@ -59,14 +59,17 @@
             link.remove();
         }
         function load() {
+            $("body").css("cursor", "progress");
             bootstrap.Modal.getInstance($("#mdlLoad")).hide();
             var rdr = new FileReader();
-            rdr.readAsText($("#iptLoadFile").prop("files")[0]); 
+            rdr.readAsText($("#iptLoadFile").prop("files")[0]);
             rdr.onload = function (evt) {
                 var loadedData = JSON.parse(evt.target.result);
                 pageLoadData(loadedData);
+                $("body").css("cursor", "default");
             }
             rdr.onerror = function (evt) {
+                $("body").css("cursor", "default");
                 alert("There was an error with your save file!");
             }
         }

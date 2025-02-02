@@ -3,25 +3,52 @@
   "WorkspaceRootPath": "D:\\MHWiki_EditorToolkit\\MHWiki_EditorToolkit\\MHWikiToolkit\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{AB1DA0F3-81CA-4476-84A9-E1C5C2DD36C4}|..\\Generators\\MediawikiTranslator.csproj|d:\\mhwiki_editortoolkit\\mhwiki_editortoolkit\\generators\\generators\\weapontree.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{2372D6A5-49EF-4E9D-B54C-F53B7AE5A9C7}|..\\WebToolkit\\WebToolkit.csproj|d:\\mhwiki_editortoolkit\\mhwiki_editortoolkit\\webtoolkit\\wwwroot\\js\\treetemplates\\weapon.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}"
+      "AbsoluteMoniker": "D:0:0:{2372D6A5-49EF-4E9D-B54C-F53B7AE5A9C7}|..\\WebToolkit\\WebToolkit.csproj|d:\\mhwiki_editortoolkit\\mhwiki_editortoolkit\\webtoolkit\\pages\\index.cshtml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{2372D6A5-49EF-4E9D-B54C-F53B7AE5A9C7}|..\\WebToolkit\\WebToolkit.csproj|d:\\mhwiki_editortoolkit\\mhwiki_editortoolkit\\webtoolkit\\pages\\treegenerator.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
     },
     {
+      "AbsoluteMoniker": "D:0:0:{AB1DA0F3-81CA-4476-84A9-E1C5C2DD36C4}|..\\Generators\\MediawikiTranslator.csproj|d:\\mhwiki_editortoolkit\\mhwiki_editortoolkit\\generators\\generators\\weapontree.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{2372D6A5-49EF-4E9D-B54C-F53B7AE5A9C7}|..\\WebToolkit\\WebToolkit.csproj|d:\\mhwiki_editortoolkit\\mhwiki_editortoolkit\\webtoolkit\\wwwroot\\js\\treegenerator.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{2372D6A5-49EF-4E9D-B54C-F53B7AE5A9C7}|..\\WebToolkit\\WebToolkit.csproj|d:\\mhwiki_editortoolkit\\mhwiki_editortoolkit\\webtoolkit\\pages\\index.cshtml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{AB1DA0F3-81CA-4476-84A9-E1C5C2DD36C4}|..\\Generators\\MediawikiTranslator.csproj|d:\\mhwiki_editortoolkit\\mhwiki_editortoolkit\\generators\\utilities.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{AB1DA0F3-81CA-4476-84A9-E1C5C2DD36C4}|..\\Generators\\MediawikiTranslator.csproj|d:\\mhwiki_editortoolkit\\mhwiki_editortoolkit\\generators\\models\\data\\mhrs\\weapon.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{AB1DA0F3-81CA-4476-84A9-E1C5C2DD36C4}|..\\Generators\\MediawikiTranslator.csproj|d:\\mhwiki_editortoolkit\\mhwiki_editortoolkit\\generators\\generators\\weapon.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{AB1DA0F3-81CA-4476-84A9-E1C5C2DD36C4}|..\\Generators\\MediawikiTranslator.csproj|d:\\mhwiki_editortoolkit\\mhwiki_editortoolkit\\generators\\utilities.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{AB1DA0F3-81CA-4476-84A9-E1C5C2DD36C4}|..\\Generators\\MediawikiTranslator.csproj|d:\\mhwiki_editortoolkit\\mhwiki_editortoolkit\\generators\\models\\weapon\\webtoolkitdata.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{AB1DA0F3-81CA-4476-84A9-E1C5C2DD36C4}|..\\Generators\\MediawikiTranslator.csproj|d:\\mhwiki_editortoolkit\\mhwiki_editortoolkit\\generators\\generators\\armorsets.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2372D6A5-49EF-4E9D-B54C-F53B7AE5A9C7}|..\\WebToolkit\\WebToolkit.csproj|d:\\mhwiki_editortoolkit\\mhwiki_editortoolkit\\webtoolkit\\controllers\\weapontreecontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2372D6A5-49EF-4E9D-B54C-F53B7AE5A9C7}|..\\WebToolkit\\WebToolkit.csproj|d:\\mhwiki_editortoolkit\\mhwiki_editortoolkit\\webtoolkit\\wwwroot\\js\\treetemplates\\weapon.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{AB1DA0F3-81CA-4476-84A9-E1C5C2DD36C4}|..\\Generators\\MediawikiTranslator.csproj|d:\\mhwiki_editortoolkit\\mhwiki_editortoolkit\\generators\\models\\weapontree\\webtoolkitdata.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2372D6A5-49EF-4E9D-B54C-F53B7AE5A9C7}|..\\WebToolkit\\WebToolkit.csproj|d:\\mhwiki_editortoolkit\\mhwiki_editortoolkit\\webtoolkit\\pages\\armorsetsgenerator.cshtml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2372D6A5-49EF-4E9D-B54C-F53B7AE5A9C7}|..\\WebToolkit\\WebToolkit.csproj|d:\\mhwiki_editortoolkit\\mhwiki_editortoolkit\\webtoolkit\\pages\\shared\\_layout.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2372D6A5-49EF-4E9D-B54C-F53B7AE5A9C7}|..\\WebToolkit\\WebToolkit.csproj|d:\\mhwiki_editortoolkit\\mhwiki_editortoolkit\\webtoolkit\\pages\\armorsetsgenerator.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{AB1DA0F3-81CA-4476-84A9-E1C5C2DD36C4}|..\\Generators\\MediawikiTranslator.csproj|d:\\mhwiki_editortoolkit\\mhwiki_editortoolkit\\generators\\models\\data\\mhwi\\gunnerdata.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     }
   ],
   "DocumentGroupContainers": [
@@ -31,7 +58,7 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 5,
+          "SelectedChildIndex": 16,
           "Children": [
             {
               "$type": "Bookmark",
@@ -47,54 +74,28 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
-              "Title": "TreeGenerator.cshtml",
-              "DocumentMoniker": "D:\\MHWiki_EditorToolkit\\MHWiki_EditorToolkit\\WebToolkit\\Pages\\TreeGenerator.cshtml",
-              "RelativeDocumentMoniker": "..\\WebToolkit\\Pages\\TreeGenerator.cshtml",
-              "ToolTip": "D:\\MHWiki_EditorToolkit\\MHWiki_EditorToolkit\\WebToolkit\\Pages\\TreeGenerator.cshtml",
-              "RelativeToolTip": "..\\WebToolkit\\Pages\\TreeGenerator.cshtml",
-              "ViewState": "AgIAAAYAAAAAAAAAAAAAAAgAAABFAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
-              "WhenOpened": "2025-01-20T19:24:01.725Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 5,
-              "Title": "Weapon.cs",
-              "DocumentMoniker": "D:\\MHWiki_EditorToolkit\\MHWiki_EditorToolkit\\Generators\\Generators\\Weapon.cs",
-              "RelativeDocumentMoniker": "..\\Generators\\Generators\\Weapon.cs",
-              "ToolTip": "D:\\MHWiki_EditorToolkit\\MHWiki_EditorToolkit\\Generators\\Generators\\Weapon.cs",
-              "RelativeToolTip": "..\\Generators\\Generators\\Weapon.cs",
-              "ViewState": "AgIAAPAAAAAAAAAAAAAQwAQBAAAUAAAAAAAAAA==",
+              "DocumentIndex": 7,
+              "Title": "WebToolkitData.cs",
+              "DocumentMoniker": "D:\\MHWiki_EditorToolkit\\MHWiki_EditorToolkit\\Generators\\Models\\Weapon\\WebToolkitData.cs",
+              "RelativeDocumentMoniker": "..\\Generators\\Models\\Weapon\\WebToolkitData.cs",
+              "ToolTip": "D:\\MHWiki_EditorToolkit\\MHWiki_EditorToolkit\\Generators\\Models\\Weapon\\WebToolkitData.cs",
+              "RelativeToolTip": "..\\Generators\\Models\\Weapon\\WebToolkitData.cs",
+              "ViewState": "AgIAAKsAAAAAAAAAAAAuwLUAAAAuAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-01-20T17:32:34.004Z",
+              "WhenOpened": "2025-02-01T06:57:18.274Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 0,
+              "DocumentIndex": 2,
               "Title": "WeaponTree.cs",
               "DocumentMoniker": "D:\\MHWiki_EditorToolkit\\MHWiki_EditorToolkit\\Generators\\Generators\\WeaponTree.cs",
               "RelativeDocumentMoniker": "..\\Generators\\Generators\\WeaponTree.cs",
               "ToolTip": "D:\\MHWiki_EditorToolkit\\MHWiki_EditorToolkit\\Generators\\Generators\\WeaponTree.cs",
               "RelativeToolTip": "..\\Generators\\Generators\\WeaponTree.cs",
-              "ViewState": "AgIAAJAAAAAAAAAAAAAAAKsAAABwAAAAAAAAAA==",
+              "ViewState": "AgIAAPUAAAAAAAAAAAAmwAIBAAAfAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-01-20T17:15:52.154Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 1,
-              "Title": "weapon.js",
-              "DocumentMoniker": "D:\\MHWiki_EditorToolkit\\MHWiki_EditorToolkit\\WebToolkit\\wwwroot\\js\\treeTemplates\\weapon.js",
-              "RelativeDocumentMoniker": "..\\WebToolkit\\wwwroot\\js\\treeTemplates\\weapon.js",
-              "ToolTip": "D:\\MHWiki_EditorToolkit\\MHWiki_EditorToolkit\\WebToolkit\\wwwroot\\js\\treeTemplates\\weapon.js",
-              "RelativeToolTip": "..\\WebToolkit\\wwwroot\\js\\treeTemplates\\weapon.js",
-              "ViewState": "AgIAAOkCAAAAAAAAAAAuwAcDAACGAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
-              "WhenOpened": "2025-01-20T17:14:22.162Z",
+              "WhenOpened": "2025-01-29T07:21:47.969Z",
               "EditorCaption": ""
             },
             {
@@ -105,35 +106,170 @@
               "RelativeDocumentMoniker": "..\\WebToolkit\\wwwroot\\js\\TreeGenerator.js",
               "ToolTip": "D:\\MHWiki_EditorToolkit\\MHWiki_EditorToolkit\\WebToolkit\\wwwroot\\js\\TreeGenerator.js",
               "RelativeToolTip": "..\\WebToolkit\\wwwroot\\js\\TreeGenerator.js",
-              "ViewState": "AgIAADcAAAAAAAAAAAAuwEIAAAAHAAAAAAAAAA==",
+              "ViewState": "AgIAACMAAAAAAAAAAAAQwGQAAAALAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
-              "WhenOpened": "2025-01-20T17:14:20.705Z",
+              "WhenOpened": "2025-01-28T06:22:52.602Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 11,
+              "Title": "WebToolkitData.cs",
+              "DocumentMoniker": "D:\\MHWiki_EditorToolkit\\MHWiki_EditorToolkit\\Generators\\Models\\WeaponTree\\WebToolkitData.cs",
+              "RelativeDocumentMoniker": "..\\Generators\\Models\\WeaponTree\\WebToolkitData.cs",
+              "ToolTip": "D:\\MHWiki_EditorToolkit\\MHWiki_EditorToolkit\\Generators\\Models\\WeaponTree\\WebToolkitData.cs",
+              "RelativeToolTip": "..\\Generators\\Models\\WeaponTree\\WebToolkitData.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-01-29T06:26:54.088Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 9,
+              "Title": "WeaponTreeController.cs",
+              "DocumentMoniker": "D:\\MHWiki_EditorToolkit\\MHWiki_EditorToolkit\\WebToolkit\\Controllers\\WeaponTreeController.cs",
+              "RelativeDocumentMoniker": "..\\WebToolkit\\Controllers\\WeaponTreeController.cs",
+              "ToolTip": "D:\\MHWiki_EditorToolkit\\MHWiki_EditorToolkit\\WebToolkit\\Controllers\\WeaponTreeController.cs",
+              "RelativeToolTip": "..\\WebToolkit\\Controllers\\WeaponTreeController.cs",
+              "ViewState": "AgIAAJEAAAAAAAAAAAAiwKEAAAAGAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-01-29T06:19:32.358Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 12,
+              "Title": "ArmorSetsGenerator.cshtml.cs",
+              "DocumentMoniker": "D:\\MHWiki_EditorToolkit\\MHWiki_EditorToolkit\\WebToolkit\\Pages\\ArmorSetsGenerator.cshtml.cs",
+              "RelativeDocumentMoniker": "..\\WebToolkit\\Pages\\ArmorSetsGenerator.cshtml.cs",
+              "ToolTip": "D:\\MHWiki_EditorToolkit\\MHWiki_EditorToolkit\\WebToolkit\\Pages\\ArmorSetsGenerator.cshtml.cs",
+              "RelativeToolTip": "..\\WebToolkit\\Pages\\ArmorSetsGenerator.cshtml.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAYAAAAFAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-01-28T06:42:05.218Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 14,
+              "Title": "ArmorSetsGenerator.cshtml",
+              "DocumentMoniker": "D:\\MHWiki_EditorToolkit\\MHWiki_EditorToolkit\\WebToolkit\\Pages\\ArmorSetsGenerator.cshtml",
+              "RelativeDocumentMoniker": "..\\WebToolkit\\Pages\\ArmorSetsGenerator.cshtml",
+              "ToolTip": "D:\\MHWiki_EditorToolkit\\MHWiki_EditorToolkit\\WebToolkit\\Pages\\ArmorSetsGenerator.cshtml",
+              "RelativeToolTip": "..\\WebToolkit\\Pages\\ArmorSetsGenerator.cshtml",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAB4AAAAPAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2025-01-28T06:41:54.034Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 13,
+              "Title": "_Layout.cshtml",
+              "DocumentMoniker": "D:\\MHWiki_EditorToolkit\\MHWiki_EditorToolkit\\WebToolkit\\Pages\\Shared\\_Layout.cshtml",
+              "RelativeDocumentMoniker": "..\\WebToolkit\\Pages\\Shared\\_Layout.cshtml",
+              "ToolTip": "D:\\MHWiki_EditorToolkit\\MHWiki_EditorToolkit\\WebToolkit\\Pages\\Shared\\_Layout.cshtml",
+              "RelativeToolTip": "..\\WebToolkit\\Pages\\Shared\\_Layout.cshtml",
+              "ViewState": "AgIAADYAAAAAAAAAAAAAAEEAAAApAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2025-01-28T06:37:29.631Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 15,
+              "Title": "GunnerData.cs",
+              "DocumentMoniker": "D:\\MHWiki_EditorToolkit\\MHWiki_EditorToolkit\\Generators\\Models\\Data\\MHWI\\GunnerData.cs",
+              "RelativeDocumentMoniker": "..\\Generators\\Models\\Data\\MHWI\\GunnerData.cs",
+              "ToolTip": "D:\\MHWiki_EditorToolkit\\MHWiki_EditorToolkit\\Generators\\Models\\Data\\MHWI\\GunnerData.cs",
+              "RelativeToolTip": "..\\Generators\\Models\\Data\\MHWI\\GunnerData.cs",
+              "ViewState": "AgIAAF4BAAAAAAAAAAAUwGsBAAAPAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-01-27T15:34:52.354Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "Weapon.cs",
+              "DocumentMoniker": "D:\\MHWiki_EditorToolkit\\MHWiki_EditorToolkit\\Generators\\Models\\Data\\MHRS\\Weapon.cs",
+              "RelativeDocumentMoniker": "..\\Generators\\Models\\Data\\MHRS\\Weapon.cs",
+              "ToolTip": "D:\\MHWiki_EditorToolkit\\MHWiki_EditorToolkit\\Generators\\Models\\Data\\MHRS\\Weapon.cs",
+              "RelativeToolTip": "..\\Generators\\Models\\Data\\MHRS\\Weapon.cs",
+              "ViewState": "AgIAAEcBAAAAAAAAAAAAAIsAAAAGAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-01-27T14:52:08.468Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
               "DocumentIndex": 6,
+              "Title": "Weapon.cs",
+              "DocumentMoniker": "D:\\MHWiki_EditorToolkit\\MHWiki_EditorToolkit\\Generators\\Generators\\Weapon.cs",
+              "RelativeDocumentMoniker": "..\\Generators\\Generators\\Weapon.cs",
+              "ToolTip": "D:\\MHWiki_EditorToolkit\\MHWiki_EditorToolkit\\Generators\\Generators\\Weapon.cs",
+              "RelativeToolTip": "..\\Generators\\Generators\\Weapon.cs",
+              "ViewState": "AgIAAEEBAAAAAAAAAAAwwF4BAABfAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-01-27T08:00:27.865Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 8,
+              "Title": "ArmorSets.cs",
+              "DocumentMoniker": "D:\\MHWiki_EditorToolkit\\MHWiki_EditorToolkit\\Generators\\Generators\\ArmorSets.cs",
+              "RelativeDocumentMoniker": "..\\Generators\\Generators\\ArmorSets.cs",
+              "ToolTip": "D:\\MHWiki_EditorToolkit\\MHWiki_EditorToolkit\\Generators\\Generators\\ArmorSets.cs",
+              "RelativeToolTip": "..\\Generators\\Generators\\ArmorSets.cs",
+              "ViewState": "AgIAAH0AAAAAAAAAAAA/wJkAAACLAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-01-27T07:44:36.049Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
               "Title": "Utilities.cs",
               "DocumentMoniker": "D:\\MHWiki_EditorToolkit\\MHWiki_EditorToolkit\\Generators\\Utilities.cs",
               "RelativeDocumentMoniker": "..\\Generators\\Utilities.cs",
               "ToolTip": "D:\\MHWiki_EditorToolkit\\MHWiki_EditorToolkit\\Generators\\Utilities.cs",
               "RelativeToolTip": "..\\Generators\\Utilities.cs",
-              "ViewState": "AgIAAGoAAAAAAAAAAAAtwH8AAAAGAAAAAAAAAA==",
+              "ViewState": "AgIAAIgAAAAAAAAAAAAqwJ8AAAAIAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-01-18T08:19:38.396Z",
+              "WhenOpened": "2025-01-22T16:45:32.052Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 4,
+              "DocumentIndex": 0,
               "Title": "Index.cshtml.cs",
               "DocumentMoniker": "D:\\MHWiki_EditorToolkit\\MHWiki_EditorToolkit\\WebToolkit\\Pages\\Index.cshtml.cs",
               "RelativeDocumentMoniker": "..\\WebToolkit\\Pages\\Index.cshtml.cs",
               "ToolTip": "D:\\MHWiki_EditorToolkit\\MHWiki_EditorToolkit\\WebToolkit\\Pages\\Index.cshtml.cs",
               "RelativeToolTip": "..\\WebToolkit\\Pages\\Index.cshtml.cs",
-              "ViewState": "AgIAAAwAAAAAAAAAAAAAABkAAAAFAAAAAAAAAA==",
+              "ViewState": "AgIAAAsAAAAAAAAAAAAAABcAAAAJAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-12-31T19:58:04.894Z",
+              "WhenOpened": "2025-01-22T18:32:45.517Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 10,
+              "Title": "weapon.js",
+              "DocumentMoniker": "D:\\MHWiki_EditorToolkit\\MHWiki_EditorToolkit\\WebToolkit\\wwwroot\\js\\treeTemplates\\weapon.js",
+              "RelativeDocumentMoniker": "..\\WebToolkit\\wwwroot\\js\\treeTemplates\\weapon.js",
+              "ToolTip": "D:\\MHWiki_EditorToolkit\\MHWiki_EditorToolkit\\WebToolkit\\wwwroot\\js\\treeTemplates\\weapon.js",
+              "RelativeToolTip": "..\\WebToolkit\\wwwroot\\js\\treeTemplates\\weapon.js",
+              "ViewState": "AgIAAB8BAAAAAAAAAADgvyABAAATAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
+              "WhenOpened": "2025-01-28T06:22:55.795Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "TreeGenerator.cshtml",
+              "DocumentMoniker": "D:\\MHWiki_EditorToolkit\\MHWiki_EditorToolkit\\WebToolkit\\Pages\\TreeGenerator.cshtml",
+              "RelativeDocumentMoniker": "..\\WebToolkit\\Pages\\TreeGenerator.cshtml",
+              "ToolTip": "D:\\MHWiki_EditorToolkit\\MHWiki_EditorToolkit\\WebToolkit\\Pages\\TreeGenerator.cshtml",
+              "RelativeToolTip": "..\\WebToolkit\\Pages\\TreeGenerator.cshtml",
+              "ViewState": "AgIAABQBAAAAAAAAAAAcwB0BAAAVAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2025-01-28T06:36:34.528Z",
               "EditorCaption": ""
             }
           ]

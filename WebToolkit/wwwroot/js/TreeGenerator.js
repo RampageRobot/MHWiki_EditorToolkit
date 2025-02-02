@@ -23,9 +23,6 @@ function getSaveData() {
 function getFinalData() {
 
 }
-function pageLoadData(loadedData) {
-
-}
 function copyToClipboard()
 {
     var copyText = document.getElementById("txtResults");
@@ -54,7 +51,6 @@ function loadTemplate()
             generateTree = WeaponTemplate.generateTree;
             updateIcons = WeaponTemplate.updateIcons;
             getFinalData = WeaponTemplate.getFinalData;
-            pageLoadData = WeaponTemplate.pageLoadData;
             getSaveData = WeaponTemplate.getSaveData;
             addEmptyRow($(".card .table-tree tbody"));
             break;

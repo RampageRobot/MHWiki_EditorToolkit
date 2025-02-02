@@ -1,6 +1,8 @@
 ﻿using ClosedXML.Excel;
+using DocumentFormat.OpenXml.Drawing;
 using DocumentFormat.OpenXml.Spreadsheet;
 using DocumentFormat.OpenXml.Wordprocessing;
+using MediawikiTranslator.Models.Data.MHRS;
 using MediawikiTranslator.Models.Data.MHWI;
 using MediawikiTranslator.Models.Weapon;
 using Newtonsoft.Json;
@@ -14,26 +16,69 @@ namespace MediawikiTranslator.Generators
 {
 	public class Weapon
 	{
+		private static Dictionary<Tuple<string, string>, string[]> WeaponRenderFileNames { get; set; } = [];
 		private static Models.Data.MHWI.Items[] _mhwiItems = Models.Data.MHWI.Items.Fetch();
 		private static async Task<string> Generate(WebToolkitData weapon, WebToolkitData[] src)
 		{
 			return await Task.Run(() =>
 			{
 				Tuple<string, string, string> weaponNames = GetWeaponTypeFullName(weapon.Type!);
+				Tuple<string, string> renderKey = new(weapon.Game!, weaponNames.Item1);
+				if (!WeaponRenderFileNames.TryGetValue(renderKey, out string[]? value))
+				{
+					value = Utilities.GetWeaponRenders(renderKey.Item1, renderKey.Item2).Result;
+					WeaponRenderFileNames.Add(renderKey, value);
+				}
+				string? match = value.FirstOrDefault(x => !string.IsNullOrEmpty(x) && x.StartsWith($"File:{weapon.Game!}-{SanitizeRoman(weapon.Name!)}"));
+				if (match == null)
+				{
+					WebToolkitData? parent = src.FirstOrDefault(x => x.Name == weapon.PreviousName);
+					while (parent != null && match == null)
+					{
+						match = value.FirstOrDefault(x => !string.IsNullOrEmpty(x) && x.StartsWith($"File:{parent.Game!}-{SanitizeRoman(parent.Name!)}"));
+						if (match == null)
+						{
+							parent = src.FirstOrDefault(x => x.Name == parent.PreviousName);
+						}
+					}
+				}
+				if (match != null && match.StartsWith("File:"))
+				{
+					match = match[5..];
+				}
+				string tree = weapon.Tree!.Replace("Unavailable", (weapon.Name!.Contains("Safi's") ? "Safi Tree" : "Kulve Taroth Tree"));
+				string ktMessage = "";
+				if (tree.Contains("Kulve Taroth"))
+				{
+					WebToolkitData? otherWeapon = src.FirstOrDefault(x => x.Name == weapon.Name && x.Type == weapon.Type && x.Rarity != weapon.Rarity);
+					if (otherWeapon != null)
+					{
+						if (GetRank(weapon.Game!, weapon.Rarity!.Value) == "MR")
+						{
+							ktMessage = $"<br>This page contains this weapon's stats at '''Level 5'''. To see its '''Level 1 (High Rank)''' version, go to {{{{GenericWeaponLink|{weapon.Game}|{weapon.Name}|{weapon.Type}|{otherWeapon.Rarity}}}}}. To see stat changes at other levels, as well as more information on the Kulve Taroth weapon upgrading system, go to [[Kulve Taroth Weapons (MWHI)]].";
+						}
+						else
+						{
+
+							ktMessage = $"<br>This page contains this weapon's stats at '''Level 1'''. To see its '''Level 5 (Master Rank)''' version, go to {{{{GenericWeaponLink|{weapon.Game}|{weapon.Name} (MR)|{weapon.Type}|{otherWeapon.Rarity}}}}}. To see stat changes at other levels, as well as more information on the Kulve Taroth weapon upgrading system, go to [[Kulve Taroth Weapons (MWHI)]].";
+						}
+					}
+				}
 				StringBuilder ret = new();
+				int bloat = Convert.ToInt32(Math.Round(GetWeaponBloat(weapon.Type!, weapon.Game!) * Convert.ToInt32(weapon.Attack)));
 				ret.AppendLine($@"{{{{GenericNav|{weapon.Game}}}}}
 <br>
 <br>
-The {weapon.Name} is {(weapon.Type == "IG" ? "an" : "a")} [[{weaponNames.Item1} ({weapon.Game})|{weaponNames.Item2}]] in [[{GetGameFullName(weapon.Game!)}]]. To view the upgrade relationships between {weaponNames.Item3}, see the  [[{weapon.Game}/{weaponNames.Item1} Tree|{weapon.Game} {weaponNames.Item1} Weapon Tree]].");
+The {weapon.Name} is {(weapon.Type == "IG" ? "an" : "a")} [[{weaponNames.Item1} ({weapon.Game})|{weaponNames.Item2}]] in [[{GetGameFullName(weapon.Game!)}]]. To view the upgrade relationships between {weaponNames.Item3}, see the  [[{weapon.Game}/{weaponNames.Item1} Tree|{weapon.Game} {weaponNames.Item1} Weapon Tree]].{ktMessage}");
 				ret.AppendLine($@"{{{{GenericWeapon
 |Game                    = {weapon.Game}
 |Weapon Name             = {weapon.Name}
-|Render File             = {weapon.Game}-{weapon.Name} Render.png
+|Render File             = {match ?? "wiki.png"}
 |Weapon Type             = {weapon.Type}
-|Tree                    = {weapon.Tree!.Replace("Unavailable", (weapon.Name!.Contains("Safi's") ? "Safi Tree" : "Kulve Taroth Tree"))}
+|Tree                    = {tree}
 |Rarity                  = {weapon.Rarity}
 |Description             = {weapon.Description}
-|Attack                  = {Convert.ToInt32(Math.Round(GetWeaponBloat(weapon.Type!, weapon.Game!) * Convert.ToInt32(weapon.Attack))) + " (" + weapon.Attack + ")"}
+|Attack                  = {(bloat == Convert.ToInt32(weapon.Attack) ? weapon.Attack : bloat + " (" + weapon.Attack + ")")}
 |Affinity                = {weapon.Affinity}" + 
 (weapon.Decos1 != null && weapon.Decos1!.Value > 0 ? $"\r\n|Level 1 Decos           = {weapon.Decos1.Value}" : "") +
 (weapon.Decos2 != null && weapon.Decos2!.Value > 0 ? $"\r\n|Level 2 Decos           = {weapon.Decos2.Value}" : "") +
@@ -52,6 +97,7 @@ The {weapon.Name} is {(weapon.Type == "IG" ? "an" : "a")} [[{weaponNames.Item1} 
 (!string.IsNullOrEmpty(weapon.CbPhialType) ? $"\r\n|CB Phial Type           = {weapon.CbPhialType}" : "") +
 (!string.IsNullOrEmpty(weapon.IgKinsectBonus) ? $"\r\n|IG Kinsect Bonus        = {weapon.IgKinsectBonus}" : "") +
 (!string.IsNullOrEmpty(weapon.BoCoatings) ? $"\r\n|Bo Coatings             = {weapon.BoCoatings}" : "") +
+(!string.IsNullOrEmpty(weapon.HhMelodies) ? $"\r\n|HH Melodies             = {weapon.HhMelodies}" : "") +
 (!string.IsNullOrEmpty(weapon.HbgSpecialAmmoType) ? $"\r\n|HBG Special Ammo Type   = {weapon.HbgSpecialAmmoType}" : "") +
 (!string.IsNullOrEmpty(weapon.LbgSpecialAmmoType) ? $"\r\n|LBG Special Ammo Type   = {weapon.LbgSpecialAmmoType}" : "") +
 (!string.IsNullOrEmpty(weapon.HbgDeviation) ? $"\r\n|HBG Deviation        = {weapon.HbgDeviation}" : "") +
@@ -97,8 +143,16 @@ The {weapon.Name} is {(weapon.Type == "IG" ? "an" : "a")} [[{weaponNames.Item1} 
 |Next 3 Cost             = {weapon.Next3Cost:N0}
 |Next 3 Materials        = {GetMaterialsTemplates(weapon.Next3Materials, weapon.Game)}");
 				}
+				if (!string.IsNullOrEmpty(weapon.Next4Name))
+				{
+					ret.AppendLine($@"|Next 4 Name             = {weapon.Next4Name + (src.Count(x => x.Name == weapon.Next4Name) > 1 && GetRank(weapon.Game!, weapon.Next4Rarity + 1) == "MR" ? " (MR)" : "")}
+|Next 4 Type             = {weapon.Type}
+|Next 4 Rarity           = {weapon.Next4Rarity + 1}
+|Next 4 Cost             = {weapon.Next4Cost:N0}
+|Next 4 Materials        = {GetMaterialsTemplates(weapon.Next4Materials, weapon.Game)}");
+				}
 				ret.AppendLine(@"}}");
-				if (weapon.Type == "HH")
+				if (weapon.Type == "HH" && weapon.Game != "MHRS")
 				{
 					List<Tuple<string, string[]>> melodies = GetHHMelodies();
 					ret.AppendLine(@"==Melodies==
@@ -135,105 +189,40 @@ The {weapon.Name} is {(weapon.Type == "IG" ? "an" : "a")} [[{weaponNames.Item1} 
 					}
 					ret.AppendLine("|}");
 				}
-				if (weapon.ShellTable != null && weapon.Type != "Bo")
+				if (!string.IsNullOrEmpty(weapon.ShellTableWikitext) && weapon.Type != "Bo")
 				{
-					ret.AppendLine(@"==Ammunition==
-{{AmmoTableLegend}}
+					ret.AppendLine($@"==Ammunition==
+{{{{AmmoTableLegend}}}}
 <br>
-{| class=""wikitable"" style=""text-align:center; width:100%; margin:0;""
+{{| class=""wikitable"" style=""text-align:center; width:100%; margin:0;""
 !Ammo
 !Capacity
 !Recoil
 !Reload
 !Shot Type
-|-");
-					foreach (ShellTable shell in weapon.ShellTable.Where(x => x.Capacity > 0 && !x.Name.StartsWith("Unknown")))
-					{
-						string recoil = shell.RecoilType == "Auto-Reload" || shell.RecoilType == "Wyvern" || shell.RecoilType == "Rapid Fire (Sticky)" ? (shell.RecoilType == "Rapid Fire (Sticky)" ? "Recoil +1" : shell.RecoilType) : shell.RecoilType.Substring(shell.RecoilType.IndexOf("(Recoil") + 1, 9);
-						string reload = shell.ReloadSpeed[..shell.ReloadSpeed.IndexOf(" Reload")];
-						Models.Data.MHWI.Items shellItem = _mhwiItems.First(x => x.Name == shell.Name);
-						ret.AppendLine($"|{{{{GenericItemLink|{weapon.Game}|{shellItem.Name}|Ammo|{GetColorString(shellItem.WikiIconColor!.Value.ToString())}}}}}");
-						ret.AppendLine($"|{shell.Capacity}");
-						ret.AppendLine($"|{recoil}");
-						ret.AppendLine($"|{reload}");
-						string icons = "";
-						bool movingShotEnabled = false;
-						bool movingReloadEnabled = false;
-						if (!shell.RecoilType.StartsWith("Cluster") && !recoil.Contains("+3") && !recoil.Contains("+4") && shell.RecoilType != "Wyvern")
-						{
-							icons += $"{{{{UI|{{{{{{Game|MHWI}}}}}}|{weapon.Type} Moving Shot Enabled|size=24x24px|nolink=true|title=Moving Shot Enabled}}}}";
-							movingShotEnabled = true;
-						}
-						if (reload != "Slow" && reload != "Very Slow")
-						{
-							if (icons != "")
-							{
-								icons += " ";
-							}
-							icons += $"{{{{UI|{{{{{{Game|MHWI}}}}}}|{weapon.Type} Moving Reload Enabled|size=24x24px|nolink=true|title=Moving Reload Enabled}}}}";
-							movingReloadEnabled = true;
-						}
-						if (shell.RecoilType == "Auto-Reload")
-						{
-							if (!movingShotEnabled)
-							{
-								if (icons != "")
-								{
-									icons += " ";
-								}
-								icons += $"{{{{UI|{{{{{{Game|MHWI}}}}}}|{weapon.Type} Moving Shot Enabled|size=24x24px|nolink=true|title=Moving Shot Enabled}}}}";
-							}
-							if (!movingReloadEnabled)
-							{
-								if (icons != "")
-								{
-									icons += " ";
-								}
-								icons += $"{{{{UI|{{{{{{Game|MHWI}}}}}}|{weapon.Type} Moving Reload Enabled|size=24x24px|nolink=true|title=Moving Reload Enabled}}}}";
-							}
-							if (icons != "")
-							{
-								icons += " ";
-							}
-							icons += $"{{{{UI|{{{{{{Game|MHRS}}}}}}|{weapon.Type} Single Fire Auto Reload|size=24x24px|nolink=true|title=Single Fire Auto Reload}}}}";
-						}
-						if (shell.RecoilType.StartsWith("Rapid Fire"))
-						{
-							if (icons != "")
-							{
-								icons += " ";
-							}
-							icons += $"{{{{UI|{{{{{{Game|MHRS}}}}}}|{weapon.Type} Rapid Fire|size=24x24px|nolink=true|title=Rapid Fire}}}}";
-						}
-						if (shell.RecoilType == "Wyvern")
-						{
-							if (icons != "")
-							{
-								icons += " ";
-							}
-							icons += "[[File:MHWI-Ammo Icon Brown.png|24x24px|link=|Wyvern]]";
-						}
-						if (shell.RecoilType.StartsWith("Cluster"))
-						{
-							if (icons != "")
-							{
-								icons += " ";
-							}
-							icons += "[[File:MHWI-Ammo Icon Rose.png|24x24px|link=|Cluster]]";
-						}
-						if (string.IsNullOrEmpty(icons))
-						{
-							icons = " -";
-						}
-						ret.AppendLine("|" + icons);
-						ret.AppendLine("|-");
-					}
+|-
+{weapon.ShellTableWikitext}");
 					ret.AppendLine(@"
 |}
 {{UserHelpBox|'''Capacity:''' The number of rounds of an ammo that a bowgun can fire before it has to reload.<br>
 '''Recoil:''' How much the hunter is pushed back when firing a shot. Impacts fire rate.<br>
 '''Reload:''' How quickly the hunter can reload the bowgun.<br>
 '''Shot Type:''' Certain ammo types on some bowguns have special properties when fired, such as Auto Reload or Wyvern, which impacts how the hunter uses the bowgun when firing and/or reloading.}}");
+				}
+				ret.AppendLine(@$"[[Category:{weaponNames.Item1}]]
+[[Category:{weapon.Game} Weapons]]
+[[Category:{weapon.Game} {weaponNames.Item1}]]");
+				if (weapon.Element1 != null && weapon.Element1 != "None")
+				{
+					ret.AppendLine($"[[Category:{weapon.Element1} Weapons]]");
+				}
+				if (weapon.Element2 != null && weapon.Element2 != "None")
+				{
+					ret.AppendLine($"[[Category:{weapon.Element2} Weapons]]");
+				}
+				if (match == null)
+				{
+					ret.AppendLine($"[[Category:{weapon.Game!} Weapons Without Renders]]");
 				}
 				return ret.ToString().Replace("\r\n\r\n", "\r\n").Replace("\r\n\r\n", "\r\n").Replace("\r\n\r\n", "\r\n");
 			});
@@ -264,6 +253,19 @@ The {weapon.Name} is {(weapon.Type == "IG" ? "an" : "a")} [[{weaponNames.Item1} 
 			else
 			{
 				return 1.0f;
+			}
+		}
+
+		public static string SanitizeRoman(string input)
+		{
+			string[] romans = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X"];
+			if (romans.Any(x => input.EndsWith(" " + x)))
+			{
+				return input[..input.LastIndexOf(' ')];
+			}
+			else
+			{
+				return input;
 			}
 		}
 
@@ -329,7 +331,7 @@ The {weapon.Name} is {(weapon.Type == "IG" ? "an" : "a")} [[{weaponNames.Item1} 
 			}[melody];
 		}
 
-		private static Tuple<string, string, string> GetWeaponTypeFullName(string weaponType)
+		public static Tuple<string, string, string> GetWeaponTypeFullName(string weaponType)
 		{
 			return new Dictionary<string, Tuple<string, string, string>>()
 			{
@@ -341,7 +343,7 @@ The {weapon.Name} is {(weapon.Type == "IG" ? "an" : "a")} [[{weaponNames.Item1} 
 				{ "HH", new Tuple<string,string,string>("Hunting Horn", "Hunting Horn", "Hunting Horns") },
 				{ "IG", new Tuple<string,string,string>("Insect Glaive", "Insect Glaive", "Insect Glaives") },
 				{ "Ln", new Tuple<string,string,string>("Lance", "Lance", "Lances") },
-				{ "LS", new Tuple<string,string,string>("Longsword", "Longsword", "Longswords") },
+				{ "LS", new Tuple<string,string,string>("Long Sword", "Long Sword", "Long Swords") },
 				{ "SA", new Tuple<string,string,string>("Switch Axe", "Switch Axe", "Switch Axes") },
 				{ "SnS", new Tuple<string,string,string>("Sword and Shield", "Sword and Shield pair", "Sword and Shield pairs") },
 				{ "Bo", new Tuple<string,string,string>("Bow", "Bow", "Bows") },
@@ -486,6 +488,12 @@ The {weapon.Name} is {(weapon.Type == "IG" ? "an" : "a")} [[{weaponNames.Item1} 
 			return Generate(data, [data]).Result;
 		}
 
+		public static string SingleGenerate(string game, WebToolkitData data, WebToolkitData[] src)
+		{
+			string wepName = GetWeaponTypeFullName(data.Type!).Item1;
+			return Generate(data, src).Result;
+		}
+
 		public static Dictionary<WebToolkitData, string> MassGenerate(string game, bool genfiles = true)
 		{
 			Dictionary<WebToolkitData, string> ret = [];
@@ -500,7 +508,7 @@ The {weapon.Name} is {(weapon.Type == "IG" ? "an" : "a")} [[{weaponNames.Item1} 
 			}
 			else
 			{
-
+				src = Models.Data.MHRS.Weapon.GetWebToolkitData();
 			}
 			if (genfiles)
 			{
@@ -582,7 +590,14 @@ The {weapon.Name} is {(weapon.Type == "IG" ? "an" : "a")} [[{weaponNames.Item1} 
 				{
 					suffix = "<br><!--";
 				}
-				ret.AppendLine($@"{prefix}{{{{{game}ItemLink|{dataObj["name"]}|{dataObj["icon"]}|{GetColorString(dataObj["color"])}}}}} x{dataObj["quantity"]}{suffix}");
+				if (dataObj["icon"] == "MATERIAL_NOICON")
+				{
+					ret.AppendLine($@"{prefix}{{{{GenericMaterialLink|{game}|{dataObj["name"]}}}}} {dataObj["quantity"]} {(dataObj["quantity"] == "1" ? "pt" : "pts")}.{suffix}");
+				}
+				else
+				{
+					ret.AppendLine($@"{prefix}{{{{GenericItemLink|{game}|{dataObj["name"]}|{dataObj["icon"]}|{GetColorString(dataObj["color"])}}}}} x{dataObj["quantity"]}{suffix}");
+				}
 				cntr++;
 			}
 			return ret.ToString();
