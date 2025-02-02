@@ -41,6 +41,7 @@
 				url: '@(Url.Action("ParseCsv", "WeaponTree"))/',
 				data: {
 					csvFile: text,
+					duplicateSharpness: ($("#duplicateSharpnessCsv").is(":checked"))
 				},
 				type: "POST",
 				dataType: "text",
@@ -426,7 +427,15 @@
 				<div class="row">
 					<span>Delimiter must be ','</span>
 					<span>Format should be :</span>
-					<span>Name,Parent,Rarity,Attack,Affinity,Defense,Element_hidden_bool,Element1,ElementAttack1,Element2,ElementAttack2,Elderseal,Deco1,Deco2,Deco3</span>
+					<span style="font-size: 14px;">Name,Parent,Rarity,Attack,Affinity,Defense,Element_hidden_bool,Element1,ElementAttack1,Element2,ElementAttack2,Elderseal,Deco1,Deco2,Deco3,</span>
+					<span style="font-size: 14px;">RedSharpness1,OrangeSharpness1,YellowSharpness1,GreenSharpness1,BlueSharpness1,WhiteSharpness1,PurpleSharpness1,</span>
+					<span style="font-size: 14px;">RedSharpness2,OrangeSharpness2,YellowSharpness2,GreenSharpness2,BlueSharpness2,WhiteSharpness2,PurpleSharpness2</span>
+					<span>Sharpness can be fully omitted, or have sharpness 2 omitted, and can have sharpness2 be sharpness1 duplicated</span>
+					<div class="row" style="margin-top: 10px; margin-bottom:10px;">
+						<div class="col-6">
+							<input type="checkbox" id="duplicateSharpnessCsv" /> Duplicate sharpness data
+						</div>
+					</div>
 					<div class="row" style="margin-top: 10px; margin-bottom:10px;">
 						<div class="col-10">
 							<textarea class="form-control" type="file" id="inputCsvFile" rows="12"></textarea>

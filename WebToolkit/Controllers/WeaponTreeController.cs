@@ -24,11 +24,11 @@ namespace WebToolkit.Controllers
 		}
 
         [HttpPost("ParseCsv")]
-        public string ParseCsv(string csvFile)
+        public string ParseCsv(string csvFile, bool duplicateSharpness)
         {
             try
             {
-                return MediawikiTranslator.Generators.WeaponTree.ParseCsv(csvFile);
+                return MediawikiTranslator.Generators.WeaponTree.ParseCsv(csvFile, duplicateSharpness);
             }
             catch (Exception ex)
             {

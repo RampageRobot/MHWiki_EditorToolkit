@@ -317,8 +317,8 @@ class WeaponTemplate
 		<div class="col">
 			<div class="row pb-1">
 				<div class="col">
-					<button style="padding: .25rem; margin-right:.25rem;" class="btn btn-primary bi bi-arrow-up float-start" onclick="$(this).parents('.table-content-row').after($(this).parents('.table-content-row').prev())"></button>
-					<button style="padding: .25rem;" class="btn btn-primary bi bi-arrow-down float-start" onclick="$(this).parents('.table-content-row').before($(this).parents('.table-content-row').next())"></button>
+					<button style="padding: .25rem; margin-right:.25rem;" class="btn btn-primary bi bi-arrow-up float-start" onclick="moveRowBefore($(this).closest('tr'))"></button>
+					<button style="padding: .25rem;" class="btn btn-primary bi bi-arrow-down float-start" onclick="moveRowAfter($(this).closest('tr'))"></button>
 				</div>
 			</div>
 		</div>
@@ -367,7 +367,8 @@ class WeaponTemplate
 		<button type="button" onclick="$(this).parent().parent().remove();" class="btn btn-danger btn-delete-row" title="Delete this weapon."><i class="bi bi-trash"></i></button>
 	</td>
 </tr>`;
-    }
+	}
+
 	static modifySharpness(row, sharpnessCallback, arg1, arg2, arg3)
 	{
 		WeaponTemplate.currentSharpnessRow = row;
