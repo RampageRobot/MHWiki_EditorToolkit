@@ -343,7 +343,7 @@ namespace MediawikiTranslator.Generators
 				ret.AppendLine($@"| {(string.IsNullOrEmpty(sharpness) ? "-" : sharpness)}");
 			}
 			ret.AppendLine($@"| {(string.IsNullOrEmpty(decos) ? "-" : decos)}
-| {(string.IsNullOrEmpty(dataObj.Defense) && dataObj.Defense != "0" ? "-" : dataObj.Defense)}
+| {(string.IsNullOrEmpty(dataObj.Defense) || dataObj.Defense == "0" ? "-" : dataObj.Defense)}
 }}}}");
 			if (!string.IsNullOrEmpty(dataObj.PathLink))
 			{
