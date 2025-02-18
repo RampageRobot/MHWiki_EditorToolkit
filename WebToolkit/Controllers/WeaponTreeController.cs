@@ -105,7 +105,7 @@ namespace WebToolkit.Controllers
 												</tr>
 											</thead>
 											<tbody>");
-					string parentNameOptions = string.Join("\r\n", path.Data.Select(x => $"<option value=\"{x.Name}\">{x.Name}</option>"));
+					string parentNameOptions = string.Join("\r\n", contents.SelectMany(x => x.Data.Select(x => $"<option value=\"{x.Name.Replace("\"", "&quot;")}\">{x.Name.Replace("\"", "&quot;")}</option>")).Distinct());
 					foreach (Datum data in path.Data)
 					{
 						string statString = $"{{\"attack\":\"{data.Attack}\",\"defense\":\"{data.Defense}\",\"element\":\"{data.Element}\",\"element-damage\":\"{data.ElementDamage}\",\"element-2\":\"{data.Element2}\",\"element-damage-2\":\"{data.ElementDamage2}\",\"affinity\":\"{data.Affinity}\",\"elderseal\":\"{data.Elderseal}\",\"rampage-slots\":\"{data.RampageSlots}\",\"rampage-deco\":\"{data.RampageDeco}\",\"armor-skill\":\"{data.ArmorSkill}\",\"armor-skill-2\":\"{data.ArmorSkill2}\"}}";
@@ -114,8 +114,8 @@ namespace WebToolkit.Controllers
 		<div class=""col"">
 			<div class=""row pb-1"">
 				<div class=""col"">
-					<button style=""padding: .25rem; margin-right:.25rem;"" class=""btn btn-primary bi bi-arrow-up float-start"" onclick=""$(this).parents('.table-content-row').after($(this).parents('.table-content-row').prev())""></button>
-					<button style=""padding: .25rem;"" class=""btn btn-primary bi bi-arrow-down float-start"" onclick=""$(this).parents('.table-content-row').before($(this).parents('.table-content-row').next())""></button>
+					<button style=""padding: .25rem; margin-right:.25rem;"" class=""btn btn-primary bi bi-arrow-up float-start"" onclick=""insertRowBefore($(this));""></button>
+					<button style=""padding: .25rem;"" class=""btn btn-primary bi bi-arrow-down float-start"" onclick=""insertRowAfter($(this));""></button>
 				</div>
 			</div>
 		</div>
@@ -127,7 +127,7 @@ namespace WebToolkit.Controllers
 		<input style=""font-size:1.5rem;"" class=""form-check-input weapon-can-rollback-input data-value m-auto"" data-label=""can-rollback"" type=""checkbox"" value=""{data.CanRollback == true}""{(data.CanRollback == true ? " checked=\"checked\"" : "")}>
 	</td>
 	<td>
-		<input type=""text"" class=""form-control weapon-name-input data-value"" onchange=""initRow()"" data-label=""name"" value=""{data.Name}"">
+		<input type=""text"" class=""form-control weapon-name-input data-value"" onchange=""initRow()"" data-label=""name"" value=""{data.Name.Replace("\"", "&quot;")}"">
 	</td>
 	<td>
 		<select class=""form-control form-select weapon-parent-input data-value"" data-label=""parent"">

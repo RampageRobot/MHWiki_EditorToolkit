@@ -8,9 +8,8 @@ namespace WebToolkit
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
-
-            // Add services to the container.
-            builder.Services.AddRazorPages();
+			// Add services to the container.
+			builder.Services.AddRazorPages();
 			builder.Services.AddControllersWithViews();
 
 			var app = builder.Build();

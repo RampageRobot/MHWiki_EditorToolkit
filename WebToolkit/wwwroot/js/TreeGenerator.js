@@ -38,10 +38,9 @@ $(window).on("load", function () {
 
 function loadTemplate()
 {
-    $("#tblTree thead tr").remove();
-    $("#tblTree tbody tr").remove();
-    switch ($("#ddlTemplateSelect").val())
-    {
+    $(".table-tree thead tr").remove();
+    $(".table-tree tbody tr").remove();
+    switch ($("#ddlTemplateSelect").val()) {
         case "Weapon":
             srcTreeRow = WeaponTemplate.getRow();
             $(".card .table-tree thead").append($(WeaponTemplate.getHeader()).clone(true));
@@ -73,13 +72,15 @@ function addRow(table, row, index = -1) {
     // Appends before at the specified index
     // 0 means it'll append in the first row.
     else {
-        if ($(table).find("tbody > tr").children().length == 0) {
+        var tableLength = $(table).children("tbody").children("tr").length;
+        if (tableLength == 0 || tableLength < (index + 1)) {
             $(table).append(row);
         }
-        console.log(index)
-        $(table).find("tbody > tr").eq(index).before(row);
-        initRow();
-        updateIcons();
+        else {
+            $(table).find("tbody > tr").eq(index).before(row);
+            initRow();
+            updateIcons();
+        }
     }
 }
 
@@ -111,7 +112,7 @@ function duplicateRow(row) {
     
     var duplicatedRow = $(srcTreeRow).clone(true);
     var table = $(row).parent().parent();
-    addRow(table, duplicatedRow, row.index() - 1)
+    addRow(table, duplicatedRow, row.index() + 1)
 
     duplicatedRow.find("[data-label=can-rollback]").prop("checked", row.find("[data-label=can-rollback]").is(":checked"))
 
@@ -146,8 +147,8 @@ function addRowFromCsv(weaponDict) {
     var table = $(".card .table-tree tbody");
     addRow(table, row)
 
-    row.find("[data-label=name]").val(weaponDict["Name"])
-    row.find("[data-label=parent]").val(weaponDict["Parent"])
+    row.find("[data-label=name]").val(weaponDict["Name"].replaceAll("\"", "&quot;"))
+    row.find("[data-label=parent]").val(weaponDict["Parent"].replaceAll("\"", "&quot;"))
     row.find("[data-label=rarity]").val(weaponDict["Rarity"])
 
     var attackObject = {
@@ -211,59 +212,43 @@ function getDecos(levelSlot1, levelSlot2, levelSlot3) {
     return returnValue;
 }
 
-function moveRowBefore(row) {
-    var rowIndex = getRowIndex(row);
-
-    // First row on the said table
-    if (rowIndex == 0) {
-        var treeContainer = row.closest("[class*='card-holder']");
-
-        var treeContainerIndex = treeContainer.index();
-        // There is a tree before the current tree, remove row and append at the end of that tree
-        if (treeContainerIndex > 0) {
-            var treesContainer = treeContainer.parent();
-            var container = $(treesContainer).children().eq(treeContainerIndex - 1);
-            var table = container.find('table');
-            row.parent().remove(row);
-            addRow(table, row);
-        }
-
-        var treesContainer = treeContainer.parent();
-
-        return;
+function insertRowBefore(el) {
+    var row = $(el).parents('.table-content-row').first();
+    var thisCard = $(el).parents(".card-holder").first();
+    var cardIndex = getCardIndex(thisCard);
+    if (getRowIndex(row) != 0) {
+        row.after($(el).parents('.table-content-row').prev());
     }
-    moveButton.parents('.table-content-row').after(moveButton.parents('.table-content-row').prev())
+    else if (cardIndex > 0) {
+        var prevCard = $($("#divCardContainer").find(".card-holder")[getCardIndex(thisCard) - 1]);
+        prevCard.find("tbody").first().append(row);
+    }
 }
 
-function moveRowAfter(row) {
-    var rowIndex = getRowIndex(row);
-
-    // Last row on the said table
-    if (rowIndex == getRowsAmount(row.parent().parent()) - 1) {
-        var treeContainer = row.closest("[class*='card-holder']");
-
-        var treeContainerIndex = treeContainer.index();
-        var treesContainer = treeContainer.parent();
-        if (treeContainerIndex < treesContainer.children().length - 1) {
-            console.log("tree found after this one")
-            // There is a tree after the current tree, remove row and append at the start of that tree
-            var container = $(treesContainer).children().eq(treeContainerIndex + 1);
-            console.log(container);
-            var table = container.find('table');
-            console.log(table);
-            row.parent().remove(row);
-            addRow(table, row, 0);
-        }
-
-        var treesContainer = treeContainer.parent();
-
-        return;
+function insertRowAfter(el) {
+    var row = $(el).parents('.table-content-row').first();
+    var thisCard = $(el).parents(".card-holder").first();
+    var cardIndex = getCardIndex(thisCard);
+    var table = row.parents(".table-tree").first();
+    if (getRowIndex(row) != getRowsAmount(table) - 1) {
+        row.before($(el).parents('.table-content-row').next());
     }
-    moveButton.parents('.table-content-row').before(moveButton.parents('.table-content-row').next())
+    else if (cardIndex != getCardsAmount() - 1) {
+        var nextCard = $($("#divCardContainer").find(".card-holder")[cardIndex + 1]);
+        nextCard.find("tbody").first().prepend(row);
+    }
+}
+
+function getCardIndex(card) {
+    return card.index();
 }
 
 function getRowIndex(row) {
-    return row.parent().parent().find("tbody > tr").index(row);
+    return row.index();
+}
+
+function getCardsAmount() {
+    return $("#divCardContainer").find(".card-holder").length;
 }
 
 function getRowsAmount(table) {

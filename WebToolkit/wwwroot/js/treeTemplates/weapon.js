@@ -155,6 +155,7 @@ class WeaponTemplate
 						<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 					</div>
 					<div class="modal-body" style="max-height: 78vh; overflow-y:auto;">
+						<span style="font-size:small">Note: If the game you're editing came out before Monster Hunter: World, you only need to provide one row, the level of which does not matter, and use the quantity to specify how many decoration slots the weapon has in total.</span>
 						<div class="row">
 							<div class="col">
 								<button class="btn btn-primary float-end" type="button" onclick="WeaponTemplate.addRowToTblDecos();">Add Decoration</button>
@@ -317,8 +318,8 @@ class WeaponTemplate
 		<div class="col">
 			<div class="row pb-1">
 				<div class="col">
-					<button style="padding: .25rem; margin-right:.25rem;" class="btn btn-primary bi bi-arrow-up float-start" onclick="moveRowBefore($(this).closest('tr'))"></button>
-					<button style="padding: .25rem;" class="btn btn-primary bi bi-arrow-down float-start" onclick="moveRowAfter($(this).closest('tr'))"></button>
+					<button style="padding: .25rem; margin-right:.25rem;" class="btn btn-primary bi bi-arrow-up float-start" onclick="insertRowBefore($(this));"></button>
+					<button style="padding: .25rem;" class="btn btn-primary bi bi-arrow-down float-start" onclick="insertRowAfter($(this));"></button>
 				</div>
 			</div>
 		</div>

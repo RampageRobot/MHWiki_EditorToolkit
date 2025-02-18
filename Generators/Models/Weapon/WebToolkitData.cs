@@ -316,7 +316,7 @@ namespace MediawikiTranslator.Models.Weapon
                 serializer.Serialize(writer, null);
                 return;
             }
-            var value = (long)untypedValue;
+            var value = long.Parse(untypedValue!.ToString());
             serializer.Serialize(writer, value.ToString());
             return;
         }

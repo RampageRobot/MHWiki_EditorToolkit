@@ -1,8 +1,11 @@
 ﻿using DocumentFormat.OpenXml.Drawing;
-﻿using DocumentFormat.OpenXml.Vml;
+using DocumentFormat.OpenXml.Drawing.Diagrams;
+using DocumentFormat.OpenXml.Vml;
+using MediawikiTranslator.Models.DamageTable.PartsData;
 using MediawikiTranslator.Models.Data.MHWI;
 using MediawikiTranslator.Models.WeaponTree;
 using Microsoft.VisualBasic.FileIO;
+using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using System.Xml.Linq;
@@ -45,8 +48,22 @@ namespace MediawikiTranslator.Generators
       padding-right:0px!important;
     }}
   }}
-}}}}
-{{{{WeaponTreeLegend|{srcData.FirstOrDefault()?.Game ?? "MHWI"}|{(WebToolkitData.GetWeaponName(string.IsNullOrEmpty(srcData.FirstOrDefault()?.Data?.FirstOrDefault()?.IconType) ? defaultIcon : srcData.FirstOrDefault()?.Data?.FirstOrDefault()?.IconType))}}}}}");
+}}}}");
+				string tableGame = srcData.Length > 0 ? srcData[0].Game : "MHWI";
+				string tableIconType = srcData.Length > 0 && srcData[0].Data.Length > 0 ? srcData[0].Data[0].IconType : "GS";
+				if (string.IsNullOrEmpty(tableIconType))
+				{
+					tableIconType = defaultIcon;
+				}
+				if (new string[] { "MHG", "MH1", "MHF1" }.Contains(tableGame))
+				{
+					string fullName = GetWeaponTypeFullName(tableIconType);
+					ret.AppendLine($"{{{{1stGenTreeLegend|{fullName}|{(tableGame == "MH1" ? "1": "2")}}}}}");
+				}
+				else
+				{
+					ret.AppendLine($@"{{{{WeaponTreeLegend|{srcData.FirstOrDefault()?.Game ?? "MHWI"}|{(WebToolkitData.GetWeaponName(string.IsNullOrEmpty(srcData.FirstOrDefault()?.Data?.FirstOrDefault()?.IconType) ? defaultIcon : srcData.FirstOrDefault()?.Data?.FirstOrDefault()?.IconType))}}}}}");
+				}
 				bool tableHasElderseal = srcData.Any(y => y.Data.Any(x => !string.IsNullOrEmpty(x.Elderseal)));
 				bool tableHasRampageSlots = srcData.Any(y => y.Data.Any(x => !string.IsNullOrEmpty(x.RampageSlots) && x.RampageSlots != "0"));
 				bool tableHasRampageDecos = srcData.Any(y => y.Data.Any(x => !string.IsNullOrEmpty(x.RampageDeco) && x.RampageDeco != "0"));
@@ -58,18 +75,25 @@ namespace MediawikiTranslator.Generators
 |-
 !Name 
 !class=""hide-on-mobile""|Rarity
-!class=""hide-on-mobile""|{{{{UI|MHWI|Attack}}}}
-!class=""hide-on-mobile""|{{{{UI|MHWI|Element}}}}
-!class=""hide-on-mobile""|{{{{UI|MHWI|Affinity}}}}");
+!class=""hide-on-mobile""|{{{{UI|MHWI|Attack}}}}");
+				if (!new string[] { "HBG", "LBG" }.Contains(tableIconType))
+				{
+					ret.AppendLine(@"!class=""hide-on-mobile""|{{UI|MHWI|Element}}");
+				}
+				if (!new string[] { "MHG", "MH1", "MHF1" }.Contains(tableGame))
+				{
+					ret.AppendLine(@"!class=""hide-on-mobile""|{{UI|MHWI|Affinity}}");
+				}
 				StringBuilder mobileHeaderBuilder = new();
 				mobileHeaderBuilder.AppendLine(@"! R
-! {{UI|MHWI|Attack}}
-! {{UI|MHWI|Element}}
-! {{UI|MHWI|Affinity}}");
-				string tableIconType = srcData.Length > 0 && srcData[0].Data.Length > 0 ? srcData[0].Data[0].IconType : "GS";
-				if (string.IsNullOrEmpty(tableIconType))
+! {{UI|MHWI|Attack}}");
+				if (!new string[] { "HBG", "LBG" }.Contains(tableIconType))
 				{
-					tableIconType = defaultIcon;
+					mobileHeaderBuilder.AppendLine(@"! {{UI|MHWI|Element}}");
+				}
+				if (!new string[] { "MHG", "MH1", "MHF1" }.Contains(tableGame))
+				{
+					mobileHeaderBuilder.AppendLine(@"! {{UI|MHWI|Affinity}}");
 				}
 				switch (tableIconType)
 				{
@@ -142,26 +166,33 @@ namespace MediawikiTranslator.Generators
 					ret.AppendLine(@"!class=""hide-on-mobile""|[[File:2ndGen-Whetstone Icon Yellow.png|24x24px|link=]]");
 					mobileHeaderBuilder.AppendLine("![[File:2ndGen-Whetstone Icon Yellow.png|24x24px|link=]]");
 				}
-				ret.AppendLine(@"!class=""hide-on-mobile""|[[File:2ndGen-Decoration Icon Blue.png|24x24px|link=]] 
-!class=""hide-on-mobile""|{{UI|MHWI|Defense}}");
-				mobileHeaderBuilder.AppendLine(@"![[File:2ndGen-Decoration Icon Blue.png|24x24px|link=]]
-!{{UI|MHWI|Defense}}");
+				if (!new string[] { "MHG", "MH1", "MHF1" }.Contains(tableGame))
+				{
+					ret.AppendLine(@"!class=""hide-on-mobile""|[[File:2ndGen-Decoration Icon Blue.png|24x24px|link=]]");
+					mobileHeaderBuilder.AppendLine(@"![[File:2ndGen-Decoration Icon Blue.png|24x24px|link=]]");
+				}
+				ret.AppendLine(@"!class=""hide-on-mobile""|{{UI|MHWI|Defense}}");
+				mobileHeaderBuilder.AppendLine(@"!{{UI|MHWI|Defense}}");
 				string mobileHeaders = mobileHeaderBuilder.ToString();
 				List<string> namesSoFar = [];
 				int arrayCnt = 0;
-				foreach (Datum dataObj in srcData[0].Data.Where(x => !namesSoFar.Contains(x.Name)))
+				foreach (Datum dataObj in srcData[0].Data.Where(x => !namesSoFar.Contains(x.Name.Trim())))
 				{
-					namesSoFar.Add(dataObj.Name);
-					Tuple<int, int> cnts = AddWeapon(ret, dataObj, defaultIcon, srcData, srcData[0], totalCnt, arrayCnt, sharpnessBase, maxSharpnessCount, mobileHeaders, tableHasElderseal, tableHasRampageSlots, tableHasRampageDecos, tableHasArmorSkills, namesSoFar);
-					totalCnt = cnts.Item1;
-					arrayCnt = cnts.Item2;
+					if (!namesSoFar.Contains(dataObj.Name.Trim()))
+					{
+						namesSoFar.Add(dataObj.Name.Trim());
+						Tuple<int, int, List<string>> cnts = AddWeapon(ret, dataObj, defaultIcon, srcData, srcData[0], totalCnt, arrayCnt, sharpnessBase, maxSharpnessCount, mobileHeaders, tableHasElderseal, tableHasRampageSlots, tableHasRampageDecos, tableHasArmorSkills, namesSoFar);
+						totalCnt = cnts.Item1;
+						arrayCnt = cnts.Item2;
+						namesSoFar.AddRange(cnts.Item3.Where(x => !namesSoFar.Contains(x)));
+					}
 				}
 				ret.AppendLine("|}");
 				return ret.ToString();
 			});
 		}
 
-		private static Tuple<int, int> AddWeapon(StringBuilder ret, Datum dataObj, string defaultIcon, WebToolkitData[] srcData, WebToolkitData dataArray, int totalCnt, int arrayCnt, string sharpnessBase, int maxSharpnessCount, string mobileHeaders, bool tableHasElderseal, bool tableHasRampageSlots, bool tableHasRampageDecos, bool tableHasArmorSkills, List<string> namesSoFar)
+		private static Tuple<int, int, List<string>> AddWeapon(StringBuilder ret, Datum dataObj, string defaultIcon, WebToolkitData[] srcData, WebToolkitData dataArray, int totalCnt, int arrayCnt, string sharpnessBase, int maxSharpnessCount, string mobileHeaders, bool tableHasElderseal, bool tableHasRampageSlots, bool tableHasRampageDecos, bool tableHasArmorSkills, List<string> namesSoFar)
 		{
 			string iconType = dataObj.IconType;
 			if (string.IsNullOrEmpty(iconType))
@@ -192,11 +223,21 @@ namespace MediawikiTranslator.Generators
 			if (!string.IsNullOrEmpty(dataObj.Decos))
 			{
 				Decoration[] objDecos = [.. Newtonsoft.Json.JsonConvert.DeserializeObject<Decoration[]>(dataObj.Decos)!.OrderBy(x => !x.IsRampage).ThenBy(x => x.Level)];
-				foreach (Decoration deco in objDecos)
+				if (new string[] { "MHWI", "MHW", "MHRS", "MHR", "MHWilds" }.Contains(dataArray.Game))
 				{
-					for (int i = 0; i < deco.Qty; i++)
+					foreach (Decoration deco in objDecos)
 					{
-						decos += $"{{{{{(deco.IsRampage ? "RampageDeco" : "5thDeco")}|{deco.Level}}}}}";
+						for (int i = 0; i < deco.Qty; i++)
+						{
+							decos += $"{{{{{(deco.IsRampage ? "RampageDeco" : "5thDeco")}|{deco.Level}}}}}";
+						}
+					}
+				}
+				else if (objDecos.Length > 0)
+				{
+					for (int i = 0; i < objDecos[0].Qty; i++)
+					{
+						decos += "◯";
 					}
 				}
 			}
@@ -205,42 +246,72 @@ namespace MediawikiTranslator.Generators
 			List<int> ancestors = [];
 			Datum ancestor = dataArray.Data[0];
 			Datum[] allData = srcData.SelectMany(x => x.Data).ToArray();
-			string[] dataNames = allData.Select(x => x.Name).Distinct().ToArray();
-			while (iterAncestor != null && ancestors.Count < 500)
+			string[] dataNames = allData.Select(x => x.Name.Trim()).Distinct().ToArray();
+			int testCnt = 0;
+			while (iterAncestor != null && testCnt < 500)
 			{
-				iterAncestor = allData.FirstOrDefault(x => x.Name == iterAncestor.Parent);
-				if (iterAncestor == null || iterAncestor != ancestor)
+				iterAncestor = allData.FirstOrDefault(x => iterAncestor.Parent != null && x.Name.Trim() == iterAncestor.Parent.Trim());
+				if (iterAncestor != null && iterAncestor.Name.Trim() != dataObj.Name.Trim())
 				{
-					int index = Array.IndexOf(dataNames, (iterAncestor ?? ancestor).Name);
+					int index = Array.IndexOf(dataNames, (iterAncestor ?? ancestor).Name.Trim());
 					if (!ancestors.Contains(index))
 					{
-						ancestors.Add(Array.IndexOf(dataNames, (iterAncestor ?? ancestor).Name));
+						ancestors.Add(Array.IndexOf(dataNames, (iterAncestor ?? ancestor).Name.Trim()));
 					}
 				}
+				testCnt++;
 			}
-			if (ancestors.Count >= 500)
+			if (testCnt >= 500)
 			{
 				throw new Exception("Ancestor overload at " + dataArray.Data[0].Name + " line somewhere near " + iterAncestor!.Name + ". This usually means that the weapons are referencing each other in the \"Upgraded From\" section in a never-ending loop.");
 			}
 			string prefix = "";
 			ancestors.Reverse();
+			List<string> prevPaths = [];
+			List<Datum> ancs = [];
+			Datum? anc = dataObj;
+			while (anc != null)
+			{
+				if (!string.IsNullOrEmpty(anc.Parent))
+				{
+					string parent = anc.Parent;
+					anc = allData.FirstOrDefault(x => x.Name == parent && !string.IsNullOrEmpty(x.PathLink));
+					if (anc == null)
+					{
+						anc = allData.First(x => x.Name == parent);
+					}
+					ancs.Add(anc);
+				}
+				else
+				{
+					anc = null;
+				}
+			}
+			ancs.Reverse();
+			foreach (Datum a in ancs)
+			{
+				if (!string.IsNullOrEmpty(a.PathLink) && prevPaths.Count < 2)
+				{
+					prevPaths.Add(a.PathLink);
+				}
+			}
 			int thisIndex = Array.IndexOf(dataNames, dataObj.Name);
 			int ancestorCnt = 1;
 			int spaceCnt = 0;
-			if (totalCnt > 0)
+			if (totalCnt > 0 && !string.IsNullOrEmpty(dataObj.Parent))
 			{
-				bool futureSiblings = allData.Any(x => x.Name != dataObj.Name && x.Parent == dataObj.Parent && Array.IndexOf(dataNames, x.Name) > thisIndex);
+				bool futureSiblings = !string.IsNullOrEmpty(dataObj.Parent) && allData.Any(x => x.Name != dataObj.Name && x.Parent != null && x.Parent.Trim() == dataObj.Parent.Trim() && Array.IndexOf(dataNames, x.Name) > thisIndex);
 				foreach (int ancestorIndex in ancestors)
 				{
 					string ancestorName = dataNames[ancestorIndex];
-					Datum ancestorWeapon = allData.First(x => x.Name == ancestorName);
-					if (allData.Any(x => x.Name != ancestorName && x.Parent == ancestorWeapon.Parent && Array.IndexOf(dataNames, x.Name) > ancestorIndex))
+					Datum ancestorWeapon = allData.First(x => x.Name.Trim() == ancestorName.Trim());
+					if (!string.IsNullOrEmpty(ancestorWeapon.Parent) && allData.Any(x => x.Name != ancestorName && x.Parent != null && x.Parent.Trim() == ancestorWeapon.Parent.Trim() && Array.IndexOf(dataNames, x.Name) > ancestorIndex))
 					{
 						prefix += "{{K|I}}";
 					}
 					else
 					{
-						if (spaceCnt > 0 || string.IsNullOrEmpty(dataObj.PathLink))
+						if (spaceCnt > 0 || string.IsNullOrEmpty(dataObj.PathLink) || prevPaths.Count >= 2)
 						{
 							prefix += "{{K|S|W}}";
 						}
@@ -250,43 +321,54 @@ namespace MediawikiTranslator.Generators
 				}
 				prefix += futureSiblings ? "{{K|B}}" : "{{K|L}}";
 			}
+			string prevPathLink = prevPaths.Count > 1 ? prevPaths[1] : "";
+			string thisPathLink = prevPaths.Count > 0 ? prevPaths[0] : "";
+			string id = GetWeaponId($"{dataObj.Name.Replace(" ", "_")}_{dataArray.PathName.Replace(" ", "_")}");
 			ret.AppendLine($@"{{{{GenericWeaponTreeRow
-| ID = {dataObj.Name.Replace(" ", "_")}_{dataArray.PathName.Replace(" ", "_")}{(totalCnt > 0 ? $@"
-| IDH = {srcData[0].PathName.Replace(" ", "_")}" : "")}
-| ID{(!string.IsNullOrEmpty(dataObj.PathLink) || totalCnt == 0 ? "C" : "IH")} = {(!string.IsNullOrEmpty(dataObj.PathLink) ? dataObj.PathLink.Replace(" ", "_") : dataArray.PathName.Replace(" ", "_"))}{(!string.IsNullOrEmpty(prefix) ? $@"
+| ID = {id}{(!string.IsNullOrEmpty(dataObj.PathLink) && prevPaths.Count < 2 ? $@"
+| IDC = {dataObj.PathLink.Replace(" ", "_")}" : "")}{(!string.IsNullOrEmpty(thisPathLink) ? $@"
+| IDH = {thisPathLink.Replace(" ", "_")}" : "")}{(!string.IsNullOrEmpty(prevPathLink) ? $@"
+| IDIH = {prevPathLink.Replace(" ", "_")}" : "")}{(!string.IsNullOrEmpty(prefix) ? $@"
 | Spaces = {prefix}" : "")}
 | Weapon = {{{{GenericWeaponLink|{dataArray.Game}|{dataObj.Name}|{iconType}|{dataObj.Rarity}{(dataObj.CanForge == true ? "|true" : "")}{(dataObj.CanRollback == true ? (dataObj.CanForge != true ? "||true" : "|true") : "")}}}}}
 | Headers = 
 {mobileHeaders}{(iconType == "Bo" ? @"
-| 5 Style = white-space: normal;" : "")}|{dataObj.Rarity}
-|{dataObj.Attack + (trueRaw == Convert.ToInt32(dataObj.Attack) ? "" : $" ({trueRaw})")}
-|{(string.IsNullOrEmpty(dataObj.Element) && dataObj.Element != "0" ? "-" : $"{{{{UI|UI|{dataObj.Element}|text={dataObj.ElementDamage}}}}}")}
-|{((dataObj.Affinity == 0 || dataObj.Affinity == null) ? "0%" : dataObj.Affinity + "%")}");
+| 5 Style = white-space: normal;" : "")}
+|{dataObj.Rarity}
+|{dataObj.Attack + (trueRaw == Convert.ToInt32(dataObj.Attack) ? "" : $" ({trueRaw})")}");
+			if (!new string[] { "HBG", "LBG" }.Contains(iconType))
+			{
+				ret.AppendLine($@"|{(string.IsNullOrEmpty(dataObj.Element) && dataObj.Element != "0" ? "-" : $"{{{{UI|UI|{dataObj.Element}|text={dataObj.ElementDamage}}}}}") + (string.IsNullOrEmpty(dataObj.Element2) && dataObj.Element2 != "0" ? "" : $" {{{{UI|UI|{dataObj.Element2}|text={dataObj.ElementDamage2}}}}}")} ");
+			}
+			if (!new string[] { "MHG", "MH1", "MHF1" }.Contains(dataArray.Game))
+			{
+				ret.AppendLine($@"|{ ((dataObj.Affinity == 0 || dataObj.Affinity == null) ? "0%" : dataObj.Affinity + "%")} ");
+			}
 			switch (iconType)
 			{
 				case "Bo":
 					ret.AppendLine($"|{GetBowCoatings(dataArray.Game, dataObj.BoCoatings.Split(',').Select(x => x.Trim()).ToArray())}");
 					break;
 				case "CB":
-					ret.AppendLine($"|{dataObj.CBPhialType}");
+					ret.AppendLine($"|{(!string.IsNullOrEmpty(dataObj.CBPhialType) ? dataObj.CBPhialType : " - ")}");
 					break;
 				case "SA":
-					ret.AppendLine($"|{dataObj.SAPhialType}");
+					ret.AppendLine($"|{(!string.IsNullOrEmpty(dataObj.SAPhialType) ? dataObj.SAPhialType : " - ")}");
 					break;
 				case "GL":
-					ret.AppendLine($"|{dataObj.GLShellingType}");
+					ret.AppendLine($"|{(!string.IsNullOrEmpty(dataObj.GLShellingType) ? dataObj.GLShellingType : " - ")}");
 					break;
 				case "HH":
 					ret.AppendLine($"|{{{{UI|MHWI|HH Note|1 {dataObj.HHNote1}}}}}{{{{UI|MHWI|HH Note|2 {dataObj.HHNote2}}}}}{{{{UI|MHWI|HH Note|3 {dataObj.HHNote3}}}}}");
 					break;
 				case "IG":
-					ret.AppendLine($"|{dataObj.IGKinsectBonus}");
+					ret.AppendLine($"|{(!string.IsNullOrEmpty(dataObj.IGKinsectBonus) ? dataObj.IGKinsectBonus : " - ")}");
 					break;
 				case "HBG":
-					ret.AppendLine($"|{dataObj.HBGSpecialAmmoType}");
+					ret.AppendLine($"|{(!string.IsNullOrEmpty(dataObj.HBGSpecialAmmoType) ? dataObj.HBGSpecialAmmoType : " - ")}");
 					if (dataArray.Game != "MHWI")
 					{
-						ret.AppendLine($"|{dataObj.HBGReloadRecoil}");
+						ret.AppendLine($"|{(!string.IsNullOrEmpty(dataObj.HBGReloadRecoil) ? dataObj.HBGReloadRecoil : " - ")}");
 					}
 					else
 					{
@@ -294,10 +376,10 @@ namespace MediawikiTranslator.Generators
 					}
 					break;
 				case "LBG":
-					ret.AppendLine($"|{dataObj.LBGSpecialAmmoType}");
+					ret.AppendLine($"|{(!string.IsNullOrEmpty(dataObj.LBGSpecialAmmoType) ? dataObj.LBGSpecialAmmoType : " - ")}");
 					if (dataArray.Game != "MHWI")
 					{
-						ret.AppendLine($"|{dataObj.LBGReloadRecoil}");
+						ret.AppendLine($"|{(!string.IsNullOrEmpty(dataObj.LBGReloadRecoil) ? dataObj.LBGReloadRecoil : " - ")}");
 					}
 					else
 					{
@@ -350,18 +432,54 @@ namespace MediawikiTranslator.Generators
 				WebToolkitData? dataArrayThis = srcData.FirstOrDefault(x => x.PathName == dataObj.PathLink);
 				if (dataArrayThis != null)
 				{
-					foreach (Datum obj in dataArrayThis.Data.Where(x => !namesSoFar.Contains(x.Name)))
+					foreach (Datum obj in dataArrayThis.Data.Where(x => !namesSoFar.Contains(x.Name.Trim())))
 					{
-						namesSoFar.Add(dataObj.Name);
-						Tuple<int, int> cnts = AddWeapon(ret, obj, defaultIcon, srcData, dataArrayThis, totalCnt, arrayCnt, sharpnessBase, maxSharpnessCount, mobileHeaders, tableHasElderseal, tableHasRampageSlots, tableHasRampageDecos, tableHasArmorSkills, namesSoFar);
-						totalCnt = cnts.Item1;
-						arrayCnt = cnts.Item2;
+						if (!namesSoFar.Contains(obj.Name.Trim()))
+						{
+							namesSoFar.Add(obj.Name.Trim());
+							Tuple<int, int, List<string>> cnts = AddWeapon(ret, obj, defaultIcon, srcData, dataArrayThis, totalCnt, arrayCnt, sharpnessBase, maxSharpnessCount, mobileHeaders, tableHasElderseal, tableHasRampageSlots, tableHasRampageDecos, tableHasArmorSkills, namesSoFar);
+							totalCnt = cnts.Item1;
+							arrayCnt = cnts.Item2;
+							namesSoFar.AddRange(cnts.Item3.Where(x => !namesSoFar.Contains(x)));
+						}
 					}
 				}
 			}
 			totalCnt++;
 			arrayCnt++;
-			return new Tuple<int, int>(totalCnt, arrayCnt);
+			return new Tuple<int, int, List<string>>(totalCnt, arrayCnt, namesSoFar);
+		}
+
+		private static string GetWeaponId(string idStart)
+		{
+			char[] replace = ['!', '@', '#', '$', '%', '^', '&', '*', '(', ')', '+', '=', '{', '}', '[', ']', '|', '\\', ':', ';', '"', '\'', '<', '>', ',', '/', '?'];
+			string[] replaceWith = ["exclam", "ampat", "pound", "dollar", "perc", "carat", "amp", "asterisk", "parenthopen", "parenthclose", "plus", "equals", "braceopen", "braceclose", "bracketopen", "bracketclose", "pipe", "backslash", "colon", "semicolon", "quote", "apost", "quote", "less", "greater", "comma", "slash", "question"];
+			for (int i = 0; i < replace.Length; i++)
+			{
+				idStart = idStart.Replace(replace[i].ToString(), replaceWith[i]);
+			}
+			return idStart;
+		}
+
+		public static string GetWeaponTypeFullName(string weaponType)
+		{
+			return new Dictionary<string, string>()
+			{
+				{ "CB", "Charge Blade"},
+				{ "DB", "Dual Blades"},
+				{ "GS", "Great Sword"},
+				{ "GL", "Gunlance"},
+				{ "Hm", "Hammer"},
+				{ "HH", "Hunting Horn"},
+				{ "IG", "Insect Glaive"},
+				{ "Ln", "Lance"},
+				{ "LS", "Long Sword"},
+				{ "SA", "Switch Axe"},
+				{ "SnS", "Sword and Shield"},
+				{ "Bo", "Bow"},
+				{ "HBG", "Heavy Bowgun"},
+				{ "LBG", "Light Bowgun"}
+			}[weaponType];
 		}
 
 		private static string GetBowCoatings(string game, string[] coatingArr)
@@ -418,7 +536,7 @@ namespace MediawikiTranslator.Generators
 			return coatings;
 		}
 
-		private static List<WeaponCsv> ParseWeaponsFromCsv(string csvFile, string delimiter = ",")
+		private static List<WeaponCsv> ParseWeaponsFromCsv(string csvFile, bool duplicateSharpness, string delimiter = ",")
 		{
 			var weapons = new List<WeaponCsv>();
 			using (var parser = new TextFieldParser(GenerateStreamFromString(csvFile)))

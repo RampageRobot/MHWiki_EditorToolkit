@@ -8,17 +8,13 @@ using WikiClientLibrary;
 using MediawikiTranslator.Models.Weapon;
 using MediawikiTranslator.Generators;
 using WikiClientLibrary.Generators;
-using System.Diagnostics;
-using MediawikiTranslator.Models.Data.MHWI;
-using DocumentFormat.OpenXml.Spreadsheet;
 using DocumentFormat.OpenXml.Wordprocessing;
-using WikiClientLibrary.Pages.Queries.Properties;
-using MediawikiTranslator.Models.Data.MHWilds;
 
 namespace MediawikiTranslator
 {
 	public static class Utilities
     {
+
 		public static Models.Data.MHRS.Items[] GetMHRSItems()
 		{
 			return JsonConvert.DeserializeObject<Models.Data.MHRS.Items[]>(Properties.Resources.mhrs_items, Models.Data.MHWI.Converter.Settings)!;
@@ -54,7 +50,7 @@ namespace MediawikiTranslator
 			}
 			using (WikiClient client = new()
 			{
-				ClientUserAgent = "MHWikiToolkit/1.0.8 " + username,
+				ClientUserAgent = "MHWikiToolkit/1.1.2 " + username,
 			})
 			{
 				WikiSite site = new(client, "https://monsterhunterwiki.org/api.php");
@@ -96,7 +92,7 @@ namespace MediawikiTranslator
 			}
 			using (WikiClient client = new()
 			{
-				ClientUserAgent = "MHWikiToolkit/1.0.8 " + username,
+				ClientUserAgent = "MHWikiToolkit/1.1.2 " + username,
 			})
 			{
 				WikiSite site = new(client, "https://monsterhunterwiki.org/api.php");
@@ -113,6 +109,84 @@ namespace MediawikiTranslator
 					{
 						await page.DeleteAsync("Page was in Marked For Deletion category, and was auto-deleted by the MHWikiToolkit.");
 						Console.WriteLine($"Deleted page {page.Title}");
+					}
+				}
+				catch (WikiClientException ex)
+				{
+					Console.WriteLine(ex.Message);
+				}
+				await site.LogoutAsync();
+			}
+		}
+
+		public static async Task UploadMonsterGameData(string game, string[] monsterNames)
+		{
+			string username = "";
+			string password = "";
+			if (File.Exists(@"D:\Wiki Files\wikicredentials.txt"))
+			{
+				string[] creds = File.ReadAllLines(@"D:\Wiki Files\wikicredentials.txt");
+				username = creds[0];
+				password = creds[1];
+			}
+			if (username == null)
+			{
+				Console.WriteLine("Please enter your username.");
+				username = Console.ReadLine()!;
+				Console.WriteLine("Please enter your password.");
+				password = Console.ReadLine()!;
+			}
+			using (WikiClient client = new()
+			{
+				ClientUserAgent = "MHWikiToolkit/1.1.2 " + username
+			})
+			{
+				WikiSite site = new(client, "https://monsterhunterwiki.org/api.php");
+				await site.Initialization;
+				try
+				{
+					await site.LoginAsync(username, password);
+					foreach (string monsterName in monsterNames)
+					{
+						Models.Monsters.Enrage enrage = new(monsterName);
+						if (enrage.FileFound)
+						{
+							WikiPage page = new(site, $"{monsterName}/{game}");
+							await page.RefreshAsync(PageQueryOptions.FetchContent);
+							if (page.Exists)
+							{
+								string oldContent = page.Content!;
+								string newContent = oldContent.Insert(oldContent.IndexOf($"{{{{:{monsterName}/Lore}}}}") - 1, $@"
+==Mechanics==
+===Enraged State===
+{{{{EnrageDataTable
+|MR Changes? ={(enrage.MRChanges ? " X" : "")}
+|Duration = {enrage.Duration}
+|MR Duration ={(enrage.MRChanges ? $" {enrage.MRDuration}" : "")}
+|Monster Damage Modifier = {enrage.DamageMod}
+|MR Monster Damage Modifier ={(enrage.MRChanges ? $" {enrage.MRDamageMod}" : "")}
+|Speed Modifier = {enrage.SpeedMod}
+|MR Speed Modifier ={(enrage.MRChanges ? $" {enrage.MRSpeedMod}" : "")}
+|Player Damage Modifier = {enrage.PlayerDamageMod}
+|MR Player Damage Modifier ={(enrage.MRChanges ? $" {enrage.MRPlayerDamageMod}" : "")}
+}}}}");
+								await page.EditAsync(new WikiPageEditOptions()
+								{
+									Bot = true,
+									Content = newContent,
+									Minor = true,
+									Summary = "Automatically generated game data from source data with Toolkit.",
+									Watch = AutoWatchBehavior.None
+								});
+								Console.WriteLine($"{monsterName}/{game} edited.");
+							}
+						}
+						else
+						{
+							Console.BackgroundColor = ConsoleColor.Red;
+							Console.WriteLine($"{monsterName}/{game} NOT FOUND!");
+							Console.ResetColor();
+						}
 					}
 				}
 				catch (WikiClientException ex)
@@ -142,7 +216,7 @@ namespace MediawikiTranslator
 			}
 			using (WikiClient client = new()
 			{
-				ClientUserAgent = "MHWikiToolkit/1.0.8 " + username,
+				ClientUserAgent = "MHWikiToolkit/1.1.2 " + username,
 			})
 			{
 				WikiSite site = new(client, "https://monsterhunterwiki.org/api.php");
@@ -197,7 +271,7 @@ namespace MediawikiTranslator
 			Dictionary<Models.ArmorSets.WebToolkitData, string> src = ArmorSets.MassGenerate(game);
 			using (WikiClient client = new()
 			{
-				ClientUserAgent = "MHWikiToolkit/1.0.8 " + username
+				ClientUserAgent = "MHWikiToolkit/1.1.2 " + username
 			})
 			{
 				WikiSite site = new(client, "https://monsterhunterwiki.org/api.php");
@@ -325,7 +399,7 @@ __TOC__");
 			Dictionary<WebToolkitData, string> src = Weapon.MassGenerate(game, false);
 			using (WikiClient client = new()
 			{
-				ClientUserAgent = "MHWikiToolkit/1.0.8 " + username
+				ClientUserAgent = "MHWikiToolkit/1.1.2 " + username
 			})
 			{
 				WikiSite site = new(client, "https://monsterhunterwiki.org/api.php");
@@ -387,7 +461,7 @@ __TOC__");
 					{ "LBG8", new int[] { 60, 0, 0 } }
 				};
 				Dictionary<WebToolkitData, string> dataDict = src;
-				int total = dataDict.Count();
+				int total = dataDict.Count;
 				foreach (KeyValuePair<WebToolkitData, string> data in dataDict)
 				{
 					WebToolkitData oldWeapon = data.Key.Clone();

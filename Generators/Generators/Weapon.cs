@@ -117,13 +117,13 @@ The {weapon.Name} is {(weapon.Type == "IG" ? "an" : "a")} [[{weaponNames.Item1} 
 |Upgrade Materials       = {GetMaterialsTemplates(weapon.UpgradeMaterials, weapon.Game)}
 |Previous Name           = {weapon.PreviousName + (src.Count(x => x.Name == weapon.PreviousName) > 1 && GetRank(weapon.Game!, weapon.PreviousRarity + 1) == "MR" ? " (MR)" : "")}
 |Previous Type           = {weapon.Type}
-|Previous Rarity         = {weapon.PreviousRarity + 1}");
+|Previous Rarity         = {weapon.PreviousRarity}");
 				}
 				if (!string.IsNullOrEmpty(weapon.Next1Name))
 				{
 					ret.AppendLine($@"|Next 1 Name             = {weapon.Next1Name + (src.Count(x => x.Name == weapon.Next1Name) > 1 && GetRank(weapon.Game!, weapon.Next1Rarity + 1) == "MR" ? " (MR)" : "")}
 |Next 1 Type             = {weapon.Type}
-|Next 1 Rarity           = {weapon.Next1Rarity + 1}
+|Next 1 Rarity           = {weapon.Next1Rarity}
 |Next 1 Cost             = {weapon.Next1Cost:N0}
 |Next 1 Materials        = {GetMaterialsTemplates(weapon.Next1Materials, weapon.Game)}");
 				}
@@ -131,7 +131,7 @@ The {weapon.Name} is {(weapon.Type == "IG" ? "an" : "a")} [[{weaponNames.Item1} 
 				{
 					ret.AppendLine($@"|Next 2 Name             = {weapon.Next2Name + (src.Count(x => x.Name == weapon.Next2Name) > 1 && GetRank(weapon.Game!, weapon.Next2Rarity + 1) == "MR" ? " (MR)" : "")}
 |Next 2 Type             = {weapon.Type}
-|Next 2 Rarity           = {weapon.Next2Rarity + 1}
+|Next 2 Rarity           = {weapon.Next2Rarity}
 |Next 2 Cost             = {weapon.Next2Cost:N0}
 |Next 2 Materials        = {GetMaterialsTemplates(weapon.Next2Materials, weapon.Game)}");
 				}
@@ -139,7 +139,7 @@ The {weapon.Name} is {(weapon.Type == "IG" ? "an" : "a")} [[{weaponNames.Item1} 
 				{
 					ret.AppendLine($@"|Next 3 Name             = {weapon.Next3Name + (src.Count(x => x.Name == weapon.Next3Name) > 1 && GetRank(weapon.Game!, weapon.Next3Rarity + 1) == "MR" ? " (MR)" : "")}
 |Next 3 Type             = {weapon.Type}
-|Next 3 Rarity           = {weapon.Next3Rarity + 1}
+|Next 3 Rarity           = {weapon.Next3Rarity}
 |Next 3 Cost             = {weapon.Next3Cost:N0}
 |Next 3 Materials        = {GetMaterialsTemplates(weapon.Next3Materials, weapon.Game)}");
 				}
@@ -147,7 +147,7 @@ The {weapon.Name} is {(weapon.Type == "IG" ? "an" : "a")} [[{weaponNames.Item1} 
 				{
 					ret.AppendLine($@"|Next 4 Name             = {weapon.Next4Name + (src.Count(x => x.Name == weapon.Next4Name) > 1 && GetRank(weapon.Game!, weapon.Next4Rarity + 1) == "MR" ? " (MR)" : "")}
 |Next 4 Type             = {weapon.Type}
-|Next 4 Rarity           = {weapon.Next4Rarity + 1}
+|Next 4 Rarity           = {weapon.Next4Rarity}
 |Next 4 Cost             = {weapon.Next4Cost:N0}
 |Next 4 Materials        = {GetMaterialsTemplates(weapon.Next4Materials, weapon.Game)}");
 				}

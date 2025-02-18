@@ -11,6 +11,7 @@ using Newtonsoft.Json;
 using MediawikiTranslator;
 using MediawikiTranslator.Models.Data.MHWI;
 using System.Text;
+using DocumentFormat.OpenXml.Wordprocessing;
 
 namespace WebToolkit.Pages
 {
@@ -21,9 +22,8 @@ namespace WebToolkit.Pages
         public IndexModel(ILogger<IndexModel> logger)
         {
             _logger = logger;
-        }
-
-        public void OnGet()
+		}
+		public void OnGet()
         {
 		}
     }

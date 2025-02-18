@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="Current" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
-    <_LastSelectedProfileId>D:\MHWiki_EditorToolkit\MHWiki_EditorToolkit\MHWikiToolkit\Properties\PublishProfiles\FolderProfile.pubxml</_LastSelectedProfileId>
+    <_LastSelectedProfileId>D:\MHWiki_EditorToolkit\MHWiki_EditorToolkit\MHWikiToolkit\Properties\PublishProfiles\Release.pubxml</_LastSelectedProfileId>
   </PropertyGroup>
 </Project>

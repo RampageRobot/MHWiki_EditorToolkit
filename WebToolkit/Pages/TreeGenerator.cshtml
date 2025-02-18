@@ -63,12 +63,11 @@
 			var pathData = loadedData[0];
 			if (typeof (pathData.treeType) !== 'undefined') {
 				$("#ddlTemplateSelect").val(pathData.treeType);
+				$("#ddlTemplateSelect").trigger("change");
 			}
 			if (typeof (pathData.game) !== 'undefined') {
 				$("#ddlGameSelect").val(pathData.game);
-			}
-			if (typeof (pathData.defaultIconType) !== 'undefined') {
-				$("#ddlIconSelect").val(pathData.defaultIconType);
+				$("#ddlGameSelect").trigger("change");
 			}
 			$(".card-holder").remove();
 			$.ajax({
@@ -80,6 +79,12 @@
 					200: function (result) {
 						$("body").css("cursor", "default");
 						$("#divCardContainer").append(result["responseText"]);
+						if (typeof (loadedData[0].defaultIconType) !== 'undefined') {
+							$("#ddlIconSelect").val("");
+							$("#ddlIconSelect").trigger("change");
+							$("#ddlIconSelect").val(loadedData[0].defaultIconType);
+							$("#ddlIconSelect").trigger("change");
+						}
 						$(".data-value-hidden").each(function () {
 							$(this).val($(this).attr("loaded-value"));
 						});
@@ -287,6 +292,58 @@
 				<div class="row">
 					<div class="col">
 						<p>Ping or message @@rampagerobot on Discord if you have any issues.</p>
+					</div>
+				</div>
+				<div class="row py-2">
+					<div class="col">
+						<div class="card">
+							<div class="card-header">
+								<h4>v2.0.3</h4>
+							</div>
+							<div class="card-body">
+								<h6>Affinity and decorations hidden on Gen 1 games.</h6>
+								<h6>Element hidden on HBG and LBG.</h6>
+								<h6>Duplicated rows now properly fall beneath the source row.</h6>
+								<h6>Adding a new tree after a save load no longer has two header and body rows.</h6>
+								<h6>Quotation marks are now escaped during save, load, and generation.</h6>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="row py-2">
+					<div class="col">
+						<div class="card">
+							<div class="card-header">
+								<h4>v2.0.2</h4>
+							</div>
+							<div class="card-body">
+								<h6>Added functionality to move rows between trees.</h6>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="row py-2">
+					<div class="col">
+						<div class="card">
+							<div class="card-header">
+								<h4>v2.0.1</h4>
+							</div>
+							<div class="card-body">
+								<h6>Fixed a bug with cloned rows not having the proper onclick events.</h6>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="row py-2">
+					<div class="col">
+						<div class="card">
+							<div class="card-header">
+								<h4>v2.0.1</h4>
+							</div>
+							<div class="card-body">
+								<h6>Added pre-world decoration support.</h6>
+							</div>
+						</div>
 					</div>
 				</div>
 				<div class="row py-2">
