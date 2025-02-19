@@ -1,14 +1,9 @@
-﻿using DocumentFormat.OpenXml.Drawing;
-using DocumentFormat.OpenXml.Drawing.Diagrams;
-using DocumentFormat.OpenXml.Vml;
-using MediawikiTranslator.Models.DamageTable.PartsData;
+﻿using MediawikiTranslator.Models.DamageTable.PartsData;
 using MediawikiTranslator.Models.Data.MHWI;
 using MediawikiTranslator.Models.WeaponTree;
 using Microsoft.VisualBasic.FileIO;
-using System.Security.Cryptography;
+using Newtonsoft.Json;
 using System.Text;
-using System.Text.Json;
-using System.Xml.Linq;
 
 namespace MediawikiTranslator.Generators
 {
@@ -21,7 +16,9 @@ namespace MediawikiTranslator.Generators
 
 		public static string ParseCsv(string csvFile, bool duplicateSharpness, string delimiter = ",")
 		{
-			return JsonSerializer.Serialize(ParseWeaponsFromCsv(csvFile, duplicateSharpness, delimiter));
+			return Models.WeaponTree.Serialize.ToJson([new WebToolkitData() {
+				Data = ParseWeaponsFromCsv(csvFile, duplicateSharpness, delimiter).ToArray()
+			}]);
 		}
 
 
@@ -124,6 +121,8 @@ namespace MediawikiTranslator.Generators
 					case "HBG":
 						ret.AppendLine("!class=\"hide-on-mobile\"|{{UI|MHWI|HBG Special Ammo}}");
 						mobileHeaderBuilder.AppendLine("!{{UI|MHWI|HBG Special Ammo}}");
+						ret.AppendLine("!class=\"hide-on-mobile\"|{{UI|MHWI|HBG Deviation}}");
+						mobileHeaderBuilder.AppendLine("!{{UI|MHWI|HBG Deviation}}");
 						if (srcData[0].Game != "MHWI")
 						{
 							ret.AppendLine("!class=\"hide-on-mobile\"|Reload / Recoil");
@@ -133,6 +132,8 @@ namespace MediawikiTranslator.Generators
 					case "LBG":
 						ret.AppendLine("!{{UI|MHWI|LBG Special Ammo}}");
 						mobileHeaderBuilder.AppendLine("!{{UI|MHWI|LBG Special Ammo}}");
+						ret.AppendLine("!class=\"hide-on-mobile\"|{{UI|MHWI|LBG Deviation}}");
+						mobileHeaderBuilder.AppendLine("!{{UI|MHWI|LBG Deviation}}");
 						if (srcData[0].Game != "MHWI")
 						{
 							ret.AppendLine("!class=\"hide-on-mobile\"|Reload / Recoil");
@@ -366,24 +367,18 @@ namespace MediawikiTranslator.Generators
 					break;
 				case "HBG":
 					ret.AppendLine($"|{(!string.IsNullOrEmpty(dataObj.HBGSpecialAmmoType) ? dataObj.HBGSpecialAmmoType : " - ")}");
+					ret.AppendLine($"|{(!string.IsNullOrEmpty(dataObj.HBGDeviation) ? dataObj.HBGDeviation : " - ")}");
 					if (dataArray.Game != "MHWI")
 					{
 						ret.AppendLine($"|{(!string.IsNullOrEmpty(dataObj.HBGReloadRecoil) ? dataObj.HBGReloadRecoil : " - ")}");
 					}
-					else
-					{
-						ret.AppendLine("| -");
-					}
 					break;
 				case "LBG":
 					ret.AppendLine($"|{(!string.IsNullOrEmpty(dataObj.LBGSpecialAmmoType) ? dataObj.LBGSpecialAmmoType : " - ")}");
+					ret.AppendLine($"|{(!string.IsNullOrEmpty(dataObj.LBGDeviation) ? dataObj.LBGDeviation : " - ")}");
 					if (dataArray.Game != "MHWI")
 					{
 						ret.AppendLine($"|{(!string.IsNullOrEmpty(dataObj.LBGReloadRecoil) ? dataObj.LBGReloadRecoil : " - ")}");
-					}
-					else
-					{
-						ret.AppendLine("| -");
 					}
 					break;
 				default: break;
@@ -491,44 +486,45 @@ namespace MediawikiTranslator.Generators
 				{
 					coatings += " ";
 				}
-				switch (coating)
+				bool hasPlus = coating.EndsWith("+");
+				switch (coating[..^(hasPlus ? 1 : 0)])
 				{
 					case "Close-Range":
 					case "Closerange":
 					case "CloseRange":
 					case "Close-range":
 					{
-						coatings += $"[[File:{game}-Coating Icon White.png|24x24px|Close-range Coating|link=Close-range Coating ({game})]]";
+						coatings += $"[[File:{game}-Coating Icon White{(hasPlus ? " Plus" : "")}.png|24x24px|Close-range Coating|link=Close-range Coating ({game})]]";
 						break;
 					}
 					case "Power":
 					{
-						coatings += $"[[File:{game}-Coating Icon Red.png|24x24px|Power Coating|link=Power Coating ({game})]]";
+						coatings += $"[[File:{game}-Coating Icon Red{(hasPlus ? " Plus" : "")}.png|24x24px|Power Coating|link=Power Coating ({game})]]";
 						break;
 					}
 					case "Poison":
 					{
-						coatings += $"[[File:{game}-Coating Icon Purple.png|24x24px|Poison Coating|link=Poison Coating ({game})]]";
+						coatings += $"[[File:{game}-Coating Icon Purple{(hasPlus ? " Plus" : "")}.png|24x24px|Poison Coating|link=Poison Coating ({game})]]";
 						break;
 					}
 					case "Para":
 					{
-						coatings += $"[[File:{game}-Coating Icon Orange.png|24x24px|Para Coating|link=Para Coating ({game})]]";
+						coatings += $"[[File:{game}-Coating Icon Orange{(hasPlus ? " Plus" : "")}.png|24x24px|Para Coating|link=Para Coating ({game})]]";
 						break;
 					}
 					case "Sleep":
 					{
-						coatings += $"[[File:{game}-Coating Icon Light Blue.png|24x24px|Sleep Coating|link=Sleep Coating ({game})]]";
+						coatings += $"[[File:{game}-Coating Icon Light Blue{(hasPlus ? " Plus" : "")}.png|24x24px|Sleep Coating|link=Sleep Coating ({game})]]";
 						break;
 					}
 					case "Blast":
 					{
-						coatings += $"[[File:{game}-Coating Icon Vermilion.png|24x24px|Blast Coating|link=Blast Coating ({game})]]";
+						coatings += $"[[File:{game}-Coating Icon Vermilion{(hasPlus ? " Plus" : "")}.png|24x24px|Blast Coating|link=Blast Coating ({game})]]";
 						break;
 					}
 					case "Exhaust":
 					{
-						coatings += $"[[File:{game}-Coating Icon Dark Blue.png|24x24px|Exhaust Coating|link=Exhaust Coating ({game})]]";
+						coatings += $"[[File:{game}-Coating Icon Dark Blue{(hasPlus ? " Plus" : "")}.png|24x24px|Exhaust Coating|link=Exhaust Coating ({game})]]";
 						break;
 					}
 				}
@@ -536,9 +532,9 @@ namespace MediawikiTranslator.Generators
 			return coatings;
 		}
 
-		private static List<WeaponCsv> ParseWeaponsFromCsv(string csvFile, bool duplicateSharpness, string delimiter = ",")
+		private static List<Datum> ParseWeaponsFromCsv(string csvFile, bool duplicateSharpness, string delimiter = ",")
 		{
-			var weapons = new List<WeaponCsv>();
+			var weapons = new List<Datum>();
 			using (var parser = new TextFieldParser(GenerateStreamFromString(csvFile)))
 			{
 				parser.TextFieldType = FieldType.Delimited;
@@ -547,27 +543,29 @@ namespace MediawikiTranslator.Generators
 				{
 					//Processing row
 					string[]? fields = parser.ReadFields();
-					if(fields?.Length == 15 || fields?.Length == 22 || fields?.Length == 29) // Very manual thing that should be modified in case we want more row/make it more generic
+					if (fields?.Length == 15 || fields?.Length == 22 || fields?.Length == 29) // Very manual thing that should be modified in case we want more row/make it more generic
                     {
-                        var weapon = ParseWeaponFromLine(fields);
-
-						if(fields.Length > 15)
-                        {
-							weapon.Sharpness1 = ParseSharpness1FromLine(fields);
-
-							
+                        Datum weapon = ParseWeaponFromLine(fields);
+						weapon.Decos = ParseDecosFromLine(fields);
+						if (fields.Length > 15)
+						{
+							List<string[]> sharpnessFinal = [];
+							SharpnessData sharp1 = ParseSharpness1FromLine(fields);
+							sharpnessFinal.Add([sharp1.Red!.Value.ToString(), sharp1.Orange!.Value.ToString(), sharp1.Yellow!.Value.ToString(), sharp1.Green!.Value.ToString(), sharp1.Blue!.Value.ToString(), sharp1.White!.Value.ToString(), sharp1.Purple!.Value.ToString()]);
+							SharpnessData? sharp2 = null;
 							if (fields.Length == 29)
                             {
-								weapon.Sharpness2 = ParseSharpness2FromLine(fields);
+								sharp2 = ParseSharpness2FromLine(fields);
                             }
                             else if (duplicateSharpness)
                             {
-                                weapon.Sharpness2 = weapon.Sharpness1;
+                                sharp2 = sharp1;
                             }
-                            else
+							if (sharp2 != null)
 							{
-								weapon.Sharpness2 = new SharpnessData();
+								sharpnessFinal.Add([sharp2.Red!.Value.ToString(), sharp2.Orange!.Value.ToString(), sharp2.Yellow!.Value.ToString(), sharp2.Green!.Value.ToString(), sharp2.Blue!.Value.ToString(), sharp2.White!.Value.ToString(), sharp2.Purple!.Value.ToString()]);
 							}
+							weapon.Sharpness = JsonConvert.SerializeObject(sharpnessFinal.ToArray());
                         }
                         weapons.Add(weapon);
                     }
@@ -578,26 +576,42 @@ namespace MediawikiTranslator.Generators
 		}
 
 		// Very straightforward but also sensible
-		private static WeaponCsv ParseWeaponFromLine(string[] lineFields)
+		private static Datum ParseWeaponFromLine(string[] lineFields)
 		{
-			return new WeaponCsv()
+			bool? elementHidden = GetBoolFieldOrEmpty(lineFields[6]);
+			return new Datum()
 			{
 				Name = lineFields[0],
 				Parent = lineFields[1],
 				Rarity = GetIntFieldOrEmpty(lineFields[2]),
-				Attack = GetIntFieldOrEmpty(lineFields[3]),
+				Attack = GetIntFieldOrEmpty(lineFields[3]).ToString(),
 				Affinity = GetIntFieldOrEmpty(lineFields[4]),
-				Defense = GetIntFieldOrEmpty(lineFields[5]),
-				ElementHidden = GetBoolFieldOrEmpty(lineFields[6]),
-				Element1 = lineFields[7],
-				Element1Attack = GetIntFieldOrEmpty(lineFields[8]),
+				Defense = GetIntFieldOrEmpty(lineFields[5]).ToString(),
+				Element = (elementHidden == true ? "(" : "") + lineFields[7] + (elementHidden == true ? ")" : ""),
+				ElementDamage = GetIntFieldOrEmpty(lineFields[8]).ToString(),
 				Element2 = lineFields[9],
-				Element2Attack = GetIntFieldOrEmpty(lineFields[10]),
+				ElementDamage2 = GetIntFieldOrEmpty(lineFields[10]).ToString(),
 				Elderseal = lineFields[11],
-				DecoSlot1 = GetIntFieldOrEmpty(lineFields[12]),
-				DecoSlot2 = GetIntFieldOrEmpty(lineFields[13]),
-				DecoSlot3 = GetIntFieldOrEmpty(lineFields[14]),
 			};
+		}
+
+		private static string ParseDecosFromLine(string[] fields)
+		{
+			string decoArray = "[";
+			int[] decos = [GetIntFieldOrEmpty(fields[12]), GetIntFieldOrEmpty(fields[13]), GetIntFieldOrEmpty(fields[14])];
+			for (int decoLvl = 1; decoLvl < 5; decoLvl++)
+			{
+				int cnt = decos.Count(x => x == decoLvl);
+				if (cnt > 0)
+				{
+					if (decoArray != "[")
+					{
+						decoArray += ", ";
+					}
+					decoArray += $"{{\"Level\":\"{decoLvl}\",\"Qty\":\"{cnt}\",\"IsRampage\":false}}";
+				}
+			}
+			return decoArray + "]";
 		}
 
 		private static SharpnessData ParseSharpness1FromLine(string[] fields)
@@ -642,28 +656,5 @@ namespace MediawikiTranslator.Generators
 		{
 			return new MemoryStream(Encoding.UTF8.GetBytes(value ?? ""));
 		}
-
-		private class WeaponCsv
-		{
-			public string Name { get; set; }
-			public string Parent { get; set; }
-			public int Rarity { get; set; }
-            public int Attack { get; set; }
-            public int Affinity { get; set; }
-            public int Defense { get; set; }
-            public bool? ElementHidden { get; set; }
-            public string Element1 { get; set; }
-            public int Element1Attack { get; set; }
-            public string Element2 { get; set; }
-            public int Element2Attack { get; set; }
-            public string Elderseal { get; set; }
-            public int DecoSlot1 { get; set; }
-            public int DecoSlot2 { get; set; }
-            public int DecoSlot3 { get; set; }
-
-			public SharpnessData Sharpness1 { get; set; }
-            public SharpnessData Sharpness2 { get; set; }
-
-        }
     }
 }

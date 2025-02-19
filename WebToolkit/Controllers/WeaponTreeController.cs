@@ -28,7 +28,7 @@ namespace WebToolkit.Controllers
         {
             try
             {
-                return MediawikiTranslator.Generators.WeaponTree.ParseCsv(csvFile, duplicateSharpness);
+				return LoadTree(MediawikiTranslator.Generators.WeaponTree.ParseCsv(csvFile, duplicateSharpness));
             }
             catch (Exception ex)
             {

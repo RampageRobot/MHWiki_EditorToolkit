@@ -47,10 +47,7 @@
 				dataType: "text",
 				statusCode: {
 					200: function (result) {
-						var json = JSON.parse(result);
-						for(var i = 0; i < json.length; i++) {
-							addRowFromCsv(json[i])
-						}
+						loadTreeHtml(result, null);
 					},
 					500: function (jqXHR) {
 						alert(jqXHR.responseText);
@@ -58,6 +55,41 @@
 				}
 			});
 			bootstrap.Modal.getInstance($("#mdlCsv")).hide();
+		}
+		var loadTreeHtml = function (result, loadedData) {
+			$("#divCardContainer").empty();
+			$("#divCardContainer").append(result);
+				$(".data-value-hidden").each(function () {
+					$(this).val($(this).attr("loaded-value"));
+				});
+				if (loadedData == null)
+				{
+					loadedData = getSaveData();
+				}
+				for (var i2 = 0; i2 < loadedData.length; i2++) {
+					var pathData = loadedData[i2];
+					var card = $($(".card-holder")[i2]);
+					for (var i = 0; i < pathData.data.length; i++) {
+						var dataObj = pathData.data[i];
+						var statsInput = $($(card).find(".card .card-body .table-tree tbody tr")[i]).find(".weapon-stats-input");
+						var statsEls = $("#mdlModifyStats .modal-body").find(".data-value");
+						var statObj = {};
+						for (var incr = 0; incr < statsEls.length; incr++) {
+							var statEl = $(statsEls[incr]);
+							statObj[statEl.attr("data-label")] = dataObj[statEl.attr("data-label")];
+						}
+						$(statsInput[0]).val(JSON.stringify(statObj));
+						validateComplexData($(statsInput.parent().children()[1]), statsInput[0], WeaponTemplate.validateStats);
+						var decosInput = $($(card).find(".card .card-body .table-tree tbody tr")[i]).find(".weapon-decos-input");
+						validateComplexData($(decosInput.parent().children()[1]), decosInput[0], WeaponTemplate.validateDecos);
+						var sharpnessInput = $($(card).find(".card .card-body .table-tree tbody tr")[i]).find(".weapon-sharpness-input");
+						validateComplexData($(sharpnessInput.parent().children()[1]), sharpnessInput[0], WeaponTemplate.validateSharpness);
+						$($(card).find(".card .card-body .table-tree tbody tr")[i]).find(".weapon-can-forge-input").prop("checked", dataObj["can-forge"] == true);
+						$($(card).find(".card .card-body .table-tree tbody tr")[i]).find(".weapon-can-rollback-input").prop("checked", dataObj["can-rollback"] == true);
+						$($(card).find(".card .card-body .table-tree tbody tr")[i]).find(".weapon-parent-input").first().val(dataObj["parent"]);
+						$($(card).find(".card .card-body .table-tree tbody tr")[i]).find(".weapon-path-link-input").first().val(dataObj["path-link"]);
+					}
+				}
 		}
 		var pageLoadData = function (loadedData) {
 			var pathData = loadedData[0];
@@ -78,40 +110,13 @@
 				statusCode: {
 					200: function (result) {
 						$("body").css("cursor", "default");
-						$("#divCardContainer").append(result["responseText"]);
 						if (typeof (loadedData[0].defaultIconType) !== 'undefined') {
 							$("#ddlIconSelect").val("");
 							$("#ddlIconSelect").trigger("change");
 							$("#ddlIconSelect").val(loadedData[0].defaultIconType);
 							$("#ddlIconSelect").trigger("change");
 						}
-						$(".data-value-hidden").each(function () {
-							$(this).val($(this).attr("loaded-value"));
-						});
-						for (var i2 = 0; i2 < loadedData.length; i2++) {
-							var pathData = loadedData[i2];
-							var card = $($(".card-holder")[i2]);
-							for (var i = 0; i < pathData.data.length; i++) {
-								var dataObj = pathData.data[i];
-								var statsInput = $($(card).find(".card .card-body .table-tree tbody tr")[i]).find(".weapon-stats-input");
-								var statsEls = $("#mdlModifyStats .modal-body").find(".data-value");
-								var statObj = {};
-								for (var incr = 0; incr < statsEls.length; incr++) {
-									var statEl = $(statsEls[incr]);
-									statObj[statEl.attr("data-label")] = dataObj[statEl.attr("data-label")];
-								}
-								$(statsInput[0]).val(JSON.stringify(statObj));
-								validateComplexData($(statsInput.parent().children()[1]), statsInput[0], WeaponTemplate.validateStats);
-								var decosInput = $($(card).find(".card .card-body .table-tree tbody tr")[i]).find(".weapon-decos-input");
-								validateComplexData($(decosInput.parent().children()[1]), decosInput[0], WeaponTemplate.validateDecos);
-								var sharpnessInput = $($(card).find(".card .card-body .table-tree tbody tr")[i]).find(".weapon-sharpness-input");
-								validateComplexData($(sharpnessInput.parent().children()[1]), sharpnessInput[0], WeaponTemplate.validateSharpness);
-								$($(card).find(".card .card-body .table-tree tbody tr")[i]).find(".weapon-can-forge-input").prop("checked", dataObj["can-forge"] == true);
-								$($(card).find(".card .card-body .table-tree tbody tr")[i]).find(".weapon-can-rollback-input").prop("checked", dataObj["can-rollback"] == true);
-								$($(card).find(".card .card-body .table-tree tbody tr")[i]).find(".weapon-parent-input").first().val(dataObj["parent"]);
-								$($(card).find(".card .card-body .table-tree tbody tr")[i]).find(".weapon-path-link-input").first().val(dataObj["path-link"]);
-							}
-						}
+						loadTreeHtml(result["responseText"], loadedData);
 					},
 					500: function (jqXHR) {
 						$("body").css("cursor", "default");
@@ -482,6 +487,7 @@
 			</div>
 			<div class="modal-body">
 				<div class="row">
+					<h4>NOTE: Select a game and a default icon type before loading. <strong>Your existing paths will be cleared.</strong></h4>
 					<span>Delimiter must be ','</span>
 					<span>Format should be :</span>
 					<span style="font-size: 14px;">Name,Parent,Rarity,Attack,Affinity,Defense,Element_hidden_bool,Element1,ElementAttack1,Element2,ElementAttack2,Elderseal,Deco1,Deco2,Deco3,</span>

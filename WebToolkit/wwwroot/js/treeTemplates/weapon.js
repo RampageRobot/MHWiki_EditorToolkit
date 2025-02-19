@@ -737,12 +737,20 @@ class WeaponTemplate
 							<div class="col-6">
 								<label>Special Ammo Type</label>
 								<input type="text" class="form-control weapon-` + weaponType.toLowerCase() + `-special-ammo-type-input data-value" data-label="` + weaponType.toLowerCase() + `-special-ammo-type">
+							</div>
+							<div class="col-6">
+								<label>Deviation</label>
+								<input type="text" class="form-control weapon-` + weaponType.toLowerCase() + `-deviation-input data-value" data-label="` + weaponType.toLowerCase() + `-deviation">
 							</div>`);
 				}
 				else {
 					$("#divSpecialWeaponField").append(`<div class="col-6">
 								<label>Special Ammo Type</label>
 								<input type="text" class="form-control weapon-` + weaponType.toLowerCase() + `-special-ammo-type-input data-value" data-label="` + weaponType.toLowerCase() + `-special-ammo-type">
+							</div>
+							<div class="col-6">
+								<label>Deviation</label>
+								<input type="text" class="form-control weapon-` + weaponType.toLowerCase() + `-deviation-input data-value" data-label="` + weaponType.toLowerCase() + `-deviation">
 							</div>`);
 				}
 				break;

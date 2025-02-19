@@ -9,6 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Generators\WeaponTree.cs~RF3abb1d13.TMP" />
     <None Remove="Resources\combined_msgs.json" />
     <None Remove="Resources\mhrs items.json" />
     <None Remove="Resources\mhwi-items.json" />

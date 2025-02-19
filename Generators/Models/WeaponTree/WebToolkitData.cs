@@ -142,11 +142,17 @@ namespace MediawikiTranslator.Models.WeaponTree
 		[JsonProperty("hbg-special-ammo-type", NullValueHandling = NullValueHandling.Ignore)]
 		public string HBGSpecialAmmoType { get; set; }
 
+		[JsonProperty("hbg-deviation", NullValueHandling = NullValueHandling.Ignore)]
+		public string HBGDeviation { get; set; }
+
 		[JsonProperty("lbg-reload-recoil", NullValueHandling = NullValueHandling.Ignore)]
 		public string LBGReloadRecoil { get; set; }
 
 		[JsonProperty("lbg-special-ammo-type", NullValueHandling = NullValueHandling.Ignore)]
 		public string LBGSpecialAmmoType { get; set; }
+
+		[JsonProperty("lbg-deviation", NullValueHandling = NullValueHandling.Ignore)]
+		public string LBGDeviation { get; set; }
 	}
 
 	public class Decoration
