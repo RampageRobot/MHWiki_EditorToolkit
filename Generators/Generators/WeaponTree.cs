@@ -70,7 +70,7 @@ namespace MediawikiTranslator.Generators
 				bool tableHasArmorSkills = srcData.Any(y => y.Data.Any(x => !string.IsNullOrEmpty(x.ArmorSkill)));
 				int totalCnt = 0;
 				ret.AppendLine($@"<br>
-{{| class=""wikitable center wide mw-collapsible mw-collapsed mobile-sm"" style=""white-space:normal; overflow-x:auto;""
+{{| class=""wikitable center wide mw-collapsible mobile-sm"" style=""white-space:normal; overflow-x:auto;""
 ! colspan=12 | <h4 style=""margin:0px;"">{srcData[0].PathName} Tree</h4>
 |-
 !Name 
@@ -593,7 +593,7 @@ namespace MediawikiTranslator.Generators
 				Element1Attack = GetIntFieldOrEmpty(lineFields[8]),
 				Element2 = lineFields[9],
 				Element2Attack = GetIntFieldOrEmpty(lineFields[10]),
-				ElderSeal = lineFields[11],
+				Elderseal = lineFields[11],
 				DecoSlot1 = GetIntFieldOrEmpty(lineFields[12]),
 				DecoSlot2 = GetIntFieldOrEmpty(lineFields[13]),
 				DecoSlot3 = GetIntFieldOrEmpty(lineFields[14]),
@@ -656,7 +656,7 @@ namespace MediawikiTranslator.Generators
             public int Element1Attack { get; set; }
             public string Element2 { get; set; }
             public int Element2Attack { get; set; }
-            public string ElderSeal { get; set; }
+            public string Elderseal { get; set; }
             public int DecoSlot1 { get; set; }
             public int DecoSlot2 { get; set; }
             public int DecoSlot3 { get; set; }
