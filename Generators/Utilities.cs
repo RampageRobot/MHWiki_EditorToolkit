@@ -508,7 +508,7 @@ __TOC__");
 					await page.EditAsync(new WikiPageEditOptions()
 					{
 						Content = Weapon.SingleGenerate(game, data.Key, [.. src.Keys]),
-						Minor = false,
+						Minor = true,
 						Bot = true,
 						Summary = "Auto-updated using the API through MH Wiki Toolkit."
 					});

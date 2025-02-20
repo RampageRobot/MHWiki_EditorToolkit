@@ -65,6 +65,7 @@ namespace MediawikiTranslator.Generators
 					}
 				}
 				StringBuilder ret = new();
+				int elemBloat = !new string[] { "MHR", "MHRS", "MHGU", "MHP3" }.Contains(weapon.Game) ? 10 : 1;
 				int bloat = Convert.ToInt32(Math.Round(GetWeaponBloat(weapon.Type!, weapon.Game!) * Convert.ToInt32(weapon.Attack)));
 				ret.AppendLine($@"{{{{GenericNav|{weapon.Game}}}}}
 <br>
@@ -84,9 +85,9 @@ The {weapon.Name} is {(weapon.Type == "IG" ? "an" : "a")} [[{weaponNames.Item1} 
 (weapon.Decos2 != null && weapon.Decos2!.Value > 0 ? $"\r\n|Level 2 Decos           = {weapon.Decos2.Value}" : "") +
 (weapon.Decos3 != null && weapon.Decos3!.Value > 0 ? $"\r\n|Level 3 Decos           = {weapon.Decos3.Value}" : "") +
 (weapon.Decos4 != null && weapon.Decos4!.Value > 0 ? $"\r\n|Level 4 Decos           = {weapon.Decos4.Value}" : "") +
-(!string.IsNullOrEmpty(weapon.Element1) && weapon.ElementDmg1 != null ? "\r\n|Elemental Damage        =" + (weapon.ElementDmg1.Contains("(") ? "(" : "") + (Convert.ToInt32(weapon.ElementDmg1.Replace("(", "").Replace(")", "")) * 10) + (weapon.ElementDmg1.Contains("(") ? ")" : "") : "") +
+(!string.IsNullOrEmpty(weapon.Element1) && weapon.ElementDmg1 != null ? "\r\n|Elemental Damage        =" + (weapon.ElementDmg1.Contains("(") ? "(" : "") + (Convert.ToInt32(weapon.ElementDmg1.Replace("(", "").Replace(")", "")) * elemBloat) + (weapon.ElementDmg1.Contains("(") ? ")" : "") : "") +
 (!string.IsNullOrEmpty(weapon.Element1) && weapon.ElementDmg1 != null ? "\r\n|Elemental Damage Type   =" + weapon.Element1.Replace("Paralyze", "Paralysis").Replace("Explosion", "Blast").Replace("(", "").Replace(")", "") : "") +
-(!string.IsNullOrEmpty(weapon.Element2) && weapon.ElementDmg2 != null ? "\r\n|Elemental Damage 2      =" + (weapon.ElementDmg2.Contains("(") ? "(" : "") + (Convert.ToInt32(weapon.ElementDmg2.Replace("(", "").Replace(")", "")) * 10) + (weapon.ElementDmg2.Contains("(") ? ")" : "") : "") +
+(!string.IsNullOrEmpty(weapon.Element2) && weapon.ElementDmg2 != null ? "\r\n|Elemental Damage 2      =" + (weapon.ElementDmg2.Contains("(") ? "(" : "") + (Convert.ToInt32(weapon.ElementDmg2.Replace("(", "").Replace(")", "")) * elemBloat) + (weapon.ElementDmg2.Contains("(") ? ")" : "") : "") +
 (!string.IsNullOrEmpty(weapon.Element2) && weapon.ElementDmg2 != null ? "\r\n|Elemental Damage Type 2 =" + weapon.Element2.Replace("Paralyze", "Paralysis").Replace("Explosion", "Blast").Replace("(", "").Replace(")", "") : "") +
 (!string.IsNullOrEmpty(weapon.Sharpness) ? "\r\n" + GetSharpnessTemplates(weapon.Sharpness) : "") +
 (!string.IsNullOrEmpty(weapon.HhNote1) ? $"\r\n|HH Note 1               = {weapon.HhNote1.Replace("_", " ").Replace("Dark Blue", "Blue").Replace("Light Blue", "Cyan")}" : "") +

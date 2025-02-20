@@ -348,7 +348,7 @@ namespace MediawikiTranslator.Generators
 			switch (iconType)
 			{
 				case "Bo":
-					ret.AppendLine($"|{GetBowCoatings(dataArray.Game, dataObj.BoCoatings.Split(',').Select(x => x.Trim()).ToArray())}");
+					ret.AppendLine($"|{GetBowCoatings(dataArray.Game, dataObj.BoCoatings)}");
 					break;
 				case "CB":
 					ret.AppendLine($"|{(!string.IsNullOrEmpty(dataObj.CBPhialType) ? dataObj.CBPhialType : " - ")}");
@@ -477,8 +477,9 @@ namespace MediawikiTranslator.Generators
 			}[weaponType];
 		}
 
-		private static string GetBowCoatings(string game, string[] coatingArr)
+		private static string GetBowCoatings(string game, string coatingString)
 		{
+			string[] coatingArr = coatingString?.Split(',')?.Select(x => x.Trim())?.ToArray() ?? [];
 			string coatings = "";
 			foreach (string coating in coatingArr)
 			{

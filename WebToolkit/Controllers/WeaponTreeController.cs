@@ -24,18 +24,19 @@ namespace WebToolkit.Controllers
 		}
 
         [HttpPost("ParseCsv")]
-        public string ParseCsv(string csvFile, bool duplicateSharpness)
+        public Tuple<string, string>? ParseCsv(string csvFile, bool duplicateSharpness)
         {
             try
             {
-				return LoadTree(MediawikiTranslator.Generators.WeaponTree.ParseCsv(csvFile, duplicateSharpness));
+				string objVals = MediawikiTranslator.Generators.WeaponTree.ParseCsv(csvFile, duplicateSharpness);
+				return new Tuple<string, string>(objVals, LoadTree(objVals));
             }
             catch (Exception ex)
             {
                 Response.Clear();
                 Response.StatusCode = 500;
                 Response.WriteAsync(ex.Message);
-                return string.Empty;
+                return null;
             }
         }
 
@@ -105,7 +106,7 @@ namespace WebToolkit.Controllers
 												</tr>
 											</thead>
 											<tbody>");
-					string parentNameOptions = string.Join("\r\n", contents.SelectMany(x => x.Data.Select(x => $"<option value=\"{x.Name.Replace("\"", "&quot;")}\">{x.Name.Replace("\"", "&quot;")}</option>")).Distinct());
+					string parentNameOptions = string.Join("\r\n", contents.SelectMany(x => x.Data.Select(x => $"<option value=\"{x.Name.Replace("\"", "&quot;")}{(x.Name == x.Parent ? "selected='true'" : "")}\">{x.Name.Replace("\"", "&quot;")}</option>")).Distinct());
 					foreach (Datum data in path.Data)
 					{
 						string statString = $"{{\"attack\":\"{data.Attack}\",\"defense\":\"{data.Defense}\",\"element\":\"{data.Element}\",\"element-damage\":\"{data.ElementDamage}\",\"element-2\":\"{data.Element2}\",\"element-damage-2\":\"{data.ElementDamage2}\",\"affinity\":\"{data.Affinity}\",\"elderseal\":\"{data.Elderseal}\",\"rampage-slots\":\"{data.RampageSlots}\",\"rampage-deco\":\"{data.RampageDeco}\",\"armor-skill\":\"{data.ArmorSkill}\",\"armor-skill-2\":\"{data.ArmorSkill2}\"}}";
