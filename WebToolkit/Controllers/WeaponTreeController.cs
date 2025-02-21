@@ -115,7 +115,6 @@ namespace WebToolkit.Controllers
 		<div class=""col"">
 			<div class=""row pb-1"">
 				<div class=""col"">
-					<button style=""padding: .25rem; margin-right:.25rem;"" class=""btn btn-primary bi bi-arrow-up float-start"" onclick=""insertRowBefore($(this).parent());""></button>
 					<button style=""padding: .25rem; margin-right:.25rem;"" class=""btn btn-primary bi bi-arrow-up float-start"" onclick=""insertRowBefore($(this));""></button>
 					<button style=""padding: .25rem;"" class=""btn btn-primary bi bi-arrow-down float-start"" onclick=""insertRowAfter($(this));""></button>
 				</div>

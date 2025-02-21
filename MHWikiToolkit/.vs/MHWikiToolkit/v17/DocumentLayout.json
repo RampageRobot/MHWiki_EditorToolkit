@@ -3,20 +3,19 @@
   "WorkspaceRootPath": "C:\\Users\\eniav\\source\\repos\\MHWiki_EditorToolkit\\MHWikiToolkit\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{2372D6A5-49EF-4E9D-B54C-F53B7AE5A9C7}|..\\WebToolkit\\WebToolkit.csproj|c:\\users\\eniav\\source\\repos\\mhwiki_editortoolkit\\webtoolkit\\controllers\\weapontreecontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{2372D6A5-49EF-4E9D-B54C-F53B7AE5A9C7}|..\\WebToolkit\\WebToolkit.csproj|c:\\users\\eniav\\source\\repos\\mhwiki_editortoolkit\\webtoolkit\\wwwroot\\js\\treegenerator.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{2372D6A5-49EF-4E9D-B54C-F53B7AE5A9C7}|..\\WebToolkit\\WebToolkit.csproj|c:\\users\\eniav\\source\\repos\\mhwiki_editortoolkit\\webtoolkit\\pages\\treegenerator.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{2372D6A5-49EF-4E9D-B54C-F53B7AE5A9C7}|..\\WebToolkit\\WebToolkit.csproj|c:\\users\\eniav\\source\\repos\\mhwiki_editortoolkit\\webtoolkit\\pages\\index.cshtml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{2372D6A5-49EF-4E9D-B54C-F53B7AE5A9C7}|..\\WebToolkit\\WebToolkit.csproj|c:\\users\\eniav\\source\\repos\\mhwiki_editortoolkit\\webtoolkit\\wwwroot\\js\\treetemplates\\weapon.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{AB1DA0F3-81CA-4476-84A9-E1C5C2DD36C4}|..\\Generators\\MediawikiTranslator.csproj|c:\\users\\eniav\\source\\repos\\mhwiki_editortoolkit\\generators\\generators\\weapontree.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{2372D6A5-49EF-4E9D-B54C-F53B7AE5A9C7}|..\\WebToolkit\\WebToolkit.csproj|c:\\users\\eniav\\source\\repos\\mhwiki_editortoolkit\\webtoolkit\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{0F894456-099C-4DC3-BFC2-7EC69C39861A}|MHWikiToolkit.csproj|c:\\users\\eniav\\source\\repos\\mhwiki_editortoolkit\\mhwikitoolkit\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{0F894456-099C-4DC3-BFC2-7EC69C39861A}|MHWikiToolkit.csproj|solutionrelative:program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{2372D6A5-49EF-4E9D-B54C-F53B7AE5A9C7}|..\\WebToolkit\\WebToolkit.csproj|c:\\users\\eniav\\source\\repos\\mhwiki_editortoolkit\\webtoolkit\\controllers\\weapontreecontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     }
   ],
   "DocumentGroupContainers": [
@@ -26,7 +25,7 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 5,
+          "SelectedChildIndex": 6,
           "Children": [
             {
               "$type": "Bookmark",
@@ -50,15 +49,28 @@
             },
             {
               "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "weapon.js",
+              "DocumentMoniker": "C:\\Users\\eniav\\source\\repos\\MHWiki_EditorToolkit\\WebToolkit\\wwwroot\\js\\treeTemplates\\weapon.js",
+              "RelativeDocumentMoniker": "..\\WebToolkit\\wwwroot\\js\\treeTemplates\\weapon.js",
+              "ToolTip": "C:\\Users\\eniav\\source\\repos\\MHWiki_EditorToolkit\\WebToolkit\\wwwroot\\js\\treeTemplates\\weapon.js",
+              "RelativeToolTip": "..\\WebToolkit\\wwwroot\\js\\treeTemplates\\weapon.js",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAADkBAAARAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
+              "WhenOpened": "2025-02-21T18:47:52.865Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
               "DocumentIndex": 0,
-              "Title": "WeaponTreeController.cs",
-              "DocumentMoniker": "C:\\Users\\eniav\\source\\repos\\MHWiki_EditorToolkit\\WebToolkit\\Controllers\\WeaponTreeController.cs",
-              "RelativeDocumentMoniker": "..\\WebToolkit\\Controllers\\WeaponTreeController.cs",
-              "ToolTip": "C:\\Users\\eniav\\source\\repos\\MHWiki_EditorToolkit\\WebToolkit\\Controllers\\WeaponTreeController.cs",
-              "RelativeToolTip": "..\\WebToolkit\\Controllers\\WeaponTreeController.cs",
-              "ViewState": "AgIAAFgAAAAAAAAAAAAIwHUAAABtAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-02-21T17:08:30.128Z",
+              "Title": "TreeGenerator.js",
+              "DocumentMoniker": "C:\\Users\\eniav\\source\\repos\\MHWiki_EditorToolkit\\WebToolkit\\wwwroot\\js\\TreeGenerator.js",
+              "RelativeDocumentMoniker": "..\\WebToolkit\\wwwroot\\js\\TreeGenerator.js",
+              "ToolTip": "C:\\Users\\eniav\\source\\repos\\MHWiki_EditorToolkit\\WebToolkit\\wwwroot\\js\\TreeGenerator.js",
+              "RelativeToolTip": "..\\WebToolkit\\wwwroot\\js\\TreeGenerator.js",
+              "ViewState": "AgIAANcAAAAAAAAAAAAqwOMAAAAaAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
+              "WhenOpened": "2025-02-21T18:53:05.455Z",
               "EditorCaption": ""
             },
             {
@@ -69,48 +81,35 @@
               "RelativeDocumentMoniker": "..\\WebToolkit\\Pages\\TreeGenerator.cshtml",
               "ToolTip": "C:\\Users\\eniav\\source\\repos\\MHWiki_EditorToolkit\\WebToolkit\\Pages\\TreeGenerator.cshtml",
               "RelativeToolTip": "..\\WebToolkit\\Pages\\TreeGenerator.cshtml",
-              "ViewState": "AgIAACEAAAAAAAAAAAAAAEMAAAAoAAAAAAAAAA==",
+              "ViewState": "AgIAAKAAAAAAAAAAAAAiwLwAAAAcAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
-              "WhenOpened": "2025-02-21T17:07:48.275Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 2,
-              "Title": "Index.cshtml.cs",
-              "DocumentMoniker": "C:\\Users\\eniav\\source\\repos\\MHWiki_EditorToolkit\\WebToolkit\\Pages\\Index.cshtml.cs",
-              "RelativeDocumentMoniker": "..\\WebToolkit\\Pages\\Index.cshtml.cs",
-              "ToolTip": "C:\\Users\\eniav\\source\\repos\\MHWiki_EditorToolkit\\WebToolkit\\Pages\\Index.cshtml.cs",
-              "RelativeToolTip": "..\\WebToolkit\\Pages\\Index.cshtml.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAABoAAAAJAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-02-21T17:02:17.312Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 3,
-              "Title": "WeaponTree.cs",
-              "DocumentMoniker": "C:\\Users\\eniav\\source\\repos\\MHWiki_EditorToolkit\\Generators\\Generators\\WeaponTree.cs",
-              "RelativeDocumentMoniker": "..\\Generators\\Generators\\WeaponTree.cs",
-              "ToolTip": "C:\\Users\\eniav\\source\\repos\\MHWiki_EditorToolkit\\Generators\\Generators\\WeaponTree.cs",
-              "RelativeToolTip": "..\\Generators\\Generators\\WeaponTree.cs",
-              "ViewState": "AgIAAOwAAAAAAAAAAAAewAoBAADFAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-02-21T16:25:38.449Z",
+              "WhenOpened": "2025-02-21T18:35:17.327Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
               "DocumentIndex": 4,
-              "Title": "Program.cs",
-              "DocumentMoniker": "C:\\Users\\eniav\\source\\repos\\MHWiki_EditorToolkit\\MHWikiToolkit\\Program.cs",
-              "RelativeDocumentMoniker": "Program.cs",
-              "ToolTip": "C:\\Users\\eniav\\source\\repos\\MHWiki_EditorToolkit\\MHWikiToolkit\\Program.cs",
-              "RelativeToolTip": "Program.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAABAAAAAzAAAAAAAAAA==",
+              "Title": "WeaponTreeController.cs",
+              "DocumentMoniker": "C:\\Users\\eniav\\source\\repos\\MHWiki_EditorToolkit\\WebToolkit\\Controllers\\WeaponTreeController.cs",
+              "RelativeDocumentMoniker": "..\\WebToolkit\\Controllers\\WeaponTreeController.cs",
+              "ToolTip": "C:\\Users\\eniav\\source\\repos\\MHWiki_EditorToolkit\\WebToolkit\\Controllers\\WeaponTreeController.cs",
+              "RelativeToolTip": "..\\WebToolkit\\Controllers\\WeaponTreeController.cs",
+              "ViewState": "AgIAAFoAAAAAAAAAAAAmwHQAAAAXAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-02-21T16:22:29.243Z",
+              "WhenOpened": "2025-02-21T18:21:08.355Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "Program.cs",
+              "DocumentMoniker": "C:\\Users\\eniav\\source\\repos\\MHWiki_EditorToolkit\\WebToolkit\\Program.cs",
+              "RelativeDocumentMoniker": "..\\WebToolkit\\Program.cs",
+              "ToolTip": "C:\\Users\\eniav\\source\\repos\\MHWiki_EditorToolkit\\WebToolkit\\Program.cs",
+              "RelativeToolTip": "..\\WebToolkit\\Program.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAACIAAAALAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-02-21T18:20:53.921Z",
               "EditorCaption": ""
             }
           ]

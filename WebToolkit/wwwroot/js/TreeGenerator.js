@@ -1,6 +1,7 @@
 var srcTreeRow = {};
 var srcTreeCard = {};
 var mdlGenerate;
+var isLeftShiftDown = false;
 function initRow()
 {
 
@@ -32,6 +33,18 @@ function copyToClipboard()
         alert("Copied!");
 }
 var dataArray = [];
+document.addEventListener('keydown', function (e) {
+    if (e.code === "ShiftLeft") {
+        isLeftShiftDown = true;
+    }
+});
+
+document.addEventListener('keyup', function (e) {
+    if (e.code === "ShiftLeft") {
+        isLeftShiftDown = false;
+    }
+});
+
 $(window).on("load", function () {
     loadTemplate();
 });
@@ -213,30 +226,54 @@ function getDecos(levelSlot1, levelSlot2, levelSlot3) {
 }
 
 function insertRowBefore(el) {
-    var row = $(el).parents('.table-content-row').first();
-    var thisCard = $(el).parents(".card-holder").first();
-    var cardIndex = getCardIndex(thisCard);
-    if (getRowIndex(row) != 0) {
-        row.after($(el).parents('.table-content-row').prev());
-    }
-    else if (cardIndex > 0) {
-        var prevCard = $($("#divCardContainer").find(".card-holder")[getCardIndex(thisCard) - 1]);
-        prevCard.find("tbody").first().append(row);
+    if (isLeftShiftDown) {
+        insertCardBefore(el);
+    } else {
+        var row = $(el).parents('.table-content-row').first();
+        var thisCard = $(el).parents(".card-holder").first();
+        var cardIndex = getCardIndex(thisCard);
+        if (getRowIndex(row) != 0) {
+            row.after($(el).parents('.table-content-row').prev());
+        }
+        else if (cardIndex > 0) {
+            var prevCard = $($("#divCardContainer").find(".card-holder")[getCardIndex(thisCard) - 1]);
+            prevCard.find("tbody").first().append(row);
+        }
     }
 }
 
 function insertRowAfter(el) {
+    if (isLeftShiftDown) {
+        insertCardAfter(el);
+    } else {
+        var row = $(el).parents('.table-content-row').first();
+        var thisCard = $(el).parents(".card-holder").first();
+        var cardIndex = getCardIndex(thisCard);
+        var table = row.parents(".table-tree").first();
+        if (getRowIndex(row) != getRowsAmount(table) - 1) {
+            row.before($(el).parents('.table-content-row').next());
+        }
+        else if (cardIndex != getCardsAmount() - 1) {
+            var nextCard = $($("#divCardContainer").find(".card-holder")[cardIndex + 1]);
+            nextCard.find("tbody").first().prepend(row);
+        }
+    }
+}
+
+function insertCardBefore(el) {
     var row = $(el).parents('.table-content-row').first();
     var thisCard = $(el).parents(".card-holder").first();
     var cardIndex = getCardIndex(thisCard);
-    var table = row.parents(".table-tree").first();
-    if (getRowIndex(row) != getRowsAmount(table) - 1) {
-        row.before($(el).parents('.table-content-row').next());
-    }
-    else if (cardIndex != getCardsAmount() - 1) {
-        var nextCard = $($("#divCardContainer").find(".card-holder")[cardIndex + 1]);
-        nextCard.find("tbody").first().prepend(row);
-    }
+    var prevCard = $($("#divCardContainer").find(".card-holder")[getCardIndex(thisCard) - 1]);
+    prevCard.find("tbody").first().append(row);
+}
+
+function insertCardAfter(el) {
+    var row = $(el).parents('.table-content-row').first();
+    var thisCard = $(el).parents(".card-holder").first();
+    var cardIndex = getCardIndex(thisCard);
+    var nextCard = $($("#divCardContainer").find(".card-holder")[cardIndex + 1]);
+    nextCard.find("tbody").first().prepend(row);
 }
 
 function getCardIndex(card) {

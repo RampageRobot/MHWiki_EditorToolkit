@@ -7,6 +7,9 @@ namespace WebToolkit
     {
         public static void Main(string[] args)
         {
+            string path = Directory.GetCurrentDirectory();
+            Console.WriteLine("The current directory is {0}", path);
+
             var builder = WebApplication.CreateBuilder(args);
 			// Add services to the container.
 			builder.Services.AddRazorPages();
