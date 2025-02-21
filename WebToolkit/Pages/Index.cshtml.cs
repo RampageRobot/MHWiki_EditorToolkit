@@ -25,7 +25,6 @@ namespace WebToolkit.Pages
 		}
 		public void OnGet()
         {
-            Utilities.UploadWeaponsWithAPI("MHRS").Wait();
 		}
     }
 }
