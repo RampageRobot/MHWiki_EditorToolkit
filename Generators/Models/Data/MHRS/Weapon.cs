@@ -103,7 +103,7 @@ namespace MediawikiTranslator.Models.Data.MHRS
 						Decos2 = weapon.SlotNumList[1],
 						Decos3 = weapon.SlotNumList[2],
 						Decos4 = weapon.SlotNumList[3],
-						Element1 = weapon.MainElementType != "None" && !string.IsNullOrEmpty(weapon.MainElementType) ? weapon.MainElementType : string.Empty,
+						Element1 = weapon.MainElementType != "None" && !string.IsNullOrEmpty(weapon.MainElementType) ? weapon.MainElementType.Replace("Posion", "Poison").Replace("Bomb", "Blast") : string.Empty,
 						ElementDmg1 = weapon.MainElementType != "None" && !string.IsNullOrEmpty(weapon.MainElementType) ? weapon.MainElementVal!.Value.ToString() : string.Empty,
 						Rarity = Convert.ToInt32(weapon.RareType.Substring(2)),
 						RampageDecoration = (weapon.HyakuryuSlotNumList[0] > 0 ? "{{UI|MHRS|Rampage Deco|1}}" : "") + (weapon.HyakuryuSlotNumList[1] > 0 ? "{{UI|MHRS|Rampage Deco|2}}" : "") + (weapon.HyakuryuSlotNumList[2] > 0 ? "{{UI|MHRS|Rampage Deco|3}}" : ""),
@@ -164,7 +164,7 @@ namespace MediawikiTranslator.Models.Data.MHRS
 						case DualBladesParam wep:
 							if (wep.SubElementType != "None")
 							{
-								newData.Element2 = wep.SubElementType;
+								newData.Element2 = wep.SubElementType.Replace("Posion", "Poison").Replace("Bomb", "Blast");
 								newData.ElementDmg2 = wep.SubElementVal!.Value.ToString();
 							}
 							break;
