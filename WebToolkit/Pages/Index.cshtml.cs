@@ -25,10 +25,6 @@ namespace WebToolkit.Pages
 		}
 		public void OnGet()
         {
-            foreach (string monsterName in Directory.EnumerateDirectories(@"C:\Users\mkast\Desktop\test monster stuff\MHWI").Select(x => new DirectoryInfo(x).Name).Where(x => x != "TranslationQueue" && !x.Contains("Training")))
-            {
-                MediawikiTranslator.Models.Monsters.Monster mon = new(monsterName);
-            }
 		}
     }
 }

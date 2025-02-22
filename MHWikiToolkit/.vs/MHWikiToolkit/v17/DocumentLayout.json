@@ -3,10 +3,13 @@
   "WorkspaceRootPath": "D:\\MHWiki_EditorToolkit\\MHWiki_EditorToolkit\\MHWikiToolkit\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{AB1DA0F3-81CA-4476-84A9-E1C5C2DD36C4}|..\\Generators\\MediawikiTranslator.csproj|d:\\mhwiki_editortoolkit\\mhwiki_editortoolkit\\generators\\generators\\weapontree.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{2372D6A5-49EF-4E9D-B54C-F53B7AE5A9C7}|..\\WebToolkit\\WebToolkit.csproj|d:\\mhwiki_editortoolkit\\mhwiki_editortoolkit\\webtoolkit\\pages\\index.cshtml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{AB1DA0F3-81CA-4476-84A9-E1C5C2DD36C4}|..\\Generators\\MediawikiTranslator.csproj|d:\\mhwiki_editortoolkit\\mhwiki_editortoolkit\\generators\\models\\monsters\\flinchbreakthresholds.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{AB1DA0F3-81CA-4476-84A9-E1C5C2DD36C4}|..\\Generators\\MediawikiTranslator.csproj|d:\\mhwiki_editortoolkit\\mhwiki_editortoolkit\\generators\\generators\\weapontree.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{AB1DA0F3-81CA-4476-84A9-E1C5C2DD36C4}|..\\Generators\\MediawikiTranslator.csproj|d:\\mhwiki_editortoolkit\\mhwiki_editortoolkit\\generators\\models\\monsters\\trapeffectiveness.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
@@ -27,9 +30,6 @@
       "AbsoluteMoniker": "D:0:0:{AB1DA0F3-81CA-4476-84A9-E1C5C2DD36C4}|..\\Generators\\MediawikiTranslator.csproj|d:\\mhwiki_editortoolkit\\mhwiki_editortoolkit\\generators\\models\\monsters\\attacks.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{2372D6A5-49EF-4E9D-B54C-F53B7AE5A9C7}|..\\WebToolkit\\WebToolkit.csproj|d:\\mhwiki_editortoolkit\\mhwiki_editortoolkit\\webtoolkit\\pages\\index.cshtml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
       "AbsoluteMoniker": "D:0:0:{AB1DA0F3-81CA-4476-84A9-E1C5C2DD36C4}|..\\Generators\\MediawikiTranslator.csproj|d:\\mhwiki_editortoolkit\\mhwiki_editortoolkit\\generators\\utilities.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
@@ -43,11 +43,11 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 0,
+          "SelectedChildIndex": 12,
           "Children": [
             {
               "$type": "Document",
-              "DocumentIndex": 0,
+              "DocumentIndex": 2,
               "Title": "WeaponTree.cs",
               "DocumentMoniker": "D:\\MHWiki_EditorToolkit\\MHWiki_EditorToolkit\\Generators\\Generators\\WeaponTree.cs",
               "RelativeDocumentMoniker": "..\\Generators\\Generators\\WeaponTree.cs",
@@ -60,7 +60,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 7,
+              "DocumentIndex": 8,
               "Title": "Attacks.cs",
               "DocumentMoniker": "D:\\MHWiki_EditorToolkit\\MHWiki_EditorToolkit\\Generators\\Models\\Monsters\\Attacks.cs",
               "RelativeDocumentMoniker": "..\\Generators\\Models\\Monsters\\Attacks.cs",
@@ -98,7 +98,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 3,
+              "DocumentIndex": 4,
               "Title": "StatusEffectiveness.cs",
               "DocumentMoniker": "D:\\MHWiki_EditorToolkit\\MHWiki_EditorToolkit\\Generators\\Models\\Monsters\\StatusEffectiveness.cs",
               "RelativeDocumentMoniker": "..\\Generators\\Models\\Monsters\\StatusEffectiveness.cs",
@@ -111,7 +111,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 6,
+              "DocumentIndex": 7,
               "Title": "Drops.cs",
               "DocumentMoniker": "D:\\MHWiki_EditorToolkit\\MHWiki_EditorToolkit\\Generators\\Models\\Monsters\\Drops.cs",
               "RelativeDocumentMoniker": "..\\Generators\\Models\\Monsters\\Drops.cs",
@@ -124,7 +124,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 4,
+              "DocumentIndex": 5,
               "Title": "Monster.cs",
               "DocumentMoniker": "D:\\MHWiki_EditorToolkit\\MHWiki_EditorToolkit\\Generators\\Models\\Monsters\\Monster.cs",
               "RelativeDocumentMoniker": "..\\Generators\\Models\\Monsters\\Monster.cs",
@@ -137,7 +137,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 3,
               "Title": "TrapEffectiveness.cs",
               "DocumentMoniker": "D:\\MHWiki_EditorToolkit\\MHWiki_EditorToolkit\\Generators\\Models\\Monsters\\TrapEffectiveness.cs",
               "RelativeDocumentMoniker": "..\\Generators\\Models\\Monsters\\TrapEffectiveness.cs",
@@ -163,7 +163,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 5,
+              "DocumentIndex": 6,
               "Title": "Enrage.cs",
               "DocumentMoniker": "D:\\MHWiki_EditorToolkit\\MHWiki_EditorToolkit\\Generators\\Models\\Monsters\\Enrage.cs",
               "RelativeDocumentMoniker": "..\\Generators\\Models\\Monsters\\Enrage.cs",
@@ -176,13 +176,13 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 8,
+              "DocumentIndex": 0,
               "Title": "Index.cshtml.cs",
               "DocumentMoniker": "D:\\MHWiki_EditorToolkit\\MHWiki_EditorToolkit\\WebToolkit\\Pages\\Index.cshtml.cs",
               "RelativeDocumentMoniker": "..\\WebToolkit\\Pages\\Index.cshtml.cs",
               "ToolTip": "D:\\MHWiki_EditorToolkit\\MHWiki_EditorToolkit\\WebToolkit\\Pages\\Index.cshtml.cs",
               "RelativeToolTip": "..\\WebToolkit\\Pages\\Index.cshtml.cs",
-              "ViewState": "AgIAAAwAAAAAAAAAAAAmwB4AAAANAAAAAAAAAA==",
+              "ViewState": "AgIAAAwAAAAAAAAAAAAmwBoAAAAJAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-02-11T06:06:17.831Z",
               "EditorCaption": ""
