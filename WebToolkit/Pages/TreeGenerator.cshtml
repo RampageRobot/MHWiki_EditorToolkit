@@ -22,7 +22,11 @@
 				dataType: "json",
 				statusCode: {
 					200: function (result) {
+					if ($("#CSSExcludeToggle").is(":checked")) {
+						$("#txtResults").val(result.responseText.split("<br>")[1].slice(2));
+					}else{
 						$("#txtResults").val(result.responseText);
+					}
 						if (typeof (mdlGenerate) === 'undefined') {
 							mdlGenerate = new bootstrap.Modal(document.getElementById('mdlGenerate'));
 						}
@@ -269,6 +273,12 @@
 					<div class="col">
 						<label for="txtResults" class="text-bottom">Complete Weapon Tree Source</label>
 						<button class="btn btn-primary bi bi-clipboard float-end" title="Copy contents of table results." onclick="copyToClipboard();"></button>
+					</div>
+				</div>
+				<div class="row form-check form-switch">
+					<div class="col">
+						<input id="CSSExcludeToggle" class="form-check-input" type="checkbox" onclick="generateTree()" id="flexSwitchCheckDefault">
+						<label class="form-check-label" for="flexSwitchCheckDefault">Exclude CSS</label>
 					</div>
 				</div>
 				<div class="row">
