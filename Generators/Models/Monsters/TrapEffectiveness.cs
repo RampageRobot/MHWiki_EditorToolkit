@@ -10,6 +10,7 @@ namespace MediawikiTranslator.Models.Monsters
 	public class TrapEffectiveness
     {
         public TrapType Type { get; set; }
+        public Rank Rank { get; set; } = Rank.All;
         public float? Duration { get; set; }
         public float? DurationExhaust { get; set; }
         public float? ToleranceReduction { get; set; }
@@ -20,7 +21,7 @@ namespace MediawikiTranslator.Models.Monsters
         {
             Stamina stam = new(monsterName);
             List<TrapEffectiveness> ret = [];
-            string fileName = $@"C:\Users\mkast\Desktop\test monster stuff\MHWI\{monsterName}\Stamina.json";
+            string fileName = $@"C:\Users\mkast\Desktop\test monster stuff\MHWI\{monsterName}\Damage Attributes.json";
             if (File.Exists(fileName))
             {
 				Dictionary<string, dynamic[]> trapData = JsonConvert.DeserializeObject<Dictionary<string, dynamic[]>>(File.ReadAllText(fileName))!;
@@ -30,10 +31,10 @@ namespace MediawikiTranslator.Models.Monsters
                 {
                     TrapType thisType = (TrapType)i;
                     string thisTypeName = trapTypeNames[i];
-					dynamic thisTrapObj = traps.First(x => x.Name == thisTypeName);
-                    if (i <= 3)
-                    {
-                        ret.Add(new()
+                    if (i <= 2)
+					{
+						dynamic thisTrapObj = traps.First(x => x.Name == thisTypeName);
+						ret.Add(new()
                         {
                             Type = thisType,
                             Duration = Math.Round(thisTrapObj.Duration, 2),
@@ -51,18 +52,58 @@ namespace MediawikiTranslator.Models.Monsters
                         };
                         switch (thisType)
                         {
+                            case TrapType.FlashPod:
+                                {
+                                    retObj.Rank = Rank.LowHigh;
+                                    dynamic thisTrapObj = trapData["Status Buildup: Dizziness LR/HR"].First();
+                                    retObj.Duration = Math.Round(thisTrapObj.Duration, 2);
+                                    retObj.ToleranceReduction = Math.Round(thisTrapObj.Duration_Decrease_Per_Use, 2);
+                                    retObj.MinDuration = Math.Round(thisTrapObj.Duration_Minimum, 2);
+                                    retObj.DurationExhaust = Math.Round(thisTrapObj.Duration * (1 + (1 - stam.Speed)), 2);
+                                    retObj.Effectiveness = 100;
+									ret.Add(retObj);
+									dynamic thisMRObj = trapData["Status Buildup: Dizziness MR"].First();
+									TrapEffectiveness mrObj = new TrapEffectiveness()
+                                    {
+                                        Type = thisType,
+                                        Rank = Rank.Master,
+										Duration = Math.Round(thisMRObj.Duration, 2),
+										ToleranceReduction = Math.Round(thisMRObj.Duration_Decrease_Per_Use, 2),
+										MinDuration = Math.Round(thisMRObj.Duration_Minimum, 2),
+										DurationExhaust = Math.Round(thisMRObj.Duration * (1 + (1 - stam.Speed)), 2),
+										Effectiveness = 100
+									};
+									ret.Add(retObj);
+									ret.Add(mrObj);
+								}
+                                break;
                             case TrapType.Meat:
-                                retObj.Duration = Math.Round(thisTrapObj.Duration, 2);
-                                break;
+								ret.Add(retObj);
+								break;
                             case TrapType.DungPod:
-                                break;
+                                {
+                                    dynamic thisTrapObj = trapData["Status Buildup: Dung"].First();
+                                    retObj.Effectiveness = thisTrapObj.Base == 1 ? 100 : 0;
+                                    retObj.Duration = Math.Round(thisTrapObj.Duration, 2);
+									ret.Add(retObj);
+								}
+								break;
                             case TrapType.SonicPod:
-                                break;
+								ret.Add(retObj);
+								break;
                         }
                     }
 				}
             }
+            return [.. ret];
         }
+    }
+
+    public enum Rank
+    {
+        All,
+        LowHigh,
+        Master
     }
 
     public enum TrapType

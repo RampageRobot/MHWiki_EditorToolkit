@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace MediawikiTranslator.Models.Monsters
 {
-    class Drops
+	public class Drops
     {
         public string Category { get; set; } = string.Empty;
         public string Rank { get; set; } = string.Empty;

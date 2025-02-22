@@ -10,7 +10,7 @@ namespace MediawikiTranslator.Models.Monsters
 	/// <summary>
 	/// Template is here: <see href="https://monsterhunterwiki.org/Template:EnrageDataTable"/>
 	/// </summary>
-	class Enrage
+	public class Enrage
     {
         public bool FileFound { get; set; }
 		public bool MRChanges { get; set; } = false;
@@ -22,6 +22,8 @@ namespace MediawikiTranslator.Models.Monsters
         public float? MRSpeedMod { get; set; }
         public float PlayerDamageMod { get; set; }
 		public float? MRPlayerDamageMod { get; set; }
+
+        public Enrage() { }
 
         public Enrage(string monsterName)
         {

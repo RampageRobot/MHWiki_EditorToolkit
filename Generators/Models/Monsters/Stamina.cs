@@ -22,6 +22,8 @@ namespace MediawikiTranslator.Models.Monsters
 		public float? Speed { get; set; }
 		public bool FileFound { get; set; }
 
+		public Stamina() { }
+
 		public Stamina(string monsterName)
 		{
 			string fileName = $@"C:\Users\mkast\Desktop\test monster stuff\MHWI\{monsterName}\Stamina.json";

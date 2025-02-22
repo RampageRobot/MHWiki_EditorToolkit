@@ -159,8 +159,8 @@ namespace MediawikiTranslator.Generators
 				}
 				if (tableHasArmorSkills)
 				{
-					ret.AppendLine(@"!class=""hide-on-mobile""|[[File:UI-Blights Negated.png|20x20px|center|Link=]]");
-					mobileHeaderBuilder.AppendLine("![[File:UI-Blights Negated.png|20x20px|center|Link=]]");
+					ret.AppendLine(@"!class=""hide-on-mobile""|[[File:MHWI-Armor Skill Icon Red.png|20x20px|link=]]");
+					mobileHeaderBuilder.AppendLine("![[File:MHWI-Armor Skill Icon Red.png|20x20px|link=]]");
 				}
 				if (!new string[] { "Bo", "HBG", "LBG" }.Contains(tableIconType))
 				{
@@ -312,7 +312,11 @@ namespace MediawikiTranslator.Generators
 					}
 					else
 					{
-						if (spaceCnt > 0 || string.IsNullOrEmpty(dataObj.PathLink) || prevPaths.Count >= 2)
+						if (prefix == "")
+						{
+							prefix += "{{K|S|W}}";
+						}
+						else if (spaceCnt > 0 || string.IsNullOrEmpty(dataObj.PathLink) || prevPaths.Count >= 2)
 						{
 							prefix += "{{K|S|W}}";
 						}
@@ -510,7 +514,7 @@ namespace MediawikiTranslator.Generators
 					}
 					case "Para":
 					{
-						coatings += $"[[File:{game}-Coating Icon Orange{(hasPlus ? " Plus" : "")}.png|24x24px|Para Coating|link=Para Coating ({game})]]";
+						coatings += $"[[File:{game}-Coating Icon {(game == "MHRS" ? "Orange" : "Lemon")}{(hasPlus ? " Plus" : "")}.png|24x24px|Para Coating|link=Para Coating ({game})]]";
 						break;
 					}
 					case "Sleep":
@@ -520,7 +524,7 @@ namespace MediawikiTranslator.Generators
 					}
 					case "Blast":
 					{
-						coatings += $"[[File:{game}-Coating Icon Vermilion{(hasPlus ? " Plus" : "")}.png|24x24px|Blast Coating|link=Blast Coating ({game})]]";
+						coatings += $"[[File:{game}-Coating Icon {(game == "MHRS" ? "Vermilion" : "Light Green")}{(hasPlus ? " Plus" : "")}.png|24x24px|Blast Coating|link=Blast Coating ({game})]]";
 						break;
 					}
 					case "Exhaust":
