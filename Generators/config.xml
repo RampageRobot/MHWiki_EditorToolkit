@@ -1,0 +1,8 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<configuration>
+	<appSettings>
+		<add key="WikiUsername" value=""></add>
+		<add key="WikiPassword" value=""></add>
+		<add key="DesktopPath" value=""></add>
+	</appSettings>
+</configuration>

@@ -75,6 +75,7 @@ The {set.SetName}{setGenderMark} Set is a {GetRankLink(set.Game, set.Rarity)} ar
 |Materials             = {GetMaterialsTemplates(piece.Materials, set.Game)}
 }}}}");
 				}
+				ret.AppendLine($"[[Category:{set.Game} Armor Sets]]");
 				return ret.ToString();
 			});
 		}
@@ -182,10 +183,10 @@ The {set.SetName}{setGenderMark} Set is a {GetRankLink(set.Game, set.Rarity)} ar
 			{
 				string setGenderMark = data.OnlyForGender != null && src.Any(x => x.SetName == data.SetName && x.OnlyForGender != data.OnlyForGender) ? " (" + data.OnlyForGender + ")" : "";
 				ret.Add(data, Generate(data, src).Result);
-				//File.WriteAllText($@"C:\Users\mkast\Desktop\MHWiki Generated Armor Sets\{game}\{data.SetName!.Replace("\"", "")}{setGenderMark} Set.txt", Generate(data, src).Result);
+				//File.WriteAllText($@"" + System.Configuration.ConfigurationManager.AppSettings.Get("DesktopPath") + "MHWiki Generated Armor Sets\{game}\{data.SetName!.Replace("\"", "")}{setGenderMark} Set.txt", Generate(data, src).Result);
 			}
 			return ret;
-			//File.WriteAllText($@"C:\Users\mkast\Desktop\MHWiki Generated Armor Sets\{game}\_setlist.txt", setList.ToString());
+			//File.WriteAllText($@"" + System.Configuration.ConfigurationManager.AppSettings.Get("DesktopPath") + "MHWiki Generated Armor Sets\{game}\_setlist.txt", setList.ToString());
 		}
 	}
 

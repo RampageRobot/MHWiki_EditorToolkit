@@ -66,6 +66,7 @@ namespace MediawikiTranslator.Models.MaterialsAndDropTables
 		[JsonProperty(nameof(Quantity))]
 		[JsonConverter(typeof(ParseStringConverter))]
 		public long? Quantity { get; set; }
+		public int Order { get; set; }
     }
 
 	public partial class WebToolkitData

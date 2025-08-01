@@ -101,8 +101,10 @@ namespace MediawikiTranslator.Models.Weapon
 
         [JsonProperty("hh-note-3", NullValueHandling = NullValueHandling.Ignore)]
         public string? HhNote3 { get; set; }
+		public string? HhSpecialMelody { get; set; }
+		public string? HhEchoBubble { get; set; }
 
-        [JsonProperty("gl-shelling-type", NullValueHandling = NullValueHandling.Ignore)]
+		[JsonProperty("gl-shelling-type", NullValueHandling = NullValueHandling.Ignore)]
         public string? GlShellingType { get; set; }
 
         [JsonProperty("gl-shelling-level", NullValueHandling = NullValueHandling.Ignore)]
@@ -111,7 +113,10 @@ namespace MediawikiTranslator.Models.Weapon
         [JsonProperty("sa-phial-type", NullValueHandling = NullValueHandling.Ignore)]
         public string? SaPhialType { get; set; }
 
-        [JsonProperty("cb-phial-type", NullValueHandling = NullValueHandling.Ignore)]
+		[JsonProperty("sa-phial-damage", NullValueHandling = NullValueHandling.Ignore)]
+		public string? SaPhialDamage { get; set; }
+
+		[JsonProperty("cb-phial-type", NullValueHandling = NullValueHandling.Ignore)]
         public string? CbPhialType { get; set; }
 
         [JsonProperty("ig-kinsect-bonus", NullValueHandling = NullValueHandling.Ignore)]
@@ -123,11 +128,31 @@ namespace MediawikiTranslator.Models.Weapon
         [JsonProperty("hbg-special-ammo-type", NullValueHandling = NullValueHandling.Ignore)]
         public string? HbgSpecialAmmoType { get; set; }
 
+		[JsonProperty("hbg-special-ammo-type1", NullValueHandling = NullValueHandling.Ignore)]
+		public string? HbgSpecialAmmoType1 { get; set; }
+
+		[JsonProperty("hbg-special-ammo-type2", NullValueHandling = NullValueHandling.Ignore)]
+		public string? HbgSpecialAmmoType2 { get; set; }
+
+		[JsonProperty("hbg-special-default-mod1", NullValueHandling = NullValueHandling.Ignore)]
+		public string? HbgDefaultMod1 { get; set; }
+
+		[JsonProperty("hbg-special-default-mod2", NullValueHandling = NullValueHandling.Ignore)]
+		public string? HbgDefaultMod2 { get; set; }
+		public string? HbgIgnitionGauge { get; set; }
+		public string? HbgStandardIgnitionType { get; set; }
+
 		[JsonProperty("hbg-deviation", NullValueHandling = NullValueHandling.Ignore)]
 		public string? HbgDeviation { get; set; }
 
 		[JsonProperty("lbg-special-ammo-type", NullValueHandling = NullValueHandling.Ignore)]
 		public string? LbgSpecialAmmoType { get; set; }
+
+		[JsonProperty("lbg-special-default-mod1", NullValueHandling = NullValueHandling.Ignore)]
+		public string? LbgDefaultMod1 { get; set; }
+
+		[JsonProperty("lbg-special-default-mod2", NullValueHandling = NullValueHandling.Ignore)]
+		public string? LbgDefaultMod2 { get; set; }
 
 		[JsonProperty("lbg-deviation", NullValueHandling = NullValueHandling.Ignore)]
 		public string? LbgDeviation { get; set; }
@@ -203,11 +228,18 @@ namespace MediawikiTranslator.Models.Weapon
 		public string? Next3Materials { get; set; }
 		[JsonIgnore]
         public ShellTable[]? ShellTable { get; set; }
+        [JsonIgnore]
+        public string? MonsterName { get; set; }
 
         [JsonIgnore]
         public string ShellTableWikitext { get; set; } = string.Empty;
+        public WebToolkitData[]? UnlocksForgingFor { get; set; }
+        public WebToolkitData? UnlockedByForging { get; set; }
+        public string? SrcDescription { get; set; }
+        public string? HighFreqEnum { get; set; }
+		public int SrcAttack { get; set; }
 
-        public WebToolkitData Clone()
+		public WebToolkitData Clone()
         {
             return new WebToolkitData()
             {
@@ -265,7 +297,24 @@ namespace MediawikiTranslator.Models.Weapon
                 Tree = Tree,
                 Type = Type,
                 UpgradeCost = UpgradeCost,
-                UpgradeMaterials = UpgradeMaterials
+                UpgradeMaterials = UpgradeMaterials,
+                HbgSpecialAmmoType1 = HbgSpecialAmmoType1,
+                HbgSpecialAmmoType2 = HbgSpecialAmmoType2,
+                HbgDefaultMod1 = HbgDefaultMod1,
+                HbgDefaultMod2 = HbgDefaultMod2,
+                HhEchoBubble = HhEchoBubble,
+                HhMelodies = HhMelodies,
+                HhSpecialMelody = HhSpecialMelody,
+                LbgDefaultMod1 = LbgDefaultMod1,
+                LbgDefaultMod2 = LbgDefaultMod2,
+                Next4Cost = Next4Cost,
+                Next4Materials = Next4Materials,
+                Next4Name = Next4Name,
+                Next4Rarity = Next4Rarity,
+                SaPhialDamage = SaPhialDamage,
+                ShellTableWikitext = ShellTableWikitext,
+                UnlockedByForging = UnlockedByForging,
+                UnlocksForgingFor = UnlocksForgingFor
             };
         }
     }
@@ -316,7 +365,7 @@ namespace MediawikiTranslator.Models.Weapon
                 serializer.Serialize(writer, null);
                 return;
             }
-            var value = long.Parse(untypedValue!.ToString());
+            var value = long.Parse(untypedValue!.ToString()!);
             serializer.Serialize(writer, value.ToString());
             return;
         }

@@ -302,7 +302,20 @@ namespace MediawikiTranslator.Models.Data.MHWI
 				string recoil = shell.RecoilType == "Auto-Reload" || shell.RecoilType == "Wyvern" || shell.RecoilType == "Rapid Fire (Sticky)" ? (shell.RecoilType == "Rapid Fire (Sticky)" ? "Recoil +1" : shell.RecoilType) : shell.RecoilType.Substring(shell.RecoilType.IndexOf("(Recoil") + 1, 9);
 				string reload = shell.ReloadSpeed[..shell.ReloadSpeed.IndexOf(" Reload")];
 				Models.Data.MHWI.Items shellItem = _mhwiItems.First(x => x.Name == shell.Name);
-				ret.AppendLine($"|{{{{GenericItemLink|{weapon.Game}|{shellItem.Name}|Ammo|{Generators.Weapon.GetColorString(shellItem.WikiIconColor!.Value.ToString())}}}}}");
+				string levelText = "";
+				if (shellItem.Name.EndsWith("1"))
+				{
+					levelText = "|TopL=1";
+				}
+				if (shellItem.Name.EndsWith("2"))
+				{
+					levelText = "|TopL=2";
+				}
+				if (shellItem.Name.EndsWith("3"))
+				{
+					levelText = "|TopL=3";
+				}
+				ret.AppendLine($"|{{{{IconPickerUniversalAlt|{weapon.Game}|Ammo|{shellItem.Name}|Color={Generators.Weapon.GetColorString(shellItem.WikiIconColor!.Value.ToString())}{levelText}}}}}");
 				ret.AppendLine($"|{shell.Capacity}");
 				ret.AppendLine($"|{recoil}");
 				ret.AppendLine($"|{reload}");
@@ -311,7 +324,7 @@ namespace MediawikiTranslator.Models.Data.MHWI
 				bool movingReloadEnabled = false;
 				if (!shell.RecoilType.StartsWith("Cluster") && !recoil.Contains("+3") && !recoil.Contains("+4") && shell.RecoilType != "Wyvern")
 				{
-					icons += $"{{{{UI|{{{{{{Game|MHWI}}}}}}|{weapon.Type} Moving Shot Enabled|size=24x24px|nolink=true|title=Moving Shot Enabled}}}}";
+					icons += $"{{{{UI|MHRS|{weapon.Type} Moving Shot Enabled|size=24x24px|nolink=true|title=Moving Shot Enabled}}}}";
 					movingShotEnabled = true;
 				}
 				if (reload != "Slow" && reload != "Very Slow")
@@ -320,7 +333,7 @@ namespace MediawikiTranslator.Models.Data.MHWI
 					{
 						icons += " ";
 					}
-					icons += $"{{{{UI|{{{{{{Game|MHWI}}}}}}|{weapon.Type} Moving Reload Enabled|size=24x24px|nolink=true|title=Moving Reload Enabled}}}}";
+					icons += $"{{{{UI|MHRS|{weapon.Type} Moving Reload Enabled|size=24x24px|nolink=true|title=Moving Reload Enabled}}}}";
 					movingReloadEnabled = true;
 				}
 				if (shell.RecoilType == "Auto-Reload")
@@ -331,7 +344,7 @@ namespace MediawikiTranslator.Models.Data.MHWI
 						{
 							icons += " ";
 						}
-						icons += $"{{{{UI|{{{{{{Game|MHWI}}}}}}|{weapon.Type} Moving Shot Enabled|size=24x24px|nolink=true|title=Moving Shot Enabled}}}}";
+						icons += $"{{{{UI|MHRS|{weapon.Type} Moving Shot Enabled|size=24x24px|nolink=true|title=Moving Shot Enabled}}}}";
 					}
 					if (!movingReloadEnabled)
 					{
@@ -339,13 +352,13 @@ namespace MediawikiTranslator.Models.Data.MHWI
 						{
 							icons += " ";
 						}
-						icons += $"{{{{UI|{{{{{{Game|MHWI}}}}}}|{weapon.Type} Moving Reload Enabled|size=24x24px|nolink=true|title=Moving Reload Enabled}}}}";
+						icons += $"{{{{UI|MHRS|{weapon.Type} Moving Reload Enabled|size=24x24px|nolink=true|title=Moving Reload Enabled}}}}";
 					}
 					if (icons != "")
 					{
 						icons += " ";
 					}
-					icons += $"{{{{UI|{{{{{{Game|MHRS}}}}}}|{weapon.Type} Single Fire Auto Reload|size=24x24px|nolink=true|title=Single Fire Auto Reload}}}}";
+					icons += $"{{{{UI|MHRS|{weapon.Type} Single Fire Auto Reload|size=24x24px|nolink=true|title=Single Fire Auto Reload}}}}";
 				}
 				if (shell.RecoilType.StartsWith("Rapid Fire"))
 				{
@@ -353,7 +366,7 @@ namespace MediawikiTranslator.Models.Data.MHWI
 					{
 						icons += " ";
 					}
-					icons += $"{{{{UI|{{{{{{Game|MHRS}}}}}}|{weapon.Type} Rapid Fire|size=24x24px|nolink=true|title=Rapid Fire}}}}";
+					icons += $"{{{{UI|MHRS|{weapon.Type} Rapid Fire|size=24x24px|nolink=true|title=Rapid Fire}}}}";
 				}
 				if (shell.RecoilType == "Wyvern")
 				{

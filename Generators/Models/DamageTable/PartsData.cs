@@ -55,8 +55,8 @@ namespace MediawikiTranslator.Models.DamageTable.PartsData
 
     internal static class Converter
     {
-        public static readonly JsonSerializerSettings Settings = new JsonSerializerSettings
-        {
+        public static readonly JsonSerializerSettings Settings = new()
+		{
             MetadataPropertyHandling = MetadataPropertyHandling.Ignore,
             DateParseHandling = DateParseHandling.None,
             Converters =
@@ -130,6 +130,6 @@ namespace MediawikiTranslator.Models.DamageTable.PartsData
             throw new Exception("Cannot marshal type IconType");
         }
 
-        public static readonly IconTypeConverter Singleton = new IconTypeConverter();
+        public static readonly IconTypeConverter Singleton = new();
     }
 }

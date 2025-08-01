@@ -137,7 +137,7 @@ namespace MediawikiTranslator.Models.Data.MHRS
 						{
 							handi[lastPositionWithData + 3] += (int)weapon.HandicraftValList[3];
 						}
-						SharpnessData handiSharp = new SharpnessData()
+						SharpnessData handiSharp = new()
 						{
 							Red = handi[0],
 							Orange = handi[1],
@@ -147,7 +147,7 @@ namespace MediawikiTranslator.Models.Data.MHRS
 							White = handi[5],
 							Purple = handi[6]
 						};
-						SharpnessData sharp = new SharpnessData()
+						SharpnessData sharp = new()
 						{
 							Red = sharpness[0],
 							Orange = sharpness[1],
@@ -320,7 +320,7 @@ namespace MediawikiTranslator.Models.Data.MHRS
 						ret.Add(newData);
 					}
 				}
-				catch (Exception exc)
+				catch (Exception)
 				{
 					Debugger.Break();
 				}
@@ -376,7 +376,7 @@ namespace MediawikiTranslator.Models.Data.MHRS
 		private static string GetShellTableWikitext(Weapon wep)
 		{
 			string[] ammoList = ["Normal Ammo 1", "Normal Ammo 2", "Normal Ammo 3", "Pierce Ammo 1", "Pierce Ammo 2", "Pierce Ammo 3", "Spread Ammo 1", "Spread Ammo 2", "Spread Ammo 3", "Shrapnel Ammo 1", "Shrapnel Ammo 2", "Shrapnel Ammo 3", "Sticky Ammo 1", "Sticky Ammo 2", "Sticky Ammo 3", "Cluster Bomb 1", "Cluster Bomb 2", "Cluster Bomb 3", "Poison Ammo 1", "Poison Ammo 2", "Paralysis Ammo 1", "Paralysis Ammo 2", "Sleep Ammo 1", "Sleep Ammo 2", "Exhaust Ammo 1", "Exhaust Ammo 2", "Recover Ammo 1", "Recover Ammo 2", "Demon Ammo", "Armor Ammo", "Flaming Ammo", "Piercing Fire Ammo", "Water Ammo", "Piercing Water Ammo", "Freeze Ammo", "Piercing Ice Ammo", "Thunder Ammo", "Piercing Thunder Ammo", "Dragon Ammo", "Piercing Dragon Ammo", "Slicing Ammo", "Wyvern Ammo", "Tranq Ammo"];
-			Dictionary<string, int[]> ammoRaws = new Dictionary<string, int[]>()
+			Dictionary<string, int[]> ammoRaws = new()
 			{
 				{ "Normal Ammo 1", new int[] { 8, 4 } },
 				{ "Normal Ammo 2", new int[] { 9, 5 } },
@@ -423,8 +423,12 @@ namespace MediawikiTranslator.Models.Data.MHRS
 				{ "Tranq Ammo", new int[] { 10, 5 } }
 			};
 			StringBuilder ret = new();
+#pragma warning disable CS8632 // The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
 			HeavyBowGunParam? hbg = null;
+#pragma warning restore CS8632 // The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
+#pragma warning disable CS8632 // The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
 			LightBowGunParam? lbg = null;
+#pragma warning restore CS8632 // The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
 			bool[] bulletEquipList = [];
 			long[] bulletNumList = [];
 			string[] bulletTypeList = [];
@@ -457,7 +461,20 @@ namespace MediawikiTranslator.Models.Data.MHRS
 					Items shellItem = _mhrsItems.First(x => x.Name == ammoList[i - 1]);
 					int recoilRaw = ammoRaws[shellItem.Name][0];
 					int reloadRaw = ammoRaws[shellItem.Name][1];
-					ret.AppendLine($"|{{{{GenericItemLink|MHRS|{shellItem.Name}|Ammo|{shellItem.WikiIconColor}}}}}");
+					string levelText = "";
+					if (shellItem.Name.EndsWith("1"))
+					{
+						levelText = "|TopL=1";
+					}
+					if (shellItem.Name.EndsWith("2"))
+					{
+						levelText = "|TopL=2";
+					}
+					if (shellItem.Name.EndsWith("3"))
+					{
+						levelText = "|TopL=3";
+					}
+					ret.AppendLine($"|{{{{IconPickerUniversalAlt|MHRS|{shellItem.WikiIconName}|{shellItem.Name}|Color={Generators.Weapon.GetColorString(shellItem.WikiIconColor)}{levelText}}}}}");
 					ret.AppendLine($"|{bulletNumList[i]}");
 					int recoilValInt = Convert.ToInt32(recoilVal[(recoilVal.IndexOf('_') + 1)..]);
 					string recoil = "";

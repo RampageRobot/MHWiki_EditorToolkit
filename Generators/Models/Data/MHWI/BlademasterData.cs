@@ -184,7 +184,6 @@ namespace MediawikiTranslator.Models.Data.MHWI
 				SharpnessData oldSharp = obj.Sharpness;
 				long[] limits = new long[] { obj.Sharpness.Red!.Value, obj.Sharpness.Orange!.Value, obj.Sharpness.Yellow!.Value, obj.Sharpness.Green!.Value, obj.Sharpness.Blue!.Value, obj.Sharpness.White!.Value, obj.Sharpness.Purple!.Value };
 				long[] newSharpArray = new long[7];
-				long maxedOut = 0;
 				for (int cntr = 0; cntr < newSharpArray.Length; cntr++)
 				{
 					if (limits[cntr] > maxSharp)
@@ -291,14 +290,14 @@ namespace MediawikiTranslator.Models.Data.MHWI
 				newObj.Sharpness = $"[[{obj.Sharpness.Red},{obj.Sharpness.Orange},{obj.Sharpness.Yellow},{obj.Sharpness.Green},{obj.Sharpness.Blue},{obj.Sharpness.White},{obj.Sharpness.Purple}],[{handi.Red},{handi.Orange},{handi.Yellow},{handi.Green},{handi.Blue},{handi.White},{handi.Purple}]]";
 				long[] newHandiVals = new long[] { handi.Red!.Value, handi.Orange!.Value, handi.Yellow!.Value, handi.Green!.Value, handi.Blue!.Value, handi.White!.Value, handi.Purple!.Value };
 #nullable enable
-				WeaponCraftingData? thisCraft = craftingData.FirstOrDefault(x => x.EquipmentId!.Value == obj.Index!.Value && x.EquipmentCategory == obj.WeaponType.Replace("Great Sword", "Greatsword").Replace(" ", "_"));
+				WeaponCraftingData? thisCraft = craftingData.FirstOrDefault(x => x.EquipmentId!.Value == obj.Index!.Value && x.EquipmentCategory == obj.WeaponType.Replace("Great Sword", "Greatsword").Replace("Long Sword", "Longsword").Replace(" ", "_"));
 				if (obj.TreePosition > 0 && thisCraft != null && thisCraft.Mat1Id > 0)
 				{
-					WeaponCraftingData? parentCraft = craftingData.FirstOrDefault(x => x.EquipmentCategory == obj.WeaponType.Replace("Great Sword", "Greatsword").Replace(" ", "_") && (x.ChildIndex1!.Value == thisCraft.Index!.Value || x.ChildIndex2!.Value == thisCraft.Index!.Value || x.ChildIndex3!.Value == thisCraft.Index!.Value || x.ChildIndex4!.Value == thisCraft.Index!.Value));
+					WeaponCraftingData? parentCraft = craftingData.FirstOrDefault(x => x.EquipmentCategory == obj.WeaponType.Replace("Great Sword", "Greatsword").Replace("Long Sword", "Longsword").Replace(" ", "_") && (x.ChildIndex1!.Value == thisCraft.Index!.Value || x.ChildIndex2!.Value == thisCraft.Index!.Value || x.ChildIndex3!.Value == thisCraft.Index!.Value || x.ChildIndex4!.Value == thisCraft.Index!.Value));
 					BlademasterData? parent = data.FirstOrDefault(x => parentCraft != null && x.WeaponType == obj.WeaponType && x.Name == parentCraft.EquipmentName);
 					if (parent == null || parentCraft == null)
 					{
-						WeaponForgingData forge = forgingData.First(x => x.EquipmentIndex!.Value == obj.Index!.Value && x.EquipmentType == obj.WeaponType.Replace("Great Sword", "Greatsword").Replace(" ", "_"));
+						WeaponForgingData forge = forgingData.First(x => x.EquipmentIndex!.Value == obj.Index!.Value && x.EquipmentType == obj.WeaponType.Replace("Great Sword", "Greatsword").Replace("Long Sword", "Longsword").Replace(" ", "_"));
 						parent = data.FirstOrDefault(x => x.WeaponType == obj.WeaponType && x.Name == forge.EquipmentName);
 					}
 					newObj.PreviousName = parent!.Name;
@@ -307,9 +306,9 @@ namespace MediawikiTranslator.Models.Data.MHWI
 					newObj.UpgradeMaterials = GetMaterials(parent!, thisCraft, allItems);
 				}
 #nullable disable
-				if (forgingData.Any(x => x.EquipmentIndex!.Value == obj.Index!.Value && x.EquipmentType == obj.WeaponType.Replace("Great Sword", "Greatsword").Replace(" ", "_")))
+				if (forgingData.Any(x => x.EquipmentIndex!.Value == obj.Index!.Value && x.EquipmentType == obj.WeaponType.Replace("Great Sword", "Greatsword").Replace("Long Sword", "Longsword").Replace(" ", "_")))
 				{
-					WeaponForgingData forge = forgingData.First(x => x.EquipmentIndex!.Value == obj.Index!.Value && x.EquipmentType == obj.WeaponType.Replace("Great Sword", "Greatsword").Replace(" ", "_"));
+					WeaponForgingData forge = forgingData.First(x => x.EquipmentIndex!.Value == obj.Index!.Value && x.EquipmentType == obj.WeaponType.Replace("Great Sword", "Greatsword").Replace("Long Sword", "Longsword").Replace(" ", "_"));
 					newObj.ForgeCost = obj.Cost;
 					newObj.ForgeMaterials = GetForgeMaterials(obj, forge, allItems);
 				}
@@ -321,7 +320,7 @@ namespace MediawikiTranslator.Models.Data.MHWI
 				{
 					if (thisCraft.ChildIndex1 > 0)
 					{
-						WeaponCraftingData childCraft = craftingData.First(x => x.EquipmentCategory == obj.WeaponType.Replace("Great Sword", "Greatsword").Replace(" ", "_") && x.Index!.Value == thisCraft.ChildIndex1!.Value);
+						WeaponCraftingData childCraft = craftingData.First(x => x.EquipmentCategory == obj.WeaponType.Replace("Great Sword", "Greatsword").Replace("Long Sword", "Longsword").Replace(" ", "_") && x.Index!.Value == thisCraft.ChildIndex1!.Value);
 						BlademasterData child = data.First(x => x.WeaponType == obj.WeaponType && x.Index!.Value == childCraft.EquipmentId!.Value);
 						newObj.Next1Name = child.Name;
 						newObj.Next1Rarity = child.Rarity + 1;
@@ -330,7 +329,7 @@ namespace MediawikiTranslator.Models.Data.MHWI
 					}
 					if (thisCraft.ChildIndex2 > 0)
 					{
-						WeaponCraftingData childCraft = craftingData.First(x => x.EquipmentCategory == obj.WeaponType.Replace("Great Sword", "Greatsword").Replace(" ", "_") && x.Index!.Value == thisCraft.ChildIndex2!.Value);
+						WeaponCraftingData childCraft = craftingData.First(x => x.EquipmentCategory == obj.WeaponType.Replace("Great Sword", "Greatsword").Replace("Long Sword", "Longsword").Replace(" ", "_") && x.Index!.Value == thisCraft.ChildIndex2!.Value);
 						BlademasterData child = data.First(x => x.WeaponType == obj.WeaponType && x.Index!.Value == childCraft.EquipmentId!.Value);
 						newObj.Next2Name = child.Name;
 						newObj.Next2Rarity = child.Rarity + 1;
@@ -339,7 +338,7 @@ namespace MediawikiTranslator.Models.Data.MHWI
 					}
 					if (thisCraft.ChildIndex3 > 0)
 					{
-						WeaponCraftingData childCraft = craftingData.First(x => x.EquipmentCategory == obj.WeaponType.Replace("Great Sword", "Greatsword").Replace(" ", "_") && x.Index!.Value == thisCraft.ChildIndex3!.Value);
+						WeaponCraftingData childCraft = craftingData.First(x => x.EquipmentCategory == obj.WeaponType.Replace("Great Sword", "Greatsword").Replace("Long Sword", "Longsword").Replace(" ", "_") && x.Index!.Value == thisCraft.ChildIndex3!.Value);
 						BlademasterData child = data.First(x => x.WeaponType == obj.WeaponType && x.Index!.Value == childCraft.EquipmentId!.Value);
 						newObj.Next3Name = child.Name;
 						newObj.Next3Rarity = child.Rarity + 1;
@@ -348,7 +347,7 @@ namespace MediawikiTranslator.Models.Data.MHWI
 					}
 					if (thisCraft.ChildIndex4 > 0)
 					{
-						WeaponCraftingData childCraft = craftingData.First(x => x.EquipmentCategory == obj.WeaponType.Replace("Great Sword", "Greatsword").Replace(" ", "_") && x.Index!.Value == thisCraft.ChildIndex4!.Value);
+						WeaponCraftingData childCraft = craftingData.First(x => x.EquipmentCategory == obj.WeaponType.Replace("Great Sword", "Greatsword").Replace("Long Sword", "Longsword").Replace(" ", "_") && x.Index!.Value == thisCraft.ChildIndex4!.Value);
 						BlademasterData child = data.First(x => x.WeaponType == obj.WeaponType && x.Index!.Value == childCraft.EquipmentId!.Value);
 						newObj.Next4Name = child.Name;
 						newObj.Next4Rarity = child.Rarity + 1;

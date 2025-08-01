@@ -14,22 +14,28 @@ namespace MediawikiTranslator.Models.Data.MHWilds
 	public partial class AppUserDataArmorSeriesData
 	{
 		[JsonProperty("_Values", NullValueHandling = NullValueHandling.Ignore)]
-		public ArmorSeriesValue[] Values { get; set; }
+		public Value[] Values { get; set; }
 	}
 
-	public partial class ArmorSeriesValue
+	public partial class Value
+	{
+		[JsonProperty("app.user_data.ArmorSeriesData.cData", NullValueHandling = NullValueHandling.Ignore)]
+		public AppUserDataArmorSeriesDataCData AppUserDataArmorSeriesDataCData { get; set; }
+	}
+
+	public partial class AppUserDataArmorSeriesDataCData
 	{
 		[JsonProperty("_Index", NullValueHandling = NullValueHandling.Ignore)]
 		public long? Index { get; set; }
 
 		[JsonProperty("_Series", NullValueHandling = NullValueHandling.Ignore)]
-		public string Series { get; set; }
+		public Series_Series Series { get; set; }
 
 		[JsonProperty("_Name", NullValueHandling = NullValueHandling.Ignore)]
 		public Guid? NameId { get; set; }
 
 		[JsonProperty("_ModelVariety", NullValueHandling = NullValueHandling.Ignore)]
-		public string ModelVariety { get; set; }
+		public ModelVariety ModelVariety { get; set; }
 
 		[JsonProperty("_ModId", NullValueHandling = NullValueHandling.Ignore)]
 		public long? ModId { get; set; }
@@ -44,28 +50,53 @@ namespace MediawikiTranslator.Models.Data.MHWilds
 		public long? SortId { get; set; }
 
 		[JsonProperty("_Rare", NullValueHandling = NullValueHandling.Ignore)]
-		public string Rare { get; set; }
+		public Rare Rare { get; set; }
 
 		[JsonProperty("_Price", NullValueHandling = NullValueHandling.Ignore)]
 		public long? Price { get; set; }
 
 		[JsonProperty("_Color", NullValueHandling = NullValueHandling.Ignore)]
-		public string Color { get; set; }
+		public Color Color { get; set; }
 		[JsonIgnore]
 		public string Name { get; set; }
 	}
 
+	public partial class Color
+	{
+		[JsonProperty("app.ArmorDef.ARMOR_COLOR_TYPE_Serializable", NullValueHandling = NullValueHandling.Ignore)]
+		public AppSerializable AppArmorDefArmorColorTypeSerializable { get; set; }
+	}
+
+	public partial class AppSerializable
+	{
+		[JsonProperty("_Value", NullValueHandling = NullValueHandling.Ignore)]
+		public string Value { get; set; }
+	}
+
+	public partial class ModelVariety
+	{
+		[JsonProperty("app.ArmorDef.MODEL_VARIETY_Serializable", NullValueHandling = NullValueHandling.Ignore)]
+		public AppSerializable AppArmorDefModelVarietySerializable { get; set; }
+	}
+
+	public partial class Rare
+	{
+		[JsonProperty("app.ItemDef.RARE_Serializable", NullValueHandling = NullValueHandling.Ignore)]
+		public AppSerializable AppItemDefRareSerializable { get; set; }
+	}
+
+	public partial class Series_Series
+	{
+		[JsonProperty("app.ArmorDef.SERIES_Serializable", NullValueHandling = NullValueHandling.Ignore)]
+		public AppSerializable AppArmorDefSeriesSerializable { get; set; }
+	}
+
 	public partial class ArmorSeries
 	{
-		public static ArmorSeries FromJson(string json) => JsonConvert.DeserializeObject<ArmorSeries>(json, MediawikiTranslator.Models.Data.MHWilds.ArmorSeriesConverter.Settings);
+		public static ArmorSeries[] FromJson(string json) => JsonConvert.DeserializeObject<ArmorSeries[]>(json, MediawikiTranslator.Models.Data.MHWilds.SeriesConverter.Settings);
 	}
 
-	public static class ArmorSeriesSerialize
-	{
-		public static string ToJson(this ArmorSeries self) => JsonConvert.SerializeObject(self, MediawikiTranslator.Models.Data.MHWilds.ArmorSeriesConverter.Settings);
-	}
-
-	internal static class ArmorSeriesConverter
+	internal static class SeriesConverter
 	{
 		public static readonly JsonSerializerSettings Settings = new JsonSerializerSettings
 		{
@@ -76,5 +107,5 @@ namespace MediawikiTranslator.Models.Data.MHWilds
 				new IsoDateTimeConverter { DateTimeStyles = DateTimeStyles.AssumeUniversal }
 			},
 		};
-	}
+    }
 }

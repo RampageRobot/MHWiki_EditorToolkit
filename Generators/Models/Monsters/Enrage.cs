@@ -27,7 +27,7 @@ namespace MediawikiTranslator.Models.Monsters
 
         public Enrage(string monsterName)
         {
-            string fileName = $@"C:\Users\mkast\Desktop\test monster stuff\MHWI\{monsterName}\Enrage.json";
+            string fileName = $@"" + System.Configuration.ConfigurationManager.AppSettings.Get("DesktopPath") + "test monster stuff\MHWI\{monsterName}\Enrage.json";
             if (File.Exists(fileName))
             {
                 FileFound = true;
@@ -58,6 +58,26 @@ namespace MediawikiTranslator.Models.Monsters
 				}
 				MRChanges = MRDuration != null && (MRDamageMod != DamageMod || MRSpeedMod != SpeedMod || MRPlayerDamageMod != PlayerDamageMod || MRDuration != Duration);
 			}
+        }
+
+        public string Format()
+        {
+            return $@"{{{{EnrageDataTable
+
+|MR Changes? = {(MRChanges ? "X" : "")}
+
+|Duration = {Duration}
+|MR Duration = {MRDuration}
+
+|Monster Damage Modifier = {DamageMod}
+|MR Monster Damage Modifier = {MRDamageMod}
+
+|Speed Modifier = {SpeedMod}
+|MR Speed Modifier = {MRSpeedMod}
+
+|Player Damage Modifier = {PlayerDamageMod}
+|MR Player Damage Modifier = {MRPlayerDamageMod}
+}}}}";
         }
 	}
 }

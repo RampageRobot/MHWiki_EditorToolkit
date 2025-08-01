@@ -1,8 +1,4 @@
 {
   "profiles": {
-    "MHWikiToolkit": {
-      "commandName": "Project",
-      "commandLineArgs": "DamageTable C:\\Users\\mkast\\Downloads\\mhwildsdata\\outputs\\stm\\gamedesign\\enemy C:\\Users\\mkast\\Downloads\\testDir"
-    }
   }
 }

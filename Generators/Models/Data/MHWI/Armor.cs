@@ -169,7 +169,7 @@ namespace MediawikiTranslator.Models.Data.MHWI
 			{
 				WebToolkitData newArmor = new WebToolkitData()
 				{
-					MaleFrontImg = $"MHWI-{armor.SetName} Armor Male Render.png",
+					MaleFrontImg = $"MHWI-{armor.SetName.Replace("β", "Beta").Replace("α", "Alpha")} Armor Male Render.png",
 					FemaleFrontImg = $"MHWI-{armor.SetName} Armor Female Render.png",
 					Game = "MHWI",
 					SetName = armor.SetName,

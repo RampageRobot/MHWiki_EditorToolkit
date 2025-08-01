@@ -112,7 +112,7 @@ namespace MediawikiTranslator.Models.DamageTable
         public Guid InstanceGuid { get; set; }
 
         [JsonProperty("_Vital")]
-        public Vital[] Vital { get; set; }
+        public Vital[] Vital { get; set; } = [];
 
         [JsonProperty("_DefaultEnable")]
         public long DefaultEnable { get; set; }
@@ -283,8 +283,8 @@ namespace MediawikiTranslator.Models.DamageTable
 
     internal static class Converter
     {
-        public static readonly JsonSerializerSettings Settings = new JsonSerializerSettings
-        {
+        public static readonly JsonSerializerSettings Settings = new()
+		{
             MetadataPropertyHandling = MetadataPropertyHandling.Ignore,
             DateParseHandling = DateParseHandling.None,
             Converters =
