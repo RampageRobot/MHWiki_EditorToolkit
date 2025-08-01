@@ -4156,7 +4156,7 @@ __TOC__
 			{
 				using Google.Apis.Translate.v2.TranslateService svc = new(new Google.Apis.Services.BaseClientService.Initializer()
 				{
-					ApiKey = "AIzaSyAf783OtXI1UpYjYNNBgpn5EfRSKHWxTF4",
+					ApiKey = "${{ vars.GOOGLE_API_KEY }}",
 					ApplicationName = "MH Wiki Translation",
 				});
 				TranslationsListResponse response = await svc.Translations.Translate(new TranslateTextRequest()
