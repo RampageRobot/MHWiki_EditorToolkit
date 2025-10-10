@@ -224,7 +224,7 @@ namespace MediawikiTranslator.Generators
 			if (!string.IsNullOrEmpty(dataObj.Decos))
 			{
 				Decoration[] objDecos = [.. Newtonsoft.Json.JsonConvert.DeserializeObject<Decoration[]>(dataObj.Decos)!.OrderBy(x => !x.IsRampage).ThenBy(x => x.Level)];
-				if (new string[] { "MHWI", "MHW", "MHRS", "MHR", "MHWilds" }.Contains(dataArray.Game))
+				if (new string[] { "MHWI", "MHW", "MHRS", "MHRise", "MHWilds" }.Contains(dataArray.Game))
 				{
 					foreach (Decoration deco in objDecos)
 					{

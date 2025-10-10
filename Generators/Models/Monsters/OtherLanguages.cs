@@ -13,9 +13,9 @@ namespace MediawikiTranslator.Models.Monsters
 
         public OtherLanguages(string monsterName)
         {
-            if (File.Exists($@"" + System.Configuration.ConfigurationManager.AppSettings.Get("DesktopPath") + "test monster stuff\MHWI\{monsterName}\OtherLanguages.json"))
+            if (File.Exists($@"{System.Configuration.ConfigurationManager.AppSettings.Get("DesktopPath")}test monster stuff\MHWI\{monsterName}\OtherLanguages.json"))
             {
-                Languages = JsonConvert.DeserializeObject<Dictionary<string, string>>(File.ReadAllText($@"" + System.Configuration.ConfigurationManager.AppSettings.Get("DesktopPath") + "test monster stuff\MHWI\{monsterName}\OtherLanguages.json"))!;
+                Languages = JsonConvert.DeserializeObject<Dictionary<string, string>>(File.ReadAllText($@"{System.Configuration.ConfigurationManager.AppSettings.Get("DesktopPath")}test monster stuff\MHWI\{monsterName}\OtherLanguages.json"))!;
             }
         }
 

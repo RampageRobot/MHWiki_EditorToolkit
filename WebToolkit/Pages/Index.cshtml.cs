@@ -27,18 +27,13 @@ namespace WebToolkit.Pages
 
 		public async Task OnGet()
 		{
-			Utilities.GetMonstersFiles();
-			await Utilities.MonsterAppearanceGenerator(new MonsterAppearanceGeneratorOptions()
-			{
-				WhitelistGameAcronyms = ["MHST3"],
-				UpdatePages = true,
-				GenerateNewPages = true,
-				RefreshProgressLists = true
-			});
+			//await Utilities.MigrateMonsterPages(Utilities.MonsterType.Small);
+			await Utilities.OudatedUpdate();
+			//await Utilities.UploadMH3Quests(@"D:\MH_Data Repo\MH_Data\Parsed Files\MH3\mh3 quests");
 			//Task list:
 			//2) Follow up on Talk Page extension
 			//3) Work on getting files extracted for old games, then getting any appropriate tools to view files
 			//await Utilities.RenderGenerator(new RenderGeneratorOptions() { UpdatePages = false, GenerateMissingRendersReport = true, RefreshProgressLists = true });
 		}
-    }
+	}
 }

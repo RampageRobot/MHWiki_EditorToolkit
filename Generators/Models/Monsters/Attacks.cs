@@ -22,7 +22,7 @@ namespace MediawikiTranslator.Models.Monsters
         public static Attacks[] FetchAttacks(string monsterName)
         {
             List<Attacks> ret = [];
-            string fileName = $@"" + System.Configuration.ConfigurationManager.AppSettings.Get("DesktopPath") + "test monster stuff\MHWI\{monsterName}\Attacks.json";
+            string fileName = $@"{System.Configuration.ConfigurationManager.AppSettings.Get("DesktopPath")}test monster stuff\MHWI\{monsterName}\Attacks.json";
             if (File.Exists(fileName))
             {
                 Dictionary<string, dynamic[]> partData = JsonConvert.DeserializeObject<Dictionary<string, dynamic[]>>(File.ReadAllText(fileName))!;
@@ -31,6 +31,11 @@ namespace MediawikiTranslator.Models.Monsters
                 }
             }
             return [.. ret];
+        }
+
+        public string ThisIsATest()
+        {
+            return "test";
         }
 
         public static string Format(Attacks[] attacks)

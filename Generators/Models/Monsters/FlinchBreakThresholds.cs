@@ -20,7 +20,7 @@ namespace MediawikiTranslator.Models.Monsters
 		public static FlinchBreakThresholds[] GetFlinchBreakThresholds(string monsterName)
 		{
 			List<FlinchBreakThresholds> ret = [];
-			string fileName = $@"" + System.Configuration.ConfigurationManager.AppSettings.Get("DesktopPath") + "test monster stuff\MHWI\{monsterName}\Parts.json";
+			string fileName = $@"{System.Configuration.ConfigurationManager.AppSettings.Get("DesktopPath")}test monster stuff\MHWI\{monsterName}\Parts.json";
 			if (File.Exists(fileName))
 			{
 				Dictionary<string, dynamic[]> partData = JsonConvert.DeserializeObject<Dictionary<string, dynamic[]>>(File.ReadAllText(fileName))!;

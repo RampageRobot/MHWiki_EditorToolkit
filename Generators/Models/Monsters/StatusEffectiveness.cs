@@ -20,7 +20,7 @@ namespace MediawikiTranslator.Models.Monsters
         public static StatusEffectiveness[] GetStatuses(string monsterName)
         {
             List<StatusEffectiveness> ret = [];
-            string fileName = $@"" + System.Configuration.ConfigurationManager.AppSettings.Get("DesktopPath") + "test monster stuff\MHWI\{monsterName}\Damage Attributes.json";
+            string fileName = $@"{System.Configuration.ConfigurationManager.AppSettings.Get("DesktopPath")}test monster stuff\MHWI\{monsterName}\Damage Attributes.json";
             if (File.Exists(fileName))
 			{
 				Dictionary<string, dynamic[]> effectData = JsonConvert.DeserializeObject<Dictionary<string, dynamic[]>>(File.ReadAllText(fileName))!;
@@ -137,7 +137,7 @@ namespace MediawikiTranslator.Models.Monsters
 		{
 			if (statuses.Any())
 			{
-				dynamic[] statusStars = JsonConvert.DeserializeObject<dynamic[]>(File.ReadAllText(@"" + System.Configuration.ConfigurationManager.AppSettings.Get("DesktopPath") + "test monster stuff\MHWI\statusStars.json"))!;
+				dynamic[] statusStars = JsonConvert.DeserializeObject<dynamic[]>(File.ReadAllText($@"{System.Configuration.ConfigurationManager.AppSettings.Get("DesktopPath")}test monster stuff\MHWI\statusStars.json"))!;
 				StatusEffectiveness poison = statuses.First(x => x.Type == StatusType.Poison);
 				dynamic? thisStar = statusStars.FirstOrDefault(x => x.Name == name);
 				thisStar ??= new

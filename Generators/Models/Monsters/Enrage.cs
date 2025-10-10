@@ -27,7 +27,7 @@ namespace MediawikiTranslator.Models.Monsters
 
         public Enrage(string monsterName)
         {
-            string fileName = $@"" + System.Configuration.ConfigurationManager.AppSettings.Get("DesktopPath") + "test monster stuff\MHWI\{monsterName}\Enrage.json";
+            string fileName = $@"{System.Configuration.ConfigurationManager.AppSettings.Get("DesktopPath")}test monster stuff\MHWI\{monsterName}\Enrage.json";
             if (File.Exists(fileName))
             {
                 FileFound = true;

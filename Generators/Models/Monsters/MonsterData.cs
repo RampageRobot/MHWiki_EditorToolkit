@@ -15,6 +15,7 @@ namespace MediawikiTranslator.Models.Monsters
         public string Title { get; set; } = string.Empty;
 		public string Classification { get; set; } = string.Empty;
         public string DebutGame { get; set; } = string.Empty;
+        public bool LargeMonster { get; set; } = true;
     }
 
     public class GameAppearance

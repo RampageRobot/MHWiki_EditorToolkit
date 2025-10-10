@@ -23,12 +23,12 @@ namespace MediawikiTranslator.Models.Monsters
         {
             Stamina stam = new(monsterName);
             List<TrapEffectiveness> ret = [];
-            string fileName = $@"" + System.Configuration.ConfigurationManager.AppSettings.Get("DesktopPath") + "test monster stuff\MHWI\{monsterName}\Damage Attributes.json";
+            string fileName = $@"{System.Configuration.ConfigurationManager.AppSettings.Get("DesktopPath")}test monster stuff\MHWI\{monsterName}\Damage Attributes.json";
             if (File.Exists(fileName))
             {
 				Dictionary<string, dynamic[]> trapData = JsonConvert.DeserializeObject<Dictionary<string, dynamic[]>>(File.ReadAllText(fileName))!;
 				string[] trapTypeNames = ["Pitfall Trap", "Shock Trap", "Ivy Trap Unk", "Flash Pod", "Meat", "Dung Pod", "Sonic Pod"];
-                dynamic dungObjs = JsonConvert.DeserializeObject<dynamic>(File.ReadAllText(@"" + System.Configuration.ConfigurationManager.AppSettings.Get("DesktopPath") + "test monster stuff\MHWI\dungpod.json"))!;
+                dynamic dungObjs = JsonConvert.DeserializeObject<dynamic>(File.ReadAllText($@"{System.Configuration.ConfigurationManager.AppSettings.Get("DesktopPath")}test monster stuff\MHWI\dungpod.json"))!;
                 dynamic[] traps = trapData["Status Buildup: Shock Trap/Pitfall Trap/Ivy Trap/Unk"];
                 for (int i = 0; i < trapTypeNames.Length; i++)
                 {
@@ -112,7 +112,7 @@ namespace MediawikiTranslator.Models.Monsters
                 TrapEffectiveness scream = traps.First(x => x.Type == TrapType.SonicPod);
                 if (BookInfo.Length == 0)
                 {
-                    BookInfo = JsonConvert.DeserializeObject<dynamic[]>(File.ReadAllText(@"" + System.Configuration.ConfigurationManager.AppSettings.Get("DesktopPath") + "test monster stuff\MHWI\bookData.json"))!;
+                    BookInfo = JsonConvert.DeserializeObject<dynamic[]>(File.ReadAllText($@"{System.Configuration.ConfigurationManager.AppSettings.Get("DesktopPath")}test monster stuff\MHWI\bookData.json"))!;
                 }
                 dynamic thisBookInfo = BookInfo.First(x => x.Name == monsterName);
                 Dictionary<string, List<int>> sourceDict = [];

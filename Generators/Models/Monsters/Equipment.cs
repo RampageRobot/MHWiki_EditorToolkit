@@ -21,7 +21,7 @@ namespace MediawikiTranslator.Models.Monsters
 			{
 				if (BookInfo.Length == 0)
 				{
-					BookInfo = JsonConvert.DeserializeObject<dynamic[]>(File.ReadAllText(@"" + System.Configuration.ConfigurationManager.AppSettings.Get("DesktopPath") + "test monster stuff\MHWI\bookData.json"))!;
+					BookInfo = JsonConvert.DeserializeObject<dynamic[]>(File.ReadAllText($@"{System.Configuration.ConfigurationManager.AppSettings.Get("DesktopPath")}test monster stuff\MHWI\bookData.json"))!;
 				}
 				dynamic thisBookInfo = BookInfo.First(x => x.Name == monsterName);
 				Weapon.WebToolkitData[] allBlades = BlademasterData.GetToolkitData();

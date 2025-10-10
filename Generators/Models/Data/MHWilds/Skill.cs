@@ -22,8 +22,8 @@ namespace MediawikiTranslator.Models.Data.MHWilds
 		public string[]? GrantedByIngredients { get; set; } = null;
 		public string[]? GrantedByMeals_Daily { get; set; } = null;
 		public string[]? GrantedByIngredients_Daily { get; set; } = null;
-		public List<Tuple<string, int>>? GrantedByMeals_Chance { get; set; } = null;
-		public List<Tuple<string, int>>? GrantedByIngredients_Chance { get; set; } = null;
+		public List<Tuple<string, double>>? GrantedByMeals_Chance { get; set; } = null;
+		public List<Tuple<string, double>>? GrantedByIngredients_Chance { get; set; } = null;
 #nullable disable
 
 		public static Skill[] GetSkills()
@@ -107,9 +107,8 @@ namespace MediawikiTranslator.Models.Data.MHWilds
 					.Select(x => allItems.First(y => y.ItemID == x.Value<string>("_ItemId")).Name)];
 				newSkill.GrantedByIngredients_Chance = [..foodData
 					.Where(x => x.Value<JArray>("_RandomTable").Select(x => x.Value<string>()).Any(y => tablesWithSkill.Any(z => z == y)))
-					.Select(x => new Tuple<string, int>(allItems.First(y => y.ItemID == x.Value<string>("_ItemId")).Name,
-						mealSkillRandomTable.First(y => y.Value<string>("_RandomTable") == x.Value<JArray>("_RandomTable").Select(z => z.Value<string>()).First() &&
-							y.Value<string>("_MealSkill") == newSkill.SkillId).Value<int>("_RandomValue")))];
+					.Select(x => new Tuple<string, double>(allItems.First(y => y.ItemID == x.Value<string>("_ItemId")).Name,
+						100d * (1d / mealSkillRandomTable.Count(y => y.Value<string>("_RandomTable") == x.Value<JArray>("_RandomTable").Select(z => z.Value<string>()).First()))))];
 				newSkill.GrantedByMeals = [..mealDataLobby
 					.Where(x => x.Value<JArray>("_MealSkill").Select(x => x.Value<string>())
 					.Contains(newSkill.SkillId))
@@ -128,7 +127,7 @@ namespace MediawikiTranslator.Models.Data.MHWilds
 						{
 							try
 							{
-								newSkill.GrantedByMeals_Chance.Add(new(mealName, chance.Value));
+								newSkill.GrantedByMeals_Chance.Add(new(mealName, 100d * (1d / mealSkillRandomTable.Count(x => x.Value<string>("_RandomTable") == randomTable))));
 							}
 							catch (Exception)
 							{

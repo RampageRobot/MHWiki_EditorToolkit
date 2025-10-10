@@ -37,11 +37,11 @@ namespace MediawikiTranslator.Models.Monsters
 		{
 			if (game == "MHWI")
 			{
-				if (File.Exists($@"" + System.Configuration.ConfigurationManager.AppSettings.Get("DesktopPath") + "test monster stuff\MHWI\{monsterName}\Drops.json"))
+				if (File.Exists($@"{System.Configuration.ConfigurationManager.AppSettings.Get("DesktopPath")}test monster stuff\MHWI\{monsterName}\Drops.json"))
 				{
-					dynamic[] baseObj = [.. ((Newtonsoft.Json.Linq.JArray)JsonConvert.DeserializeObject<dynamic>(File.ReadAllText($@"" + System.Configuration.ConfigurationManager.AppSettings.Get("DesktopPath") + "test monster stuff\MHWI\{monsterName}\Drops.json"))!.data)];
+					dynamic[] baseObj = [.. ((Newtonsoft.Json.Linq.JArray)JsonConvert.DeserializeObject<dynamic>(File.ReadAllText($@"{System.Configuration.ConfigurationManager.AppSettings.Get("DesktopPath")}test monster stuff\MHWI\{monsterName}\Drops.json"))!.data)];
 					dynamic[] dropsFile = [.. (Newtonsoft.Json.Linq.JArray)baseObj.First(x => x.GridName == "Entries").list];
-					BremInfo[] bremFile = JsonConvert.DeserializeObject<BremInfo[]>(File.ReadAllText($@"" + System.Configuration.ConfigurationManager.AppSettings.Get("DesktopPath") + "test monster stuff\MHWI\{monsterName}\BremRewards.json"))!;
+					BremInfo[] bremFile = JsonConvert.DeserializeObject<BremInfo[]>(File.ReadAllText($@"{System.Configuration.ConfigurationManager.AppSettings.Get("DesktopPath")}test monster stuff\MHWI\{monsterName}\BremRewards.json"))!;
 					Items[] allItems = Items.Fetch();
 					List<WebToolkitData> dropsFormatted = [];
 					foreach (BremRank rank in Enum.GetValues<BremRank>())

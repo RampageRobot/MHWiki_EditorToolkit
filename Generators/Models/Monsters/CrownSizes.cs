@@ -17,9 +17,9 @@ namespace MediawikiTranslator.Models.Monsters
 		public float SilverLimit { get; set; }
 		public float GoldLimit { get; set; }
 
-        public CrownSizes(string name)
-        {
-			Dictionary<string, dynamic[]> partData = JsonConvert.DeserializeObject<Dictionary<string, dynamic[]>>(File.ReadAllText(@"" + System.Configuration.ConfigurationManager.AppSettings.Get("DesktopPath") + "test monster stuff\MHWI\crownInfo.json"))!;
+		public CrownSizes(string name)
+		{
+			Dictionary<string, dynamic[]> partData = JsonConvert.DeserializeObject<Dictionary<string, dynamic[]>>(File.ReadAllText($@"{System.Configuration.ConfigurationManager.AppSettings.Get("DesktopPath")}test monster stuff\MHWI\crownInfo.json"))!;
 			dynamic monsterSize = partData["Monsters"].First(x => GetMonsterId(name) == (int)x.Monster_Id && x.Monster_Id_button == $"{GetMonsterId(name)}: {name}");
 			Base = monsterSize.Base_Size;
 			SmallLimit = monsterSize.Gold_Small_Crown_Limit;

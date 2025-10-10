@@ -80,7 +80,7 @@ namespace MediawikiTranslator.Generators
 					}
 				}
 				StringBuilder ret = new();
-				int elemBloat = !new string[] { "MHR", "MHRS", "MHGU", "MHP3" }.Contains(weapon.Game) ? 10 : 1;
+				int elemBloat = !new string[] { "MHRise", "MHRS", "MHGU", "MHP3" }.Contains(weapon.Game) ? 10 : 1;
 				int bloat = Convert.ToInt32(Math.Round(GetWeaponBloat(weapon.Type!, weapon.Game!) * Convert.ToInt32(weapon.Attack)));
 				if (weapon.Tree == "Artian" && weapon.Game == "MHWilds")
 				{
@@ -213,7 +213,7 @@ The {weapon.Name} is {(weapon.Type == "IG" ? "an" : "a")} [[{weaponNames.Item1} 
 					case "MHWI":
 						gameString = "Monster Hunter: World (MHW) and Monster Hunter World: Iceborne (MHWI)";
 						break;
-					case "MHR":
+					case "MHRise":
 					case "MHRS":
 						gameString = "Monster Hunter: Rise (MHR) and Monster Hunter Rise: Sunbreak (MHRS)";
 						break;
@@ -406,7 +406,7 @@ The {weapon.Name} is {(weapon.Type == "IG" ? "an" : "a")} [[{weaponNames.Item1} 
 
 		public static double GetWeaponBloat(string type, string game)
 		{
-			if (!new string[] { "MHR", "MHRS", "MHGU", "MHP3" }.Contains(game))
+			if (!new string[] { "MHRise", "MHRS", "MHGU", "MHP3" }.Contains(game))
 			{
 				return new Dictionary<string, double>()
 				{
@@ -808,7 +808,7 @@ The {weapon.Name} is {(weapon.Type == "IG" ? "an" : "a")} [[{weaponNames.Item1} 
 				src = new WebToolkitData[bmData.Length + gData.Length];
 				bmData.CopyTo(src, 0);
 				gData.CopyTo(src, bmData.Length);
-				monsterList = [.. Directory.EnumerateDirectories(@"" + System.Configuration.ConfigurationManager.AppSettings.Get("DesktopPath") + "test monster stuff\\MHWI").Select(x => new Monster(new DirectoryInfo(x).Name, "MHWI"))];
+				monsterList = [.. Directory.EnumerateDirectories($@"{System.Configuration.ConfigurationManager.AppSettings.Get("DesktopPath")}test monster stuff\\MHWI").Select(x => new Monster(new DirectoryInfo(x).Name, "MHWI"))];
 				foreach (WebToolkitData data in src)
 				{
 					data.MonsterName = monsterList.FirstOrDefault(x => x.Equipment.Weapons.Any(y => y.Name == data.Name))?.Name;
@@ -955,8 +955,8 @@ The {weapon.Name} is {(weapon.Type == "IG" ? "an" : "a")} [[{weaponNames.Item1} 
 			}
 			if (genfiles)
 			{
-				Directory.CreateDirectory($@"{System.Configuration.ConfigurationManager.AppSettings.Get("DesktopPath")}\MHWiki Generated Pages\{game}");
-				foreach (string dir in Directory.EnumerateDirectories($@"{System.Configuration.ConfigurationManager.AppSettings.Get("DesktopPath")}\MHWiki Generated Pages\{game}"))
+				Directory.CreateDirectory($@"{System.Configuration.ConfigurationManager.AppSettings.Get("DesktopPath")}MHWiki Generated Pages\{game}");
+				foreach (string dir in Directory.EnumerateDirectories($@"{System.Configuration.ConfigurationManager.AppSettings.Get("DesktopPath")}MHWiki Generated Pages\{game}"))
 				{
 					Directory.Delete(dir, true);
 				}
@@ -968,11 +968,11 @@ The {weapon.Name} is {(weapon.Type == "IG" ? "an" : "a")} [[{weaponNames.Item1} 
 				ret.Add(data, res);
 				if (genfiles)
 				{
-					Directory.CreateDirectory($@"{System.Configuration.ConfigurationManager.AppSettings.Get("DesktopPath")}\MHWiki Generated Pages\{game}\{wepName}\");
-					string path = $@"{System.Configuration.ConfigurationManager.AppSettings.Get("DesktopPath")}\MHWiki Generated Pages\{game}\{wepName}\{data.Name!.Replace("\"", "")}.txt";
+					Directory.CreateDirectory($@"{System.Configuration.ConfigurationManager.AppSettings.Get("DesktopPath")}MHWiki Generated Pages\{game}\{wepName}\");
+					string path = $@"{System.Configuration.ConfigurationManager.AppSettings.Get("DesktopPath")}MHWiki Generated Pages\{game}\{wepName}\{data.Name!.Replace("\"", "")}.txt";
 					if (File.Exists(path))
 					{
-						path = $@"{System.Configuration.ConfigurationManager.AppSettings.Get("DesktopPath")}\MHWiki Generated Pages\{game}\{wepName}\{data.Name!.Replace("\"", "")} ({GetRank(data.Game!, data.Rarity)}).txt";
+						path = $@"{System.Configuration.ConfigurationManager.AppSettings.Get("DesktopPath")}MHWiki Generated Pages\{game}\{wepName}\{data.Name!.Replace("\"", "")} ({GetRank(data.Game!, data.Rarity)}).txt";
 					}
 					File.WriteAllText(path, res);
 				}

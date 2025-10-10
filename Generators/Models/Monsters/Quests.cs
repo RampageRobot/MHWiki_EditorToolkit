@@ -26,14 +26,14 @@ namespace MediawikiTranslator.Models.Monsters
         {
             if (QuestInfo.Count == 0)
             {
-                QuestInfo = JsonConvert.DeserializeObject<Dictionary<string, Quests>>(File.ReadAllText(@"" + System.Configuration.ConfigurationManager.AppSettings.Get("DesktopPath") + "test monster stuff\MHWI\questInfo.json"))!;
+                QuestInfo = JsonConvert.DeserializeObject<Dictionary<string, Quests>>(File.ReadAllText($@"{System.Configuration.ConfigurationManager.AppSettings.Get("DesktopPath")}test monster stuff\MHWI\questInfo.json"))!;
             }
             return [..QuestInfo.Where(x => x.Value.ObjectiveMonsters.Any(y => monsterName == null || y == monsterName)).Select(x => x.Value)];
         }
 
 		public static string Format(Quests[] quests, string monsterName)
         {
-            Dictionary<string, string>[] objInfo = JsonConvert.DeserializeObject<Dictionary<string, string>[]>(File.ReadAllText(@"" + System.Configuration.ConfigurationManager.AppSettings.Get("DesktopPath") + "test monster stuff\MHWI\questObjectiveTypes.json"))!;
+            Dictionary<string, string>[] objInfo = JsonConvert.DeserializeObject<Dictionary<string, string>[]>(File.ReadAllText($@"{System.Configuration.ConfigurationManager.AppSettings.Get("DesktopPath")}test monster stuff\MHWI\questObjectiveTypes.json"))!;
             StringBuilder sb = new();
             sb.AppendLine(@"==Quests Targeting This Monster==
 {| class=""wikitable mobile-sm sortable"" style=""text-align:center;margin:auto""

@@ -11,6 +11,7 @@ using Google.Apis.Translate.v2.Data;
 using MediawikiTranslator.Generators;
 using MediawikiTranslator.Models;
 using MediawikiTranslator.Models.Data;
+using MediawikiTranslator.Models.Data.MH3;
 using MediawikiTranslator.Models.Data.MHWI;
 using MediawikiTranslator.Models.Monsters;
 using MediawikiTranslator.Models.Weapon;
@@ -20,10 +21,12 @@ using Newtonsoft.Json.Linq;
 using System;
 using System.Data;
 using System.Diagnostics;
+using System.Dynamic;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Xml.Linq;
 using WikiClientLibrary;
 using WikiClientLibrary.Client;
@@ -71,6 +74,7 @@ namespace MediawikiTranslator
 				await site.LogoutAsync();
 			}
 		}
+
 		private static Dictionary<string, MonsterNames> MonsterNameDict = FetchMonsterNames();
 		private static async Task Login(this WikiSite site)
 		{
@@ -554,6 +558,134 @@ namespace MediawikiTranslator
 						File.WriteAllText(overviewsFile, JsonConvert.SerializeObject(finishedOverviews));
 						cnt++;
 					}
+					Console.WriteLine("======================================================");
+					Console.WriteLine("Finished!");
+					TimeSpan elapsed = DateTime.Now - start;
+					Console.WriteLine("Elapsed: " + elapsed.ToString());
+				}
+				catch (WikiClientException ex)
+				{
+					Console.WriteLine(ex.Message);
+				}
+				await site.LogoutAsync();
+			}
+		}
+
+		public static async Task UploadMH3Quests(string pathToFolders)
+		{
+			DateTime start = DateTime.Now;
+			using (WikiClient client = new()
+			{
+				ClientUserAgent = "MHWikiToolkit/1.1.2 " + System.Configuration.ConfigurationManager.AppSettings.Get("WikiUsername")!,
+			})
+			{
+				WikiSite site = new(client, "https://monsterhunterwiki.org/api.php");
+				await site.Initialization;
+				try
+				{
+					await site.Login();
+					int cntr = 1;
+					Models.Data.MH3.Quests[] quests = Models.Data.MH3.Quests.Fetch(pathToFolders);
+					Debugger.Break();
+					int totalCount = quests.Length;
+					foreach (Models.Data.MH3.Quests quest in quests)
+					{
+						WikiPage page = new(site, $"{quest.QuestInfo!.Name} (MH3 Quest)");
+						await page.RefreshAsync(PageQueryOptions.FetchContent);
+						StringBuilder content = new();
+						string questSummary = "";
+						if (quest.QuestInfo.QuestType != "Delivery")
+						{
+							if (quest.QuestInfo.Description.Replace("\n", " ").Contains("and a"))
+							{
+								questSummary = $"{quest.QuestInfo.QuestType} [[{quest.ObjectiveDetails!.MainQuest!.MonsterTarget} (MH3)|{quest.ObjectiveDetails.MainQuest.MonsterTarget}]] and [[{quest.ObjectiveDetails!.Subquest1!.MonsterTarget} (MH3)|{quest.ObjectiveDetails.Subquest1.MonsterTarget}]]";
+							}
+							else
+							{
+								long monstersToHunt = quest.ObjectiveDetails!.MainQuest!.ObjectiveNum!.Value;
+								if (monstersToHunt > 1)
+								{
+									questSummary = $"{quest.QuestInfo.QuestType} {quest.ObjectiveDetails!.MainQuest!.ObjectiveNum} [[{quest.ObjectiveDetails.MainQuest.MonsterTarget} (MH3)|{quest.ObjectiveDetails.MainQuest.MonsterTarget}]]";
+								}
+								else
+								{
+									questSummary = $"{quest.QuestInfo.QuestType} [[{quest.ObjectiveDetails!.MainQuest!.MonsterTarget} (MH3)|{quest.ObjectiveDetails.MainQuest.MonsterTarget}]]";
+								}
+							}
+						}
+						else
+						{
+							questSummary = $"{quest.QuestInfo.QuestType} {quest.ObjectiveDetails!.MainQuest!.ObjectiveNum!.Value} [[{quest.ObjectiveDetails!.MainQuest!.ItemTarget} (MH3 Item)|{quest.ObjectiveDetails!.MainQuest!.ItemTarget}]]";
+						}
+						content.AppendLine($@"{{{{GenericNav|MH3}}}}
+{{{{GenericQuestListEntryV2
+|Rank = Low{(quest.QuestInfo.QuestRank == 6 ? "\r\n|Important = Urgent" : "")}
+|Rank Level = {quest.QuestInfo.QuestRank}
+|Quest Name = {quest.QuestInfo.Name}
+|Quest Type = {quest.QuestInfo.QuestType!.Replace("Deliver", "Delivery")!}
+|Contract Fee = {quest.QuestInfo.QuestFee}
+|Quest Summary = {questSummary}");
+						string goalIcons = "|Goal Icons =";
+						if (quest.QuestInfo.QuestType != "Delivery")
+						{
+							if (quest.QuestInfo.Description.Replace("\n", " ").Contains("and a"))
+							{
+								goalIcons = $"{{{{IconPickerUniversal|MH3|{quest.ObjectiveDetails!.MainQuest!.MonsterTarget}|Size=64|Text=|Margin=0|ML=Y}}}} {{{{IconPickerUniversal|MH3|{quest.ObjectiveDetails!.Subquest1!.MonsterTarget}|Size=64|Text=|Margin=0|ML=Y}}}}";
+							}
+							else
+							{
+								goalIcons = $"{{{{IconPickerUniversal|MH3|{quest.ObjectiveDetails!.MainQuest!.MonsterTarget}|Size=64|Text=|Margin=0|ML=Y}}}}";
+							}
+						}
+						else
+						{
+							/*Models.Data.MHWI.Items item = allItems.First(x => x.Name == quest.DeliveryItemName);
+							goalIcons += $"{{{{IconPickerUniversal|MH3|{item.WikiIconName}|Color={GetIconColorName(item.WikiIconColor!.Value)}|Size=50|Text=|Margin=0|ML=Y}}}}";*/
+						}
+						content.AppendLine(goalIcons);
+						content.AppendLine($@"|Requirements = HR {quest.QuestInfo.HrpRestriction}
+|Locale = [[{quest.QuestInfo.Locale}]]
+|Time Limit = {quest.QuestInfo.TimeLimit}
+|Failure Conditions = {quest.QuestInfo.FailureMessage.Replace("\n", "")}
+|Reward Money = {quest.ObjectiveDetails.MainQuest.ZennyReward}");
+						int largeCntr = 1;
+						string[] targetMonsters = [..new string[] {quest.ObjectiveDetails.MainQuest!.MonsterTarget, quest.ObjectiveDetails.Subquest1!.MonsterTarget, quest.ObjectiveDetails.Subquest2!.MonsterTarget}.Where(x => !string.IsNullOrEmpty(x))];
+						string otherLargeIcons = "|Other Large Monster Icons =";
+						foreach (string monster in new Models.Data.MH3.Monster[] { quest.LargeMonsters!.Monster1!, quest.LargeMonsters!.Monster2!, quest.LargeMonsters!.Monster3! }.Select(x => x.Name).Where(x => !string.IsNullOrEmpty(x) && x != "None" && !targetMonsters.Contains(x)).Select(x => x!))
+						{
+							otherLargeIcons += $" {{{{IconPickerUniversal|MHWI|{monster}|Size=64|Text=|Margin=0|ML=Y}}}}";
+							largeCntr++;
+						}
+						if (largeCntr > 1)
+						{
+							content.AppendLine(otherLargeIcons);
+						}
+						int smallCntr = 1;
+						string otherSmallIcons = "|Other Small Monster Icons =";
+						foreach (string monster in quest.SmallMonsterNames.Where(x => !string.IsNullOrEmpty(x) && x != "None" && !targetMonsters.Contains(x)).Select(x => x!))
+						{
+							otherSmallIcons += $" {{{{IconPickerUniversal|MHWI|{monster}|Size=64|Text=|Margin=0|ML=Y}}}}";
+							smallCntr++;
+						}
+						if (smallCntr > 1)
+						{
+							content.AppendLine(otherSmallIcons);
+						}
+						content.AppendLine($@"|Client = {quest.QuestInfo.Client}
+|Description = {quest.QuestInfo.Details.Replace("\n", " ")}
+}}}}
+[[Category:MH3 Quest Pages]]");
+						await page.EditAsync(new WikiPageEditOptions()
+						{
+							Bot = true,
+							Content = content.ToString(),
+							Minor = false,
+							Summary = "Swapped to new template",
+							Watch = AutoWatchBehavior.None
+						});
+						Console.WriteLine($"({cntr}/{quests.Length}) {quest.QuestInfo.Name} edited.");
+					}
+					cntr++;
 					Console.WriteLine("======================================================");
 					Console.WriteLine("Finished!");
 					TimeSpan elapsed = DateTime.Now - start;
@@ -1074,7 +1206,7 @@ __TOC__
 					}
 					await site.Login(); Dictionary<string, MonsterData> monsterAppearances = JsonConvert.DeserializeObject<Dictionary<string, MonsterData>>(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\monsterData.json"))!;
 					string[] allGameAcros = [.. new string[] { "MHWilds", "MHRS", "MHRise", "MHWI", "MHWorld", "MHGU", "MHGen", "MH4U", "MH4", "MH3U", "MHP3", "MH3", "MHFU", "MHF2", "MH2", "MHF1", "MHG", "MH1", "MHNow", "MHOutlanders", "MHPuzzles", "MHST1", "MHST2", "MHFrontier", "MHOnline", "MHExplore", "MHi", "MHRiders", "MHDiary", "MHDG", "MHDDX", "MHBGHQ", "MHDH", "MHMH", "MHPIV", "MHSpirits", "MHGii", "MHP1", "MHP2", "MHP2G", "MH3G", "MH4G", "MHX", "MHXX" }.Where(x => monsterAppearances.Any(y => y.Value.GameAppearances.Any(z => z.GameAcronym == x)))];
-					WikiPage[] monsters = [.. monsterAppearances.Where(x => !SmallMonsterNames.Contains(x.Key)).Select(x => new WikiPage(site, $"{x.Key}/Outdated")).Where(x => !progress.Contains(x.Title!))];
+					WikiPage[] monsters = [.. monsterAppearances.Where(x => !x.Value.LargeMonster).Select(x => new WikiPage(site, $"{x.Key}/Outdated")).Where(x => !progress.Contains(x.Title!))];
 					monsters = [.. monsters.Where(x => !x.Title!.Contains("Sandbox"))];
 					int cnt = 1;
 					int totalCount = monsters.Length;
@@ -1213,6 +1345,80 @@ __TOC__
 		{
 			ConvertDir(@"D:\MH_Data Repo\MH_Data\Raw Data\MHWI\chunk");
 		}
+		
+		public static async Task EnsureGameCategory()
+		{
+			DateTime start = DateTime.Now;
+			using (WikiClient client = new()
+			{
+				ClientUserAgent = "MHWikiToolkit/1.1.2 " + System.Configuration.ConfigurationManager.AppSettings.Get("WikiUsername")!,
+			})
+			{
+				WikiSite site = new(client, "https://monsterhunterwiki.org/api.php");
+				await site.Initialization;
+				try
+				{
+					await site.Login();
+					Dictionary<string, MonsterData> monsterAppearances = JsonConvert.DeserializeObject<Dictionary<string, MonsterData>>(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\monsterData.json"))!;
+					int totalCount = monsterAppearances.Count;
+					int cnt = 1;
+					foreach (KeyValuePair<string, MonsterData> kvp in monsterAppearances)
+					{
+						int thisCnt = 1;
+						int thisTotal = kvp.Value.GameAppearances.Count;
+						foreach (GameAppearance app in kvp.Value.GameAppearances)
+						{
+							WikiPage page = new(site, $"{kvp.Key} ({app.GameAcronym})");
+							await page.RefreshAsync(PageQueryOptions.FetchContent);
+							string cat = $"[[Category:{(kvp.Value.LargeMonster ? "Large" : "Small")} Monster {app.GameAcronym} Subpages]]";
+							if (page.Exists && !page.Content!.Contains(cat))
+							{
+								string content = page.Content!;
+								if (content.Contains($"[[Category:Small Monster {app.GameAcronym} Subpages]]") && kvp.Value.LargeMonster)
+								{
+									content = content.Replace($"[[Category:Small Monster {app.GameAcronym} Subpages]]", cat);
+								}
+								if (content.Contains($"[[Category:Large Monster {app.GameAcronym} Subpages]]") && !kvp.Value.LargeMonster)
+								{
+									content = content.Replace($"[[Category:Large Monster {app.GameAcronym} Subpages]]", cat);
+								}
+								if (!content.Contains(cat))
+								{
+									content += "\r\n" + cat;
+								}
+								await page.EditAsync(new WikiPageEditOptions()
+								{
+									Bot = true,
+									Content = content,
+									Minor = true,
+									Summary = $"Added missing game-specific subpage directory.",
+									Watch = AutoWatchBehavior.None
+								});
+								Console.WriteLine($"({thisCnt}/{thisTotal}) {page.Title} edited.");
+							}
+							else
+							{
+								Console.WriteLine($"({thisCnt}/{thisTotal}) {page.Title} skipped, didn't exist or already had category.");
+							}
+							thisCnt++;
+						}
+						Console.WriteLine($"===========================================");
+						Console.WriteLine($"({cnt}/{totalCount}) {kvp.Key} edited.");
+						Console.WriteLine($"===========================================");
+						cnt++;
+					}
+					Console.WriteLine("======================================================");
+					Console.WriteLine("Finished!");
+					TimeSpan elapsed = DateTime.Now - start;
+					Console.WriteLine("Elapsed: " + elapsed.ToString());
+				}
+				catch (WikiClientException ex)
+				{
+					Console.WriteLine(ex.Message);
+				}
+				await site.LogoutAsync();
+			}
+		}
 
 		public static async Task RerouteFrontierLargeMonsterRedirects()
 		{
@@ -1292,7 +1498,7 @@ __TOC__
 			}
 		}
 
-		public static async Task RemoveLargeMonsterRedirects()
+		public static async Task RemoveMonsterRedirects()
 		{
 			DateTime start = DateTime.Now;
 			using (WikiClient client = new()
@@ -1324,16 +1530,23 @@ __TOC__
 					{
 						await page.RefreshAsync(PageQueryOptions.FetchContent);
 						string content = page.Content!;
-						string redirectSubstr = content.Substring(content.IndexOf("#REDIRECT"));
-						if (content.Contains("[[Category:Monsters To Remove Redirect]]\r\n"))
+						if (content.Contains("#REDIRECT"))
 						{
-							redirectSubstr = redirectSubstr.Substring(0, redirectSubstr.IndexOf("[[Category:Monsters To Remove Redirect]]\r\n") + 42);
+							string redirectSubstr = content.Substring(content.IndexOf("#REDIRECT"));
+							if (content.Contains("[[Category:Monsters To Remove Redirect]]\r\n"))
+							{
+								redirectSubstr = redirectSubstr.Substring(0, redirectSubstr.IndexOf("[[Category:Monsters To Remove Redirect]]\r\n") + 42);
+							}
+							else
+							{
+								redirectSubstr = redirectSubstr.Substring(0, redirectSubstr.IndexOf("[[Category:Monsters To Remove Redirect]]\n") + 41);
+							}
+							content = content.Replace(redirectSubstr, "");
 						}
 						else
 						{
-							redirectSubstr = redirectSubstr.Substring(0, redirectSubstr.IndexOf("[[Category:Monsters To Remove Redirect]]\n") + 41);
+							content = content.Replace("[[Category:Monsters To Remove Redirect]]\r\n", "");
 						}
-						content = content.Replace(redirectSubstr, "");
 						await page.EditAsync(new WikiPageEditOptions()
 						{
 							Bot = true,
@@ -1495,7 +1708,7 @@ __TOC__
 			}
 		}
 
-		public static void GetMonstersFiles()
+		public static async Task GetMonstersFiles()
 		{
 			List<MonsterId> ids = JsonConvert.DeserializeObject<List<MonsterId>>(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\monsterIds.json"))!;
 			JArray frontierRecon = JsonConvert.DeserializeObject<JArray>(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\frontierNameRecon.json"))!;
@@ -1661,7 +1874,7 @@ __TOC__
 			}
 			foreach (string game in supportedSpinoffs)
 			{
-				foreach (string monsterName in spinoffRecon.Value<JArray>(game)!.Select(x => x.Value<string>()!).Where(x => !SmallMonsterNames.Contains(x)).Distinct().Where(x => game != "MHFrontier" || supportedFrontierMonsters.Contains(x)))
+				foreach (string monsterName in spinoffRecon.Value<JArray>(game)!.Select(x => x.Value<string>()!).Distinct().Where(x => game != "MHFrontier" || supportedFrontierMonsters.Contains(x)))
 				{
 					if (monsterData.ContainsKey(monsterName))
 					{
@@ -1686,16 +1899,169 @@ __TOC__
 			{
 				data.Value.GameAppearances = [.. data.Value.GameAppearances.OrderBy(x => mainlineRelease.Contains(x.GameAcronym) ? Array.IndexOf(mainlineRelease, x.GameAcronym) : 9999).ThenBy(x => x.GameAcronym)];
 			}
+			Dictionary<string, List<GameAppearance>> smallMonsterDict = await GetSmallMonsterPages();
+			foreach (KeyValuePair<string, List<GameAppearance>> kvp in smallMonsterDict)
+			{
+				if (!monsterData.TryGetValue(kvp.Key, out MonsterData? data))
+				{
+					monsterData.Add(kvp.Key, new MonsterData()
+					{
+						Name = kvp.Key,
+						LargeMonster = false,
+						LangNames = MonsterNameDict.TryGetValue(kvp.Key, out MonsterNames? value) ? value : null,
+						GameAppearances = kvp.Value
+					});
+				}
+				else
+				{
+					data.LangNames = MonsterNameDict.TryGetValue(kvp.Key, out MonsterNames? value) ? value : null;
+					data.LargeMonster = false;
+					data.GameAppearances.AddRange(kvp.Value.Where(x => !data.GameAppearances.Select(y => y.GameAcronym).Contains(x.GameAcronym)));
+					monsterData[kvp.Key] = data;
+				}
+			}
 			File.WriteAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\monsterData.json", JsonConvert.SerializeObject(monsterData.OrderBy(x => x.Key).ToDictionary(x => x.Key, x => x.Value), Formatting.Indented));
 		}
 
-		public static void CreateSpreadsheets()
+		private static async Task<Dictionary<string, List<GameAppearance>>> GetSmallMonsterPages()
 		{
-			Dictionary<string, MonsterData> monsterAppearances = JsonConvert.DeserializeObject<Dictionary<string, MonsterData>>(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\monsterData.json"))!;
-			List<string> finishedOverviews = JsonConvert.DeserializeObject<List<string>>(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Large Monster Progress\overviews.json"))!;
-			string[] releaseOrder = ["MHNow", "MHST2", "MHST1", "MHPuzzles", "MHFrontier", "MHi", "MHRiders"];
+			Dictionary<string, List<GameAppearance>> smallMonsterDict = [];
+			DateTime start = DateTime.Now;
+			using (WikiClient client = new()
+			{
+				ClientUserAgent = "MHWikiToolkit/1.1.2 " + System.Configuration.ConfigurationManager.AppSettings.Get("WikiUsername")!,
+			})
+			{
+				WikiSite site = new(client, "https://monsterhunterwiki.org/api.php");
+				await site.Initialization;
+				try
+				{
+					await site.Login();
+					CategoryMembersGenerator subpageGen = new(site, "Category:Small_Monsters")
+					{
+						MemberTypes = CategoryMemberTypes.Page
+					};
+					WikiPage[] smallMonsters = await subpageGen.EnumPagesAsync().ToArrayAsync();
+					int totalCount = smallMonsters.Length;
+					int cnt = 1;
+					foreach (WikiPage page in smallMonsters.Where(x => !x.Title!.StartsWith("User:") && !x.Title!.StartsWith("Fish/")))
+					{
+						string monsterName = page.Title!;
+						string? game = null;
+						if (page.Title!.Contains(" ("))
+						{
+							game = monsterName.Substring(monsterName.IndexOf(" (") + 2).Replace("(", "").Replace(")", "");
+							monsterName = monsterName.Substring(0, monsterName.IndexOf(" ("));
+						}
+						else if (page.Title!.Contains("/"))
+						{
+							game = monsterName.Substring(monsterName.IndexOf("/") + 1);
+							monsterName = monsterName.Substring(0, monsterName.IndexOf("/"));
+						}
+						if (smallMonsterDict.ContainsKey(monsterName))
+						{
+							if (game != null && !smallMonsterDict[monsterName].Any(x => x.GameAcronym == game))
+							{
+								smallMonsterDict[monsterName].Add(new GameAppearance() { GameAcronym = game, GameFull = GetGameFullName(game) });
+								if (game == "MHWI" && !new string[] { "Anteka", "Popo", "Cortos", "Wulg", "Boaboa" }.Contains(monsterName))
+								{
+									smallMonsterDict[monsterName].Add(new GameAppearance() { GameAcronym = "MHWorld", GameFull = GetGameFullName("MHWorld") });
+								}
+								else if (game == "MHRS" && !new string[] { "Hermitaur", "Ceanataur", "Boggi", "Gowngoat", "Pyrantula", "Hornetaur", "Vespoid", "Velociprey" }.Contains(monsterName))
+								{
+									smallMonsterDict[monsterName].Add(new GameAppearance() { GameAcronym = "MHRise", GameFull = GetGameFullName("MHRise") });
+								}
+							}
+						}
+						else
+						{
+							List<GameAppearance> apps = [];
+							if (game != null)
+							{
+								apps = [new GameAppearance() { GameAcronym = game, GameFull = GetGameFullName(game) }];
+								if (game == "MHWI" && !new string[] { "Anteka", "Popo", "Cortos", "Wulg", "Boaboa" }.Contains(monsterName))
+								{
+									smallMonsterDict[monsterName].Add(new GameAppearance() { GameAcronym = "MHWorld", GameFull = GetGameFullName("MHWorld") });
+								}
+								else if (game == "MHRS" && !new string[] { "Hermitaur", "Ceanataur", "Boggi", "Gowngoat", "Pyrantula", "Hornetaur", "Vespoid", "Velociprey" }.Contains(monsterName))
+								{
+									smallMonsterDict[monsterName].Add(new GameAppearance() { GameAcronym = "MHRise", GameFull = GetGameFullName("MHRise") });
+								}
+							}
+							smallMonsterDict.Add(monsterName, apps);
+						}
+						Console.WriteLine($"({cnt}/{totalCount}) {page.Title} added.");
+						cnt++;
+					}
+					foreach (string mon in new string[] { "Baunos", "Blango", "Bulaqchi", "Ceratonoth", "Comaqchi", "Conga", "Dalthydon", "Gajios", "Gelidron", "Guardian Seikret", "Harpios", "Kranodath", "Nerscylla Hatchling", "Piragill", "Porkeplume", "Rafma", "Talioth", "Vespoid" })
+					{
+						if (!smallMonsterDict.ContainsKey(mon))
+						{
+							smallMonsterDict.Add(mon, [new GameAppearance() { GameAcronym = "MHWilds", GameFull = GetGameFullName("MHWilds") }]);
+						}
+						else
+						{
+							if (!smallMonsterDict[mon].Any(x => x.GameAcronym == "MHWilds"))
+							{
+								smallMonsterDict[mon].Add(new GameAppearance() { GameAcronym = "MHWilds", GameFull = GetGameFullName("MHWilds") });
+							}
+						}
+					}
+					Dictionary<string, string[]> smallMonsterArchive = JsonConvert.DeserializeObject<Dictionary<string, string[]>>(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\smallMonsterDict.json"))!;
+					foreach (KeyValuePair<string, string[]> kvp in smallMonsterArchive)
+					{
+						foreach (string monster in kvp.Value)
+						{
+							if (!smallMonsterDict.ContainsKey(monster))
+							{
+								smallMonsterDict.Add(monster, [new GameAppearance() {
+									GameAcronym = kvp.Key,
+									GameFull = GetGameFullName(kvp.Key)
+								}]);
+							}
+							else
+							{
+								smallMonsterDict[monster].Add(new GameAppearance()
+								{
+									GameAcronym = kvp.Key,
+									GameFull = GetGameFullName(kvp.Key)
+								});
+							}
+						}
+					}
+					Console.WriteLine("======================================================");
+					Console.WriteLine("Finished!");
+					TimeSpan elapsed = DateTime.Now - start;
+					Console.WriteLine("Elapsed: " + elapsed.ToString());
+				}
+				catch (WikiClientException ex)
+				{
+					Console.WriteLine(ex.Message);
+				}
+				await site.LogoutAsync();
+			}
+			return smallMonsterDict;
+		}
+
+		public enum MonsterType
+		{
+			Small,
+			Large
+		}
+
+		public static void CreateSpreadsheets(MonsterType types)
+		{
+			Dictionary<string, MonsterData> monsterAppearances = JsonConvert.DeserializeObject<Dictionary<string, MonsterData>>(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\monsterData.json"))!
+				.Where(x => types == MonsterType.Large ? x.Value.LargeMonster : !x.Value.LargeMonster)
+				.ToDictionary(x => x.Key, x => x.Value);
+			List<string> finishedOverviews = [];
+			if (File.Exists(@"D:\MH_Data Repo\MH_Data\Large Monster Progress\overviews.json"))
+			{
+				finishedOverviews = JsonConvert.DeserializeObject<List<string>>(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Large Monster Progress\overviews.json"))!;
+			}
+			string[] releaseOrder = ["MHWilds", "MHRS", "MHRise", "MHWI", "MHWorld", "MHGU", "MHGen", "MH4U", "MH4", "MH3U", "MHP3", "MH3", "MHFU", "MHF2", "MHFrontier", "MH2", "MHF1", "MHG", "MH1", "MHNow", "MHST2", "MHST1", "MHPuzzles", "MHi", "MHRiders"];
 			XLWorkbook workbook = new();
-			int sheetCnt = 5;
+			int sheetCnt = 1;
 			string[] sheetHeaders = ["Page Name", "Page Type", "Link (Old)", "New Version created?", "New Version checked?", "Link (New)", "Checked by"];
 			foreach (string gameAcro in releaseOrder)
 			{
@@ -1748,7 +2114,7 @@ __TOC__
 				gameSheet.Column(sheetHeaders.Length).Width = 20;
 				sheetCnt++;
 			}
-			workbook.SaveAs(@"" + System.Configuration.ConfigurationManager.AppSettings.Get("DesktopPath") + "MHWiki Large Monster Page Update Tracker - Spinoffs.xlsx");
+			workbook.SaveAs($@"{System.Configuration.ConfigurationManager.AppSettings.Get("DesktopPath")}MHWiki Small Monster Page Update Tracker.xlsx");
 		}
 
 		public static async Task GetHHMelodiesRefDatas()
@@ -1858,7 +2224,7 @@ __TOC__
 						NamespaceId = 6
 					};
 					WikiPageStub[] allFiles = await gen.EnumItemsAsync().ToArrayAsync();
-					File.WriteAllText(@"" + System.Configuration.ConfigurationManager.AppSettings.Get("DesktopPath") + "allImgNames.json", JsonConvert.SerializeObject(allFiles.Select(x => x.Title!).ToArray(), Formatting.Indented));
+					File.WriteAllText($@"{System.Configuration.ConfigurationManager.AppSettings.Get("DesktopPath")}allImgNames.json", JsonConvert.SerializeObject(allFiles.Select(x => x.Title!).ToArray(), Formatting.Indented));
 					Console.WriteLine("======================================================");
 					Console.WriteLine("Finished!");
 					TimeSpan elapsed = DateTime.Now - start;
@@ -1872,7 +2238,7 @@ __TOC__
 			}
 		}
 
-		public static async Task MigrateLargeMonsterPages()
+		public static async Task MigrateMonsterPages(MonsterType types)
 		{
 			DateTime start = DateTime.Now;
 			string username = "";
@@ -1915,61 +2281,63 @@ __TOC__
 				try
 				{
 					await site.Login();
-					Dictionary<string, MonsterData> monsterAppearances = JsonConvert.DeserializeObject<Dictionary<string, MonsterData>>(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\monsterData.json"))!;
-					string pageGameAcronym = "MHRiders";
-					string[] spinoffRelease = ["MHNow", "MHST2", "MHST1", "MHPuzzles", "MHFrontier", "MHi", "MHRiders"];
-					WikiPage[] monsters = monsterAppearances.Where(x => x.Key != "Ahtal-Neset" && (!crosscheck.ContainsKey(pageGameAcronym) || crosscheck[pageGameAcronym].Contains(x.Key)) && x.Value.GameAppearances.Select(y => y.GameAcronym).Contains(pageGameAcronym)).Select(x => new WikiPage(site, x.Key + "/" + pageGameAcronym)).ToArray();
-					int totalCnt = monsters.Count(x => !x.Title!.Contains("Sandbox") && !finishedGameSpecs.Contains(x.Title!.Split("/")[0] + " (" + x.Title!.Split("/")[1] + ")"));
-					int cnt = 1;
-					foreach (WikiPage oldGameSpec in monsters.Where(x => !x.Title!.Contains("Sandbox") && !finishedGameSpecs.Contains(x.Title!.Split("/")[0] + " (" + x.Title!.Split("/")[1] + ")")))
+					Dictionary<string, MonsterData> monsterAppearances = JsonConvert.DeserializeObject<Dictionary<string, MonsterData>>(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\monsterData.json"))!
+						.Where(x => types == MonsterType.Large ? x.Value.LargeMonster : !x.Value.LargeMonster)
+						.ToDictionary(x => x.Key, x => x.Value);
+					foreach (string pageGameAcronym in new string[] { "MHP3", "MH3", "MHFU", "MHF2", "MHFrontier", "MH2", "MHF1", "MHG", "MH1", "MHNow", "MHST2", "MHST1", "MHPuzzles", "MHi", "MHRiders" })
 					{
-						string[] pageElements = oldGameSpec.Title!.Split('/');
-						string monsterName = pageElements[0];
-						await oldGameSpec.RefreshAsync(PageQueryOptions.FetchContent);
-						string fullGameName = GetGameFullName(pageGameAcronym);
-						if (fullGameName == "Game Unknown!")
+						string[] spinoffRelease = ["MHNow", "MHST2", "MHST1", "MHPuzzles", "MHFrontier", "MHi", "MHRiders"];
+						WikiPage[] monsters = monsterAppearances.Where(x => x.Key != "Ahtal-Neset" && x.Value.GameAppearances.Select(y => y.GameAcronym).Contains(pageGameAcronym)).Select(x => new WikiPage(site, x.Key + "/" + pageGameAcronym)).ToArray();
+						int totalCnt = monsters.Count(x => !x.Title!.Contains("Sandbox") && !finishedGameSpecs.Contains(x.Title!.Split("/")[0] + " (" + x.Title!.Split("/")[1] + ")"));
+						int cnt = 1;
+						foreach (WikiPage oldGameSpec in monsters.Where(x => !x.Title!.Contains("Sandbox") && !finishedGameSpecs.Contains(x.Title!.Split("/")[0] + " (" + x.Title!.Split("/")[1] + ")")))
 						{
-							Debugger.Break();
-						}
-						WikiPage monsterRedirect = new(site, $"{pageElements[0]}");
-						await monsterRedirect.RefreshAsync(PageQueryOptions.FetchContent);
-						WikiPage monsterOverview = new(site, $"{pageElements[0]}/Overview");
-						await monsterOverview.RefreshAsync(PageQueryOptions.FetchContent);
-						WikiPage monsterLore = new(site, $"{pageElements[0]}/Lore");
-						await monsterLore.RefreshAsync(PageQueryOptions.FetchContent);
-						WikiPage music = new(site, $"{pageElements[0]}/Music");
-						await music.RefreshAsync();
-						WikiPage equipment = new(site, $"{pageElements[0]}/Equipment");
-						await equipment.RefreshAsync();
-						WikiPage appearances = new(site, $"{pageElements[0]}/Appearances");
-						await appearances.RefreshAsync();
-						List<string> validGames = [.. monsterAppearances[monsterName].GameAppearances.Select(x => x.GameAcronym)];
-						if (oldGameSpec.Exists && pageGameAcronym != "MH1")
-						{
-							MonsterNames? allNames = null;
-							if (monsterNameDict.TryGetValue(monsterName, out MonsterNames? value))
+							string[] pageElements = oldGameSpec.Title!.Split('/');
+							string monsterName = pageElements[0];
+							await oldGameSpec.RefreshAsync(PageQueryOptions.FetchContent);
+							string fullGameName = GetGameFullName(pageGameAcronym);
+							if (fullGameName == "Game Unknown!")
 							{
-								allNames = value;
+								Debugger.Break();
 							}
-							string oldContent = oldGameSpec.Content!;
-							WikiPage newOverview = new(site, $"{pageElements[0]}"/*$"User:RampageRobot/Sandbox/{pageElements[0]}"*/);
-							StringBuilder content = new();
-							content.AppendLine($"#REDIRECT [[{monsterName}/{pageGameAcronym}]]");
-							content.AppendLine("[[Category:Monsters To Remove Redirect]]");
-							string infoBox = monsterOverview.Content!.Substring(monsterOverview.Content!.IndexOf("{{MonsterInfoBoxv2")).Replace("\n", "\r\n").Replace("\r\r\n", "\r\n");
-							string lastParam = infoBox.Substring(infoBox.LastIndexOf("\r\n|"));
-							lastParam = lastParam.Substring(0, lastParam.IndexOf("}}"));
-							infoBox = infoBox.Substring(0, infoBox.IndexOf(lastParam) + lastParam.Length);
-							string latestRender = infoBox.Substring(infoBox.IndexOf("|Image =") + 8);
-							string attacksSection = infoBox.Substring(infoBox.IndexOf("|Attacks ="));
-							attacksSection = attacksSection.Substring(0, attacksSection.IndexOf("\r\n"));
-							latestRender = latestRender.Substring(0, latestRender.IndexOf("\r\n")).Replace("{{{Render|", "").Replace("}}}", "").Trim();
-							string lorePage = $"{{{{:{monsterName}/Lore}}}}";
-							if (!oldGameSpec.Content!.Contains(lorePage))
+							WikiPage monsterRedirect = new(site, $"{pageElements[0]}");
+							await monsterRedirect.RefreshAsync(PageQueryOptions.FetchContent);
+							WikiPage monsterOverview = new(site, $"{pageElements[0]}/Overview");
+							await monsterOverview.RefreshAsync(PageQueryOptions.FetchContent);
+							WikiPage monsterLore = new(site, $"{pageElements[0]}/Lore");
+							await monsterLore.RefreshAsync(PageQueryOptions.FetchContent);
+							WikiPage music = new(site, $"{pageElements[0]}/Music");
+							await music.RefreshAsync();
+							WikiPage equipment = new(site, $"{pageElements[0]}/Equipment");
+							await equipment.RefreshAsync();
+							WikiPage appearances = new(site, $"{pageElements[0]}/Appearances");
+							await appearances.RefreshAsync();
+							List<string> validGames = [.. monsterAppearances[monsterName].GameAppearances.Select(x => x.GameAcronym)];
+							if (oldGameSpec.Exists && pageGameAcronym != "MH1" && pageGameAcronym != "MHG")
 							{
-								lorePage = $"{{{{:{monsterName.Replace(" ", "_")}/Lore}}}}";
-							}
-							content.AppendLine($@"{{{{Meta
+								MonsterNames? allNames = null;
+								if (monsterNameDict.TryGetValue(monsterName, out MonsterNames? value))
+								{
+									allNames = value;
+								}
+								string oldContent = oldGameSpec.Content!;
+								WikiPage newOverview = new(site, $"{pageElements[0]}"/*$"User:RampageRobot/Sandbox/{pageElements[0]}"*/);
+								StringBuilder content = new();
+								content.AppendLine("[[Category:Monsters To Remove Redirect]]");
+								string infoBox = monsterOverview.Content!.Substring(monsterOverview.Content!.IndexOf("{{MonsterInfoBoxv2")).Replace("\n", "\r\n").Replace("\r\r\n", "\r\n");
+								string lastParam = infoBox.Substring(infoBox.LastIndexOf("\r\n|"));
+								lastParam = lastParam.Substring(0, lastParam.IndexOf("}}"));
+								infoBox = infoBox.Substring(0, infoBox.IndexOf(lastParam) + lastParam.Length);
+								string latestRender = infoBox.Substring(infoBox.IndexOf("|Image =") + 8);
+								string attacksSection = infoBox.Substring(infoBox.IndexOf("|Attacks ="));
+								attacksSection = attacksSection.Substring(0, attacksSection.IndexOf("\r\n"));
+								latestRender = latestRender.Substring(0, latestRender.IndexOf("\r\n")).Replace("{{{Render|", "").Replace("}}}", "").Trim();
+								string lorePage = $"{{{{:{monsterName}/Lore}}}}";
+								if (!oldGameSpec.Content!.Contains(lorePage))
+								{
+									lorePage = $"{{{{:{monsterName.Replace(" ", "_")}/Lore}}}}";
+								}
+								content.AppendLine($@"{{{{Meta
 |MetaTitle     = {monsterName}
 |MetaDesc      = This page describes {monsterName}, which is a large monster appearing in the Monster Hunter franchise.
 |MetaKeywords  = {monsterName}
@@ -1977,390 +2345,406 @@ __TOC__
 }}}}
 {{{{MonsterAppearancesNav
 |Monster = {monsterName}");
-							foreach (string validGame in validGames)
-							{
-								content.AppendLine($"|{validGame} = Y");
-							}
-							content.AppendLine(@"}}");
-							string gallerySection = monsterLore.Content!.Substring(monsterLore.Content!.IndexOf("=Gallery=")).Replace("\n", "\r\n").Replace("\r\r\n", "\r\n").Replace("<gallery mode=\"slideshow\"", "<gallery mode=slideshow");
-							gallerySection = gallerySection.Substring(0, gallerySection.IndexOf("<gallery mode=slideshow caption=\"Concept Art\">"));
-							string renders = gallerySection.Substring(gallerySection.IndexOf("<gallery mode=slideshow caption=\"Official Renders\">\r\n") + 53, gallerySection.IndexOf("</gallery>") - gallerySection.IndexOf("<gallery mode=slideshow caption=\"Official Renders\">\r\n") - 53).Replace("|", "{{!}}");
-							if (string.IsNullOrEmpty(renders.Trim()))
-							{
-								renders = latestRender;
-							}
-							infoBox = infoBox.Replace("MonsterInfoBoxv2", "MonsterGameInfoBox_Overview") + "|Renders = " + renders + "}}";
-							StringBuilder newElements = new();
-							newElements.Append(@"
+								foreach (string validGame in validGames)
+								{
+									content.AppendLine($"|{validGame} = Y");
+								}
+								content.AppendLine(@"}}");
+								string gallerySection = monsterLore.Content!.Substring(monsterLore.Content!.IndexOf("=Gallery=")).Replace("\n", "\r\n").Replace("\r\r\n", "\r\n").Replace("<gallery mode=\"slideshow\"", "<gallery mode=slideshow");
+								gallerySection = gallerySection.Substring(0, gallerySection.IndexOf("<gallery mode=slideshow caption=\"Concept Art\">"));
+								string renders = gallerySection.Substring(gallerySection.IndexOf("<gallery mode=slideshow caption=\"Official Renders\">\r\n") + 53, gallerySection.IndexOf("</gallery>") - gallerySection.IndexOf("<gallery mode=slideshow caption=\"Official Renders\">\r\n") - 53).Replace("|", "{{!}}");
+								if (string.IsNullOrEmpty(renders.Trim()))
+								{
+									renders = latestRender;
+								}
+								infoBox = infoBox.Replace("MonsterInfoBoxv2", "MonsterGameInfoBox_Overview") + "|Renders = " + renders + "}}";
+								StringBuilder newElements = new();
+								newElements.Append(@"
 |Elements = ");
-							bool alreadyHas = false;
-							foreach (string element in ElementTypes)
-							{
-								if (attacksSection.ToUpper().Replace($"{element.ToUpper()}BLIGHT", "").Contains(element.ToUpper()))
+								bool alreadyHas = false;
+								foreach (string element in ElementTypes)
 								{
-									if (alreadyHas)
+									if (attacksSection.ToUpper().Replace($"{element.ToUpper()}BLIGHT", "").Contains(element.ToUpper()))
 									{
-										newElements.Append(" ");
+										if (alreadyHas)
+										{
+											newElements.Append(" ");
+										}
+										newElements.Append($"{{{{UI|UI|{element}}}}}");
+										alreadyHas = true;
 									}
-									newElements.Append($"{{{{UI|UI|{element}}}}}");
-									alreadyHas = true;
 								}
-							}
-							newElements.Append(@"
+								newElements.Append(@"
 |Status Effects = ");
-							alreadyHas = false;
-							foreach (string element in StatusEffects)
-							{
-								if (attacksSection.Contains(element))
+								alreadyHas = false;
+								foreach (string element in StatusEffects)
 								{
-									if (alreadyHas)
+									if (attacksSection.Contains(element))
 									{
-										newElements.Append(" ");
+										if (alreadyHas)
+										{
+											newElements.Append(" ");
+										}
+										newElements.Append($"{{{{Element|{element}}}}}");
+										alreadyHas = true;
 									}
-									newElements.Append($"{{{{Element|{element}}}}}");
-									alreadyHas = true;
 								}
-							}
-							infoBox = infoBox.Replace(attacksSection, newElements.ToString());
-							string latestGame = infoBox.Substring(infoBox.IndexOf("|Latest Game ="));
-							latestGame = latestGame.Substring(0, latestGame.IndexOf("\r\n")).TrimStart('\r', '\n').TrimEnd('\r', '\n').Trim();
-							if (latestGame.Replace("|Latest Game =", "") == "")
-							{
-								string latestReplace = monsterRedirect.Content!.Substring(monsterRedirect!.Content.IndexOf($"#REDIRECT [[{monsterName}/") + 13 + monsterName.Length);
-								latestReplace = latestReplace.Substring(0, latestReplace.IndexOf("]]")).Trim();
-								infoBox = infoBox.Replace(latestGame, "|Latest Game = " + latestReplace);
-							}
-							string originalGame = infoBox.Substring(infoBox.IndexOf("|Original Game ="));
-							originalGame = originalGame.Substring(0, originalGame.IndexOf("\r\n")).TrimStart('\r', '\n').TrimEnd('\r', '\n').Trim();
-							if (originalGame.Replace("|Original Game =", "") == "")
-							{
-								string originalReplace = monsterRedirect.Content!.Substring(monsterRedirect!.Content.IndexOf("[[Category:Monsters introduced in") + 33);
-								originalReplace = originalReplace.Substring(0, originalReplace.IndexOf("]]")).Trim();
-								infoBox = infoBox.Replace(originalGame, "|Original Game = " + originalReplace);
-							}
-							content.AppendLine(infoBox);
-							string generalInfo = monsterOverview.Content!.Substring(monsterOverview.Content!.IndexOf("{{MonsterInfoBoxv2")).Replace("\n", "\r\n").Replace("\r\r\n", "\r\n");
-							lastParam = generalInfo.Substring(generalInfo.LastIndexOf("\r\n|"));
-							lastParam = lastParam.Substring(0, lastParam.IndexOf("}}"));
-							generalInfo = generalInfo.Substring(generalInfo.IndexOf(lastParam) + lastParam.Length + 2);
-							content.AppendLine(generalInfo.Substring(0, generalInfo.IndexOf("__TOC__")).TrimStart('\r', '\n').TrimEnd('\r', '\n'));
-							content.AppendLine("__TOC__");
-							string summary = monsterOverview.Content!.Substring(monsterOverview.Content!.IndexOf("=Overview=") + 10).Replace("\n", "\r\n").Replace("\r\r\n", "\r\n");
-							content.AppendLine("= Summary =");
-							content.AppendLine(summary.Substring(0, summary.IndexOf("<noinclude>")).TrimStart('\r', '\n').TrimEnd('\r', '\n'));
-							content.AppendLine("= Appearances =");
-							string[] mainSeriesGames = [.. validGames.Where(x => MainSeriesAcros.Contains(x))];
-							if (mainSeriesGames.Length > 0)
-							{
-								content.AppendLine("== Main Series ==");
-								foreach (string mainSeriesGame in mainSeriesGames.Reverse())
+								infoBox = infoBox.Replace(attacksSection, newElements.ToString());
+								string latestGame = infoBox.Substring(infoBox.IndexOf("|Latest Game ="));
+								latestGame = latestGame.Substring(0, latestGame.IndexOf("\r\n")).TrimStart('\r', '\n').TrimEnd('\r', '\n').Trim();
+								if (latestGame.Replace("|Latest Game =", "") == "")
 								{
-									content.AppendLine($"* '''''[[{GetGameFullName(mainSeriesGame)}]]''''': ???");
+									string latestReplace = monsterRedirect.Content!.Substring(monsterRedirect!.Content.IndexOf($"#REDIRECT [[{monsterName}/") + 13 + monsterName.Length);
+									latestReplace = latestReplace.Substring(0, latestReplace.IndexOf("]]")).Trim();
+									infoBox = infoBox.Replace(latestGame, "|Latest Game = " + latestReplace);
 								}
-							}
-							string[] spinoffGames = [.. validGames.Where(x => SpinoffAcros.Contains(x))];
-							if (spinoffGames.Length > 0)
-							{
-								content.AppendLine("== Spin-Offs ==");
-								foreach (string spinoffGame in spinoffGames)
+								string originalGame = infoBox.Substring(infoBox.IndexOf("|Original Game ="));
+								originalGame = originalGame.Substring(0, originalGame.IndexOf("\r\n")).TrimStart('\r', '\n').TrimEnd('\r', '\n').Trim();
+								if (originalGame.Replace("|Original Game =", "") == "")
 								{
-									content.AppendLine($"* '''''[[{GetGameFullName(spinoffGame)}]]''''': ???");
+									string originalReplace = monsterRedirect.Content!.Substring(monsterRedirect!.Content.IndexOf("[[Category:Monsters introduced in") + 33);
+									originalReplace = originalReplace.Substring(0, originalReplace.IndexOf("]]")).Trim();
+									infoBox = infoBox.Replace(originalGame, "|Original Game = " + originalReplace);
 								}
-							}
-							string newLore = monsterLore.Content!.Replace("\n", "\r\n").Replace("\r\r\n", "\r\n").Replace("=Notes=", "=Trivia=").Replace("mode=\"slideshow\"", "mode=slideshow").Replace(gallerySection, "");
-							newLore = newLore.Insert(newLore.IndexOf("<gallery"), @"=Gallery=
+								content.AppendLine(infoBox);
+								string generalInfo = monsterOverview.Content!.Substring(monsterOverview.Content!.IndexOf("{{MonsterInfoBoxv2")).Replace("\n", "\r\n").Replace("\r\r\n", "\r\n");
+								lastParam = generalInfo.Substring(generalInfo.LastIndexOf("\r\n|"));
+								lastParam = lastParam.Substring(0, lastParam.IndexOf("}}"));
+								generalInfo = generalInfo.Substring(generalInfo.IndexOf(lastParam) + lastParam.Length + 2);
+								content.AppendLine(generalInfo.Substring(0, generalInfo.IndexOf("__TOC__")).TrimStart('\r', '\n').TrimEnd('\r', '\n'));
+								content.AppendLine("__TOC__");
+								string summary = monsterOverview.Content!.Substring(monsterOverview.Content!.IndexOf("=Overview=") + 10).Replace("\n", "\r\n").Replace("\r\r\n", "\r\n");
+								content.AppendLine("= Summary =");
+								content.AppendLine(summary.Substring(0, summary.IndexOf("<noinclude>")).TrimStart('\r', '\n').TrimEnd('\r', '\n'));
+								content.AppendLine("= Appearances =");
+								string[] mainSeriesGames = [.. validGames.Where(x => MainSeriesAcros.Contains(x))];
+								if (mainSeriesGames.Length > 0)
+								{
+									content.AppendLine("== Main Series ==");
+									foreach (string mainSeriesGame in mainSeriesGames.Reverse())
+									{
+										content.AppendLine($"* '''''[[{GetGameFullName(mainSeriesGame)}]]''''': ???");
+									}
+								}
+								string[] spinoffGames = [.. validGames.Where(x => SpinoffAcros.Contains(x))];
+								if (spinoffGames.Length > 0)
+								{
+									content.AppendLine("== Spin-Offs ==");
+									foreach (string spinoffGame in spinoffGames)
+									{
+										content.AppendLine($"* '''''[[{GetGameFullName(spinoffGame)}]]''''': ???");
+									}
+								}
+								string newLore = monsterLore.Content!.Replace("\n", "\r\n").Replace("\r\r\n", "\r\n").Replace("=Notes=", "=Trivia=").Replace("mode=\"slideshow\"", "mode=slideshow").Replace(gallerySection, "");
+								newLore = newLore.Insert(newLore.IndexOf("<gallery"), @"=Gallery=
 <div style=""max-width:500px; margin-left:auto; margin-right:auto;"">")
-								.Replace("</gallery>\r\n</div>\r\n</div>", "</gallery></div>");
-							if (allNames != null)
-							{
-								string oldLanguageNames = newLore.Substring(newLore.IndexOf("{{LanguageNames"));
-								oldLanguageNames = oldLanguageNames.Substring(0, oldLanguageNames.IndexOf("}}"));
-								string newLanguageNames = oldLanguageNames;
-								string[] languageOrder = ["ENG", "FR", "ITA", "GER", "SPA", "RU", "POL", "POR", "KOR", "CHN", "ARA", "LAT"];
-								foreach (string language in languageOrder)
+									.Replace("</gallery>\r\n</div>\r\n</div>", "</gallery></div>");
+								if (allNames != null)
 								{
-									string newLangString = "";
-									if (language == "CHN")
+									string oldLanguageNames = newLore.Substring(newLore.IndexOf("{{LanguageNames"));
+									oldLanguageNames = oldLanguageNames.Substring(0, oldLanguageNames.IndexOf("}}"));
+									string newLanguageNames = oldLanguageNames;
+									string[] languageOrder = ["ENG", "FR", "ITA", "GER", "SPA", "RU", "POL", "POR", "KOR", "CHN", "ARA", "LAT"];
+									foreach (string language in languageOrder)
 									{
-										string trad = GetNameFromLang(allNames, "CHNt");
-										string simp = GetNameFromLang(allNames, "CHNs");
-										if (trad != "???" && simp != "???")
+										string newLangString = "";
+										if (language == "CHN")
 										{
-											newLangString = $"|{language} Name = {simp} <small>(Simplified)</small> / {trad} <small>(Traditional)</small>";
+											string trad = GetNameFromLang(allNames, "CHNt");
+											string simp = GetNameFromLang(allNames, "CHNs");
+											if (trad != "???" && simp != "???")
+											{
+												newLangString = $"|{language} Name = {simp} <small>(Simplified)</small> / {trad} <small>(Traditional)</small>";
+											}
 										}
-									}
-									else
-									{
-										string val = GetNameFromLang(allNames, language);
-										if (val != "???")
+										else
 										{
-											newLangString = $"|{language} Name = {val}";
+											string val = GetNameFromLang(allNames, language);
+											if (val != "???")
+											{
+												newLangString = $"|{language} Name = {val}";
+											}
 										}
-									}
-									if (oldLanguageNames.Contains($"|{language} Name ="))
-									{
-										string thisLanguageSubstr = oldLanguageNames.Substring(oldLanguageNames.IndexOf($"|{language} Name ="));
-										thisLanguageSubstr = thisLanguageSubstr.Substring(0, thisLanguageSubstr.IndexOf("\r\n")).TrimStart('\r', '\n').TrimEnd('\r', '\n').Trim();
-										if (language == "KOR")
+										if (oldLanguageNames.Contains($"|{language} Name ="))
 										{
-											if (!thisLanguageSubstr.Contains(" (") && !string.IsNullOrEmpty(newLangString))
+											string thisLanguageSubstr = oldLanguageNames.Substring(oldLanguageNames.IndexOf($"|{language} Name ="));
+											thisLanguageSubstr = thisLanguageSubstr.Substring(0, thisLanguageSubstr.IndexOf("\r\n")).TrimStart('\r', '\n').TrimEnd('\r', '\n').Trim();
+											if (language == "KOR")
+											{
+												if (!thisLanguageSubstr.Contains(" (") && !string.IsNullOrEmpty(newLangString))
+												{
+													newLanguageNames = newLanguageNames.Replace(thisLanguageSubstr, newLangString);
+												}
+											}
+											else
+											{
+												newLanguageNames = newLanguageNames.Replace(thisLanguageSubstr, newLangString);
+											}
+										}
+										else if (oldLanguageNames.Contains($"|{language} Name="))
+										{
+											string thisLanguageSubstr = oldLanguageNames.Substring(oldLanguageNames.IndexOf($"|{language} Name="));
+											if (thisLanguageSubstr.Contains("/r/n"))
+											{
+												thisLanguageSubstr = thisLanguageSubstr.Substring(0, thisLanguageSubstr.IndexOf("\r\n"));
+											}
+											thisLanguageSubstr = thisLanguageSubstr.TrimStart('\r', '\n').TrimEnd('\r', '\n').Trim();
+											if (language == "KOR")
+											{
+												if (!thisLanguageSubstr.Contains(" (") && !string.IsNullOrEmpty(newLangString))
+												{
+													newLanguageNames = newLanguageNames.Replace(thisLanguageSubstr, newLangString);
+												}
+											}
+											else
 											{
 												newLanguageNames = newLanguageNames.Replace(thisLanguageSubstr, newLangString);
 											}
 										}
 										else
 										{
-											newLanguageNames = newLanguageNames.Replace(thisLanguageSubstr, newLangString);
-										}
-									}
-									else if (oldLanguageNames.Contains($"|{language} Name="))
-									{
-										string thisLanguageSubstr = oldLanguageNames.Substring(oldLanguageNames.IndexOf($"|{language} Name="));
-										if (thisLanguageSubstr.Contains("/r/n"))
-										{
-											thisLanguageSubstr = thisLanguageSubstr.Substring(0, thisLanguageSubstr.IndexOf("\r\n"));
-										}
-										thisLanguageSubstr = thisLanguageSubstr.TrimStart('\r', '\n').TrimEnd('\r', '\n').Trim();
-										if (language == "KOR")
-										{
-											if (!thisLanguageSubstr.Contains(" (") && !string.IsNullOrEmpty(newLangString))
-											{
-												newLanguageNames = newLanguageNames.Replace(thisLanguageSubstr, newLangString);
-											}
-										}
-										else
-										{
-											newLanguageNames = newLanguageNames.Replace(thisLanguageSubstr, newLangString);
-										}
-									}
-									else
-									{
-										newLanguageNames += $@"
+											newLanguageNames += $@"
 {newLangString}";
+										}
 									}
+									newLore = newLore.Replace(oldLanguageNames, newLanguageNames);
 								}
-								newLore = newLore.Replace(oldLanguageNames, newLanguageNames);
-							}
-							content.AppendLine(newLore.Replace(newLore.Substring(newLore.IndexOf("=Sources="), newLore.IndexOf("</noinclude>") + 12 - newLore.IndexOf("=Sources=")), ""));
-							string finalCats = string.Join("\r\n", monsterRedirect.Content!.Replace("#REDIRECT", "")
-								.Replace("\n", "\r\n").Replace("\r\r\n", "\r\n")
-								.Replace("\r\n\r\n", "\r\n")
-								.Split("\r\n")
-								.Where(x => x.StartsWith("[[Category:")));
-							content.AppendLine($@"=Notes=
+								content.AppendLine(newLore.Replace(newLore.Substring(newLore.IndexOf("=Sources="), newLore.IndexOf("</noinclude>") + 12 - newLore.IndexOf("=Sources=")), ""));
+								string finalCats = string.Join("\r\n", monsterRedirect.Content!.Replace("#REDIRECT", "")
+									.Replace("\n", "\r\n").Replace("\r\r\n", "\r\n")
+									.Replace("\r\n\r\n", "\r\n")
+									.Split("\r\n")
+									.Where(x => x.StartsWith("[[Category:")));
+								content.AppendLine($@"=Notes=
 <references group=""notes""/>
 =Sources=
 <references />
 {{{{MonsterListsBox}}}}
 {{{{MonsterListBox}}}}
 {finalCats}");
-							if (!finishedOverviews.Contains(pageElements[0]))
-							{
-								await newOverview.EditAsync(new WikiPageEditOptions()
+								if (!finishedOverviews.Contains(pageElements[0]))
 								{
-									Bot = true,
-									Content = content.ToString().Replace("\r\n\r\n\r\n", "\r\n\r\n"),
-									Minor = false,
-									Summary = $"Migrated from {pageElements[0]}/Overview to {pageElements[0]} as per Large Monster Page Redesign 2025.",
-									Watch = AutoWatchBehavior.None
-								});
-								Console.WriteLine($"({cnt}/{totalCnt}) {newOverview.Title} created.");
-								finishedOverviews.Add(pageElements[0]);
-								File.WriteAllText(overviewsFile, JsonConvert.SerializeObject(finishedOverviews));
-							}
-							if (!finishedGameSpecs.Contains($"{pageElements[0]} ({pageGameAcronym})"))
-							{
-								content = new();
-								string overviewPageName = $"{{{{:{monsterName}/Overview}}}}";
-								string newMonsterName = monsterName;
-								if (!oldGameSpec.Content!.Contains(overviewPageName))
-								{
-									overviewPageName = $"{{{{:{monsterName}/Overview";
+									await newOverview.EditAsync(new WikiPageEditOptions()
+									{
+										Bot = true,
+										Content = content.ToString().Replace("\r\n\r\n\r\n", "\r\n\r\n"),
+										Minor = false,
+										Summary = $"Migrated from {pageElements[0]}/Overview to {pageElements[0]} as per {(SmallMonsterNames.Contains(monsterName) ? "Small" : "Large")} Monster Page Redesign 2025.",
+										Watch = AutoWatchBehavior.None
+									});
+									Console.WriteLine($"({cnt}/{totalCnt}) {newOverview.Title} created.");
+									finishedOverviews.Add(pageElements[0]);
+									File.WriteAllText(overviewsFile, JsonConvert.SerializeObject(finishedOverviews));
 								}
-								if (!oldGameSpec.Content!.Contains(overviewPageName))
+								bool cont = !finishedGameSpecs.Contains($"{pageElements[0]} ({pageGameAcronym})");
+								if (pageGameAcronym == "MHFrontier")
 								{
-									overviewPageName = $"{{{{:{newMonsterName}/Overview";
+									WikiPage test = new(site, $"{pageElements[0]} ({pageGameAcronym})");
+									await test.RefreshAsync();
+									cont = !test.Exists;
 								}
-								if (!oldGameSpec.Content!.Contains(overviewPageName))
+								if (cont)
 								{
-									newMonsterName = monsterName.Replace(" ", "_");
-									overviewPageName = $"{{{{:{monsterName.Replace(" ", "_")}/Overview}}}}";
-								}
-								if (!oldGameSpec.Content!.Contains(overviewPageName))
-								{
-									overviewPageName = $"{{{{:{newMonsterName}/Overview";
-								}
-								string meta = oldGameSpec.Content!.Substring(oldGameSpec.Content!.IndexOf("{{Meta"), oldGameSpec.Content!.IndexOf(overviewPageName)).ReplaceLineEndings("\r\n");
-								lastParam = meta.Substring(meta.LastIndexOf("\r\n|"));
-								lastParam = lastParam.Substring(0, lastParam.IndexOf("}}"));
-								meta = meta.Substring(0, meta.IndexOf(lastParam) + lastParam.Length + 2);
-								content.AppendLine(meta);
-								content.AppendLine($"<div class=subpages style=\"color: #54595d; font-size:0.95rem\">< <bdi dir=\"ltr\">[[{monsterName}]]</bdi></div>");
-								content.AppendLine($@"{{{{MonsterAppearancesNav
+									content = new();
+									string overviewPageName = $"{{{{:{monsterName}/Overview}}}}";
+									string newMonsterName = monsterName;
+									if (!oldGameSpec.Content!.Contains(overviewPageName))
+									{
+										overviewPageName = $"{{{{:{monsterName}/Overview";
+									}
+									if (!oldGameSpec.Content!.Contains(overviewPageName))
+									{
+										overviewPageName = $"{{{{:{newMonsterName}/Overview";
+									}
+									if (!oldGameSpec.Content!.Contains(overviewPageName))
+									{
+										newMonsterName = monsterName.Replace(" ", "_");
+										overviewPageName = $"{{{{:{monsterName.Replace(" ", "_")}/Overview}}}}";
+									}
+									if (!oldGameSpec.Content!.Contains(overviewPageName))
+									{
+										overviewPageName = $"{{{{:{newMonsterName}/Overview";
+									}
+									string meta = oldGameSpec.Content!.Substring(oldGameSpec.Content!.IndexOf("{{Meta"), oldGameSpec.Content!.IndexOf(overviewPageName)).ReplaceLineEndings("\r\n");
+									lastParam = meta.Substring(meta.LastIndexOf("\r\n|"));
+									lastParam = lastParam.Substring(0, lastParam.IndexOf("}}"));
+									meta = meta.Substring(0, meta.IndexOf(lastParam) + lastParam.Length + 2);
+									content.AppendLine(meta);
+									content.AppendLine($"<div class=subpages style=\"color: #54595d; font-size:0.95rem\">< <bdi dir=\"ltr\">[[{monsterName}]]</bdi></div>");
+									content.AppendLine($@"{{{{MonsterAppearancesNav
 |Monster = {monsterName}");
-								foreach (string validGame in validGames)
-								{
-									content.AppendLine($"|{validGame} = Y");
-								}
-								content.AppendLine(@"}}");
-								string newInfo = infoBox.Substring(0, infoBox.IndexOf("|Latest Game")).Replace("MonsterGameInfoBox_Overview", "MonsterGameInfoBox");
-								newInfo += @"
-|Game = " + pageGameAcronym;
-								if (pageGameAcronym == "MHWilds")
-								{
+									foreach (string validGame in validGames)
+									{
+										content.AppendLine($"|{validGame} = Y");
+									}
+									content.AppendLine(@"}}");
+									string newInfo = infoBox.Substring(0, infoBox.IndexOf("|Latest Game")).Replace("MonsterGameInfoBox_Overview", "MonsterGameInfoBox");
 									newInfo += @"
-|Capture HP % = 20
-|Limp HP % = 15";
-								}
-								if (oldGameSpec.Content!.Contains("{{ItemEffectivenessTable"))
-								{
+|Game = " + pageGameAcronym;
+									if (SmallMonsterNames.Contains(monsterName))
+									{
+										newInfo += @"
+|Small = Y";
+									}
 									if (pageGameAcronym == "MHWilds")
 									{
-										if (JsonConvert.DeserializeObject<JArray>(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\dtlnor rips\MHWs-in-json-main\natives\STM\GameDesign\Enemy\Em0002\00\Data\Em0002_00_Param_Feel.user.3.json"))!
-											.First()
-											.Value<JObject>("app.user_data.EmParamFeel")!
-											.Value<JObject>("_ReactableSettingData")!
-											.Value<JObject>("app.user_data.EmParamFeel.cReactableSettingData")!
-											.Value<bool>("_IsReactableTrapMeat"))
-											newInfo += @"
-|Meat = Y";
+										newInfo += @"
+|Capture HP % = 20
+|Limp HP % = 15";
 									}
-									else
+									if (oldGameSpec.Content!.Contains("{{ItemEffectivenessTable"))
 									{
-										string meat = oldGameSpec.Content!.Substring(oldGameSpec.Content!.IndexOf("|Meat Effectiveness =") + 21).Replace("\n", "\r\n").Replace("\r\r\n", "\r\n");
-										meat = meat.Substring(0, meat.IndexOf("\r\n")).Trim();
-										if (meat != "" && meat != "False" && meat != "X")
+										if (pageGameAcronym == "MHWilds")
 										{
-											newInfo += @"
+											if (JsonConvert.DeserializeObject<JArray>(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\dtlnor rips\MHWs-in-json-main\natives\STM\GameDesign\Enemy\Em0002\00\Data\Em0002_00_Param_Feel.user.3.json"))!
+												.First()
+												.Value<JObject>("app.user_data.EmParamFeel")!
+												.Value<JObject>("_ReactableSettingData")!
+												.Value<JObject>("app.user_data.EmParamFeel.cReactableSettingData")!
+												.Value<bool>("_IsReactableTrapMeat"))
+												newInfo += @"
 |Meat = Y";
 										}
-									}
-									string flash = oldGameSpec.Content!.Substring(oldGameSpec.Content!.IndexOf("|Flash Duration =") + 17).Replace("\n", "\r\n").Replace("\r\r\n", "\r\n");
-									flash = flash.Substring(0, flash.IndexOf("\r\n")).Trim();
-									if (flash != "" && flash != "False" && flash != "X" && flash != "0" && int.TryParse(flash, out _))
-									{
-										newInfo += @"
+										else
+										{
+											string meat = oldGameSpec.Content!.Substring(oldGameSpec.Content!.IndexOf("|Meat Effectiveness =") + 21).Replace("\n", "\r\n").Replace("\r\r\n", "\r\n");
+											meat = meat.Substring(0, meat.IndexOf("\r\n")).Trim();
+											if (meat != "" && meat != "False" && meat != "X")
+											{
+												newInfo += @"
+|Meat = Y";
+											}
+										}
+										string flash = oldGameSpec.Content!.Substring(oldGameSpec.Content!.IndexOf("|Flash Duration =") + 17).Replace("\n", "\r\n").Replace("\r\r\n", "\r\n");
+										flash = flash.Substring(0, flash.IndexOf("\r\n")).Trim();
+										if (flash != "" && flash != "False" && flash != "X" && flash != "0" && int.TryParse(flash, out _))
+										{
+											newInfo += @"
 |Flash Pods = Y";
-									}
-									string dung = oldGameSpec.Content!.Substring(oldGameSpec.Content!.IndexOf("|Dung Effectiveness =") + 21).Replace("\n", "\r\n").Replace("\r\r\n", "\r\n");
-									dung = dung.Substring(0, dung.IndexOf("\r\n")).Trim();
-									if (dung != "" && dung != "False" && dung != "X" && dung != "0" && int.TryParse(dung, out _))
-									{
-										newInfo += @"
+										}
+										string dung = oldGameSpec.Content!.Substring(oldGameSpec.Content!.IndexOf("|Dung Effectiveness =") + 21).Replace("\n", "\r\n").Replace("\r\r\n", "\r\n");
+										dung = dung.Substring(0, dung.IndexOf("\r\n")).Trim();
+										if (dung != "" && dung != "False" && dung != "X" && dung != "0" && int.TryParse(dung, out _))
+										{
+											newInfo += @"
 |Dung Pods = " + dung + "%";
-									}
-									string screamer = oldGameSpec.Content!.Substring(oldGameSpec.Content!.IndexOf("|Sonic Effectiveness =") + 22).Replace("\n", "\r\n").Replace("\r\r\n", "\r\n");
-									screamer = screamer.Substring(0, screamer.IndexOf("\r\n")).Trim();
-									if (screamer != "" && screamer != "False" && screamer != "X" && screamer != "0")
-									{
-										newInfo += @"
+										}
+										string screamer = oldGameSpec.Content!.Substring(oldGameSpec.Content!.IndexOf("|Sonic Effectiveness =") + 22).Replace("\n", "\r\n").Replace("\r\r\n", "\r\n");
+										screamer = screamer.Substring(0, screamer.IndexOf("\r\n")).Trim();
+										if (screamer != "" && screamer != "False" && screamer != "X" && screamer != "0")
+										{
+											newInfo += @"
 |Screamer Pods = Y";
+										}
 									}
-								}
-								if (oldGameSpec.Content!.Contains("{{CrownSizes"))
-								{
-									string crowns = oldGameSpec.Content!.Substring(oldGameSpec.Content!.IndexOf("{{CrownSizes")).Replace("\n", "\r\n").Replace("\r\r\n", "\r\n");
-									crowns = crowns.Substring(0, crowns.IndexOf("}}"));
-									string smallCrown = crowns.Substring(crowns.IndexOf("|Small Crown cm =") + 17);
-									smallCrown = smallCrown.Substring(0, smallCrown.IndexOf("\r\n")).Trim();
-									string average = crowns.Substring(crowns.IndexOf("|Average Size cm =") + 18);
-									average = average.Substring(0, average.IndexOf("\r\n")).Trim();
-									string silverCrown = crowns.Substring(crowns.IndexOf("|Silver Crown cm =") + 18);
-									silverCrown = silverCrown.Substring(0, silverCrown.IndexOf("\r\n")).Trim();
-									string goldCrown = crowns.Substring(crowns.IndexOf("|Gold Crown cm =") + 16);
-									goldCrown = goldCrown.Substring(0, goldCrown.IndexOf("\r\n")).Trim();
-									newInfo += $@"
+									if (oldGameSpec.Content!.Contains("{{CrownSizes"))
+									{
+										string crowns = oldGameSpec.Content!.Substring(oldGameSpec.Content!.IndexOf("{{CrownSizes")).Replace("\n", "\r\n").Replace("\r\r\n", "\r\n");
+										crowns = crowns.Substring(0, crowns.IndexOf("}}"));
+										string smallCrown = crowns.Substring(crowns.IndexOf("|Small Crown cm =") + 17);
+										smallCrown = smallCrown.Substring(0, smallCrown.IndexOf("\r\n")).Trim();
+										string average = crowns.Substring(crowns.IndexOf("|Average Size cm =") + 18);
+										average = average.Substring(0, average.IndexOf("\r\n")).Trim();
+										string silverCrown = crowns.Substring(crowns.IndexOf("|Silver Crown cm =") + 18);
+										silverCrown = silverCrown.Substring(0, silverCrown.IndexOf("\r\n")).Trim();
+										string goldCrown = crowns.Substring(crowns.IndexOf("|Gold Crown cm =") + 16);
+										goldCrown = goldCrown.Substring(0, goldCrown.IndexOf("\r\n")).Trim();
+										newInfo += $@"
 |Gold Crown Small = {smallCrown}
 |Average = {average}
 |Silver Crown = {silverCrown}
 |Gold Crown Large = {goldCrown}";
-								}
-								newInfo += @"
+									}
+									newInfo += @"
 }}";
-								content.AppendLine(newInfo);
-								string? gameplayInfo = "=Gameplay Information=";
-								if (!oldGameSpec.Content!.Contains(gameplayInfo))
-								{
-									if (oldGameSpec.Content!.Contains("= Gameplay Information ="))
+									content.AppendLine(newInfo);
+									string? gameplayInfo = "=Gameplay Information=";
+									if (!oldGameSpec.Content!.Contains(gameplayInfo))
 									{
-										gameplayInfo = "= Gameplay Information =";
+										if (oldGameSpec.Content!.Contains("= Gameplay Information ="))
+										{
+											gameplayInfo = "= Gameplay Information =";
+										}
+										else
+										{
+											gameplayInfo = null;
+										}
 									}
-									else
+									if (gameplayInfo != null)
 									{
-										gameplayInfo = null;
+										string fullGameInfo = "";
+										if (oldGameSpec.Content!.Contains("==Crown Sizes=="))
+										{
+											fullGameInfo = oldGameSpec.Content!.Substring(oldGameSpec.Content!.IndexOf(gameplayInfo), oldGameSpec.Content!.IndexOf("==Crown Sizes==") - oldGameSpec.Content!.IndexOf(gameplayInfo)).TrimStart('\r', '\n').TrimEnd('\r', '\n');
+										}
+										else if (oldGameSpec.Content!.Contains("== Damage Data =="))
+										{
+											fullGameInfo = oldGameSpec.Content!.Substring(oldGameSpec.Content!.IndexOf(gameplayInfo), oldGameSpec.Content!.IndexOf("== Damage Data ==") - oldGameSpec.Content!.IndexOf(gameplayInfo)).TrimStart('\r', '\n').TrimEnd('\r', '\n');
+										}
+										else
+										{
+											fullGameInfo = oldGameSpec.Content!.Substring(oldGameSpec.Content!.IndexOf(gameplayInfo), oldGameSpec.Content!.IndexOf(lorePage) - oldGameSpec.Content!.IndexOf(gameplayInfo)).TrimStart('\r', '\n').TrimEnd('\r', '\n');
+										}
+										fullGameInfo = fullGameInfo.Replace("== Hunter's Notes ==", "==Hunter's Notes==");
+										if (fullGameInfo.Contains("==Hunter's Notes=="))
+										{
+											string hunterNotes = fullGameInfo.Substring(fullGameInfo.IndexOf("==Hunter's Notes=="));
+											hunterNotes = hunterNotes.Substring(0, hunterNotes.IndexOf("}}") + 2);
+											fullGameInfo = fullGameInfo.Replace(hunterNotes, "<div style=\"display: flex;flex-direction: column;\">\r\n" + hunterNotes + "\r\n</div>");
+										}
+										content.AppendLine(fullGameInfo);
 									}
-								}
-								if (gameplayInfo != null)
-								{
-									string fullGameInfo = "";
-									if (oldGameSpec.Content!.Contains("==Crown Sizes=="))
+									content.AppendLine("==Physical Attributes==");
+									if (oldGameSpec.Content!.Contains("==Parts and Hitzones=="))
 									{
-										fullGameInfo = oldGameSpec.Content!.Substring(oldGameSpec.Content!.IndexOf(gameplayInfo), oldGameSpec.Content!.IndexOf("==Crown Sizes==") - oldGameSpec.Content!.IndexOf(gameplayInfo)).TrimStart('\r', '\n').TrimEnd('\r', '\n');
+										content.AppendLine(oldGameSpec.Content!.Substring(oldGameSpec.Content!.IndexOf("==Parts and Hitzones==") + 22, oldGameSpec.Content!.IndexOf($"{lorePage}") - 22 - oldGameSpec.Content!.IndexOf("==Parts and Hitzones==")).TrimStart('\r', '\n').TrimEnd('\r', '\n'));
 									}
 									else if (oldGameSpec.Content!.Contains("== Damage Data =="))
 									{
-										fullGameInfo = oldGameSpec.Content!.Substring(oldGameSpec.Content!.IndexOf(gameplayInfo), oldGameSpec.Content!.IndexOf("== Damage Data ==") - oldGameSpec.Content!.IndexOf(gameplayInfo)).TrimStart('\r', '\n').TrimEnd('\r', '\n');
+										content.AppendLine(oldGameSpec.Content!.Substring(oldGameSpec.Content!.IndexOf("== Damage Data ==") + 17, oldGameSpec.Content!.IndexOf($"{lorePage}") - 17 - oldGameSpec.Content!.IndexOf("== Damage Data ==")).TrimStart('\r', '\n').TrimEnd('\r', '\n'));
 									}
-									else
+									else if (oldGameSpec.Content!.Contains("==Physical Attributes=="))
 									{
-										fullGameInfo = oldGameSpec.Content!.Substring(oldGameSpec.Content!.IndexOf(gameplayInfo), oldGameSpec.Content!.IndexOf(lorePage) - oldGameSpec.Content!.IndexOf(gameplayInfo)).TrimStart('\r', '\n').TrimEnd('\r', '\n');
+										content.AppendLine(oldGameSpec.Content!.Substring(oldGameSpec.Content!.IndexOf("==Physical Attributes==") + 23, oldGameSpec.Content!.IndexOf($"{lorePage}") - 23 - oldGameSpec.Content!.IndexOf("==Physical Attributes==")).TrimStart('\r', '\n').TrimEnd('\r', '\n'));
 									}
-									fullGameInfo = fullGameInfo.Replace("== Hunter's Notes ==", "==Hunter's Notes==");
-									if (fullGameInfo.Contains("==Hunter's Notes=="))
-									{
-										string hunterNotes = fullGameInfo.Substring(fullGameInfo.IndexOf("==Hunter's Notes=="));
-										hunterNotes = hunterNotes.Substring(0, hunterNotes.IndexOf("}}") + 2);
-										fullGameInfo = fullGameInfo.Replace(hunterNotes, "<div style=\"display: flex;flex-direction: column;\">\r\n" + hunterNotes + "\r\n</div>");
-									}
-									content.AppendLine(fullGameInfo);
-								}
-								content.AppendLine("==Physical Attributes==");
-								if (oldGameSpec.Content!.Contains("==Parts and Hitzones=="))
-								{
-									content.AppendLine(oldGameSpec.Content!.Substring(oldGameSpec.Content!.IndexOf("==Parts and Hitzones==") + 22, oldGameSpec.Content!.IndexOf($"{lorePage}") - 22 - oldGameSpec.Content!.IndexOf("==Parts and Hitzones==")).TrimStart('\r', '\n').TrimEnd('\r', '\n'));
-								}
-								else if (oldGameSpec.Content!.Contains("== Damage Data =="))
-								{
-									content.AppendLine(oldGameSpec.Content!.Substring(oldGameSpec.Content!.IndexOf("== Damage Data ==") + 17, oldGameSpec.Content!.IndexOf($"{lorePage}") - 17 - oldGameSpec.Content!.IndexOf("== Damage Data ==")).TrimStart('\r', '\n').TrimEnd('\r', '\n'));
-								}
-								else if (oldGameSpec.Content!.Contains("==Physical Attributes=="))
-								{
-									content.AppendLine(oldGameSpec.Content!.Substring(oldGameSpec.Content!.IndexOf("==Physical Attributes==") + 23, oldGameSpec.Content!.IndexOf($"{lorePage}") - 23 - oldGameSpec.Content!.IndexOf("==Physical Attributes==")).TrimStart('\r', '\n').TrimEnd('\r', '\n'));
-								}
-								content.AppendLine(@"=Sources=
+									content.AppendLine(@"=Sources=
 <references />
 {{MonsterListsBox}}
 {{MonsterListBox}}");
-								if (oldGameSpec.Content!.Contains("<noinclude>"))
-								{
-									content.AppendLine(oldGameSpec.Content!.Substring(oldGameSpec.Content!.LastIndexOf("<noinclude>"), oldGameSpec.Content!.LastIndexOf("</noinclude>") + 12 - oldGameSpec.Content!.LastIndexOf("<noinclude>")).TrimStart('\r', '\n').TrimEnd('\r', '\n'));
+									if (oldGameSpec.Content!.Contains("<noinclude>"))
+									{
+										content.AppendLine(oldGameSpec.Content!.Substring(oldGameSpec.Content!.LastIndexOf("<noinclude>"), oldGameSpec.Content!.LastIndexOf("</noinclude>") + 12 - oldGameSpec.Content!.LastIndexOf("<noinclude>")).TrimStart('\r', '\n').TrimEnd('\r', '\n'));
+									}
+									else
+									{
+										content.AppendLine(oldGameSpec.Content!.Substring(oldGameSpec.Content!.LastIndexOf("/Lore}}") + 7).TrimStart('\r', '\n').TrimEnd('\r', '\n'));
+									}
+									WikiPage newGameSpec = new(site, $"{monsterName} ({pageGameAcronym})"/*$"User:RampageRobot/Sandbox/{monsterName} ({pageGameAcronym})"*/);
+									await newGameSpec.EditAsync(new WikiPageEditOptions()
+									{
+										Bot = true,
+										Content = content.ToString().Replace("\r\n\r\n\r\n", "\r\n\r\n"),
+										Minor = false,
+										Summary = $"Migrated from {pageElements[0]}/{pageGameAcronym} to {pageElements[0]} ({pageGameAcronym}) as per {(SmallMonsterNames.Contains(monsterName) ? "Small" : "Large")} Monster Page Redesign 2025.",
+										Watch = AutoWatchBehavior.None
+									});
+									Console.WriteLine($"({cnt}/{totalCnt}) {newGameSpec.Title} created.");
 								}
 								else
 								{
-									content.AppendLine(oldGameSpec.Content!.Substring(oldGameSpec.Content!.LastIndexOf("/Lore}}") + 7).TrimStart('\r', '\n').TrimEnd('\r', '\n'));
+									Console.WriteLine($"({cnt}/{totalCnt}) {pageElements[0]} ({pageGameAcronym}) ignored, as it was already migrated (frontier mistake).");
 								}
-								WikiPage newGameSpec = new(site, $"{monsterName} ({pageGameAcronym})"/*$"User:RampageRobot/Sandbox/{monsterName} ({pageGameAcronym})"*/);
-								await newGameSpec.EditAsync(new WikiPageEditOptions()
-								{
-									Bot = true,
-									Content = content.ToString().Replace("\r\n\r\n\r\n", "\r\n\r\n"),
-									Minor = false,
-									Summary = $"Migrated from {pageElements[0]}/{pageGameAcronym} to {pageElements[0]} ({pageGameAcronym}) as per Large Monster Page Redesign 2025.",
-									Watch = AutoWatchBehavior.None
-								});
-								Console.WriteLine($"({cnt}/{totalCnt}) {newGameSpec.Title} created.");
 								finishedGameSpecs.Add($"{pageElements[0]} ({pageGameAcronym})");
 								File.WriteAllText(gameSpecsFile, JsonConvert.SerializeObject(finishedGameSpecs));
 							}
-						}
-						else if (!oldGameSpec.Exists || pageGameAcronym == "MH1")
-						{
-							await monsterRedirect.RefreshAsync(PageQueryOptions.FetchContent);
-							string appearancesNav = @$"{{{{MonsterAppearancesNav
+							else if (!oldGameSpec.Exists || pageGameAcronym == "MH1" || pageGameAcronym != "MHG")
+							{
+								await monsterRedirect.RefreshAsync(PageQueryOptions.FetchContent);
+								string appearancesNav = @$"{{{{MonsterAppearancesNav
 |Monster = {monsterName}
 {string.Join("\r\n", monsterAppearances[monsterName].GameAppearances.Select(x => $"|{x.GameAcronym} = Y"))}
 }}}}";
-							string languages = $@"{{{{LanguageNames
+								string languages = $@"{{{{LanguageNames
 |ENG Name = {monsterName}
 |JP Name =
 |FR Name =
@@ -2376,9 +2760,9 @@ __TOC__
 |LAT Name =
 |Etymology = 
 }}}}";
-							if (monsterNameDict.TryGetValue(monsterName, out MonsterNames? names))
-							{
-								languages = $@"{{{{LanguageNames
+								if (monsterNameDict.TryGetValue(monsterName, out MonsterNames? names))
+								{
+									languages = $@"{{{{LanguageNames
 |ENG Name = {names.English}
 |JP Name = {names.Japanese}
 |FR Name = {names.French}
@@ -2394,38 +2778,39 @@ __TOC__
 |LAT Name = {names.LatinAmericanSpanish}
 |Etymology = 
 }}}}";
-							}
-							if (!finishedOverviews.Contains(pageElements[0]))
-							{
-								await monsterRedirect.EditAsync(new WikiPageEditOptions()
+								}
+								if (!finishedOverviews.Contains(pageElements[0]))
 								{
-									Bot = true,
-									Content = await GetDataLessPage(monsterAppearances[monsterName], site),
-									Minor = false,
-									Summary = $"Created data-less overview page via API call..",
-									Watch = AutoWatchBehavior.None
-								});
-								Console.WriteLine($"({cnt}/{totalCnt}) {monsterOverview.Title} created.");
-								finishedOverviews.Add(pageElements[0]);
-								File.WriteAllText(overviewsFile, JsonConvert.SerializeObject(finishedOverviews));
-							}
-							if (!finishedGameSpecs.Contains($"{pageElements[0]} ({pageGameAcronym})"))
-							{
-								WikiPage newGameSpec = new(site, $"{monsterName} ({pageGameAcronym})");
-								await newGameSpec.EditAsync(new WikiPageEditOptions()
+									await monsterRedirect.EditAsync(new WikiPageEditOptions()
+									{
+										Bot = true,
+										Content = await GetDataLessPage(monsterAppearances[monsterName], site),
+										Minor = false,
+										Summary = $"Created data-less overview page via API call.",
+										Watch = AutoWatchBehavior.None
+									});
+									Console.WriteLine($"({cnt}/{totalCnt}) {monsterOverview.Title} created.");
+									finishedOverviews.Add(pageElements[0]);
+									File.WriteAllText(overviewsFile, JsonConvert.SerializeObject(finishedOverviews));
+								}
+								if (!finishedGameSpecs.Contains($"{pageElements[0]} ({pageGameAcronym})"))
 								{
-									Bot = true,
-									Content = await GetDataLessPage(monsterAppearances[monsterName], site, monsterAppearances[monsterName].GameAppearances.First(x => x.GameAcronym == pageGameAcronym)),
-									Minor = false,
-									Summary = $"Created data-less game-specific page via API call.",
-									Watch = AutoWatchBehavior.None
-								});
-								Console.WriteLine($"({cnt}/{totalCnt}) {newGameSpec.Title} created.");
-								finishedGameSpecs.Add($"{pageElements[0]} ({pageGameAcronym})");
-								File.WriteAllText(gameSpecsFile, JsonConvert.SerializeObject(finishedGameSpecs));
+									WikiPage newGameSpec = new(site, $"{monsterName} ({pageGameAcronym})");
+									await newGameSpec.EditAsync(new WikiPageEditOptions()
+									{
+										Bot = true,
+										Content = await GetDataLessPage(monsterAppearances[monsterName], site, monsterAppearances[monsterName].GameAppearances.First(x => x.GameAcronym == pageGameAcronym)),
+										Minor = false,
+										Summary = $"Created data-less game-specific page via API call.",
+										Watch = AutoWatchBehavior.None
+									});
+									Console.WriteLine($"({cnt}/{totalCnt}) {newGameSpec.Title} created.");
+									finishedGameSpecs.Add($"{pageElements[0]} ({pageGameAcronym})");
+									File.WriteAllText(gameSpecsFile, JsonConvert.SerializeObject(finishedGameSpecs));
+								}
 							}
+							cnt++;
 						}
-						cnt++;
 					}
 					Console.WriteLine("======================================================");
 					Console.WriteLine("Finished!");
@@ -3076,7 +3461,7 @@ __TOC__
 				{
 					await site.Login();
 					int cntr = 1;
-					Dictionary<string, string>[] objInfo = JsonConvert.DeserializeObject<Dictionary<string, string>[]>(File.ReadAllText($@"{System.Configuration.ConfigurationManager.AppSettings.Get("DesktopPath")}\test monster stuff\MHWI\questObjectiveTypes.json"))!;
+					Dictionary<string, string>[] objInfo = JsonConvert.DeserializeObject<Dictionary<string, string>[]>(File.ReadAllText($@"{System.Configuration.ConfigurationManager.AppSettings.Get("DesktopPath")}test monster stuff\MHWI\questObjectiveTypes.json"))!;
 					CategoryMembersGenerator subpageGen = new(site, "Large_Monster_MHWI_Subpages")
 					{
 						MemberTypes = CategoryMemberTypes.Page
@@ -4060,7 +4445,7 @@ __TOC__
 							string newContent = "";
 							if (game == "MHWI")
 							{
-								Monster mon = new(monsterName, game);
+								Models.Monsters.Monster mon = new(monsterName, game);
 								if (oldContent.Contains($"{{{{:{monsterName.Replace(" ", "_")}/Lore}}}}"))
 								{
 									newContent = oldContent.Insert(oldContent.IndexOf($"{{{{:{monsterName.Replace(" ", "_")}/Lore}}}}") - 1, mon.Format());

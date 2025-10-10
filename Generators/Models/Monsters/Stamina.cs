@@ -26,7 +26,7 @@ namespace MediawikiTranslator.Models.Monsters
 
 		public Stamina(string monsterName)
 		{
-			string fileName = $@"" + System.Configuration.ConfigurationManager.AppSettings.Get("DesktopPath") + "test monster stuff\MHWI\{monsterName}\Stamina.json";
+			string fileName = $@"{System.Configuration.ConfigurationManager.AppSettings.Get("DesktopPath")}test monster stuff\MHWI\{monsterName}\Stamina.json";
 			if (File.Exists(fileName))
 			{
 				FileFound = true;
