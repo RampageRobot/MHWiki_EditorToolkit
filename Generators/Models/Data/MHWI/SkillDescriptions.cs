@@ -129,7 +129,7 @@ namespace MediawikiTranslator.Models.Data.MHWI
 				}
 				simplifiedSkill.Name = skill.SkillName;
 				simplifiedSkill.Description = skill.SkillDescription;
-				simplifiedSkill.WikiIconColor = colors[(int)skill.WikiIconColor!.Value];
+				simplifiedSkill.WikiIconColor = colors[(int)skill.WikiIconColor];
 				if (!simpSkills.ContainsKey(skill.SkillId!.Value))
 				{
 					simpSkills.Add(skill.SkillId!.Value, simplifiedSkill);

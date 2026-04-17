@@ -1,9 +1,5 @@
 ﻿using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace MediawikiTranslator.Models.Monsters
 {
@@ -26,36 +22,49 @@ namespace MediawikiTranslator.Models.Monsters
 		public static HitZoneValues[] GetHitZoneValues(string monsterName)
 		{
 			List<HitZoneValues> ret = [];
-			string fileName = $@"{System.Configuration.ConfigurationManager.AppSettings.Get("DesktopPath")}test monster stuff\MHWI\{monsterName}\Parts.json";
-			if (File.Exists(fileName))
+			try
 			{
-				Dictionary<string, dynamic[]> partData = JsonConvert.DeserializeObject<Dictionary<string, dynamic[]>>(File.ReadAllText(fileName))!;
-				foreach (dynamic dyn in partData["Hitzones"])
+				string fileName = $@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWI\Monster Data\{monsterName}\Parts.json";
+				if (File.Exists(fileName))
 				{
-					ret.Add(new()
+					Dictionary<string, dynamic[]> partData = JsonConvert.DeserializeObject<Dictionary<string, dynamic[]>>(File.ReadAllText(fileName))!;
+					foreach (dynamic dyn in partData["Hitzones"])
 					{
-						Name = monsterName == "Alatreon" ? dyn.Name.ToString().Replace(" (Fire)", " (No Element)") : dyn.Name,
-						SeverEffect = dyn.Sever,
-						SeverTndr = GetTenderValue((int)dyn.Sever),
-						BluntEffect = dyn.Impact,
-						BluntTndr = GetTenderValue((int)dyn.Impact),
-						BulletEffect = dyn.Shot,
-						BulletTndr = GetTenderValue((int)dyn.Shot),
-						FireEffect = dyn.Fire,
-						WaterEffect = dyn.Water,
-						IceEffect = dyn.Ice,
-						ThunderEffect = dyn.Thunder,
-						DragonEffect = dyn.Dragon,
-						StunEffect = dyn.Stun
-					});
+						ret.Add(new()
+						{
+							Name = monsterName == "Alatreon" ? dyn.Name.ToString().Replace(" (Fire)", " (No Element)") : dyn.Name,
+							SeverEffect = dyn.Sever,
+							SeverTndr = GetTenderValue((int)dyn.Sever, monsterName),
+							BluntEffect = dyn.Impact,
+							BluntTndr = GetTenderValue((int)dyn.Impact, monsterName),
+							BulletEffect = dyn.Shot,
+							BulletTndr = GetTenderValue((int)dyn.Shot, monsterName),
+							FireEffect = dyn.Fire,
+							WaterEffect = dyn.Water,
+							IceEffect = dyn.Ice,
+							ThunderEffect = dyn.Thunder,
+							DragonEffect = dyn.Dragon,
+							StunEffect = dyn.Stun
+						});
+					}
 				}
 			}
+			catch { }
 			return [.. ret];
 		}
 
-		private static int GetTenderValue(int src)
+		private static int GetTenderValue(int src, string monsterName)
 		{
-			return Convert.ToInt32(Math.Round(src + ((100 - src) * 0.25)));
+			int add = 25;
+			if (new string[] { "Safi'jiiva", "Safi'Jiiva", "Fatalis" }.Contains(monsterName))
+			{
+				add = 20;
+			}
+			else if (new string[] { "Gold Rathian", "Kirin", "Lavasioth", "Namielle", "Savage Deviljho", "Silver Rathalos", "Uragaan" }.Contains(monsterName))
+			{
+				add = 30;
+			}
+			return Convert.ToInt32(Math.Round(src * 0.75) + add);
 		}
 
 		public static string Format(HitZoneValues[] vals)
@@ -91,7 +100,13 @@ namespace MediawikiTranslator.Models.Monsters
 | {(val.StunEffect > 0 ? val.StunEffect : "-")}
 |-");
 			}
-			sb.AppendLine(@"|}");
+			sb.AppendLine(@"|}
+{{UserHelpBox|
+*'''Part''' - the name of the part. Any special states or conditions are shown in parentheses. 
+*[[File:MHWilds-Great_Sword_Icon_Rare_0.png|24x24px]][[File:MHWilds-Hammer_Icon_Rare_0.png|24x24px]][[File:MHWilds-Ammo_Icon_White.png|24x24px]] - the effectiveness of '''Cutting''', '''Blunt''', and '''Shot''' raw attack types respectively. For example, if a part has a hitzone value of 40 for Cutting, it means that any Cutting damage dealt to it is reduced by 60%. Hitzone values greater than or equal to '''45''' are considered weak spots by the game, displaying orange damage numbers and activating [[Weakness Exploit (MHWilds)|Weakness Exploit]]. These numbers are given in '''bold'''. Tenderized values are given in Purple.
+*{{UI|UI|Fire}}{{UI|UI|Water}}{{UI|UI|Thunder}}{{UI|UI|Ice}}{{UI|UI|Dragon}} - the effectiveness of each elemental damage type. For example, if a part has a hitzone value of 25 for Thunder, it means that any Thunder damage dealt to it is reduced by 75%.
+*{{UI|UI|Stun}} - the effectiveness of [[Stun]] against the specified part. For example, a value of 50 means that only 50% of all stun buildup dealt to that part contributes to the monster's stun threshold. A <code>-</code> means that hitting the part with an attack will never contribute to stun buildup, regardless of its properties.
+}}");
 			return sb.ToString();
 		}
 	}

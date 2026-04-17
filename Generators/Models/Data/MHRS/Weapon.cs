@@ -1,16 +1,8 @@
-﻿using DocumentFormat.OpenXml.Drawing.Charts;
-using DocumentFormat.OpenXml.Office2016.Drawing.ChartDrawing;
-using DocumentFormat.OpenXml.Spreadsheet;
-using DocumentFormat.OpenXml.Wordprocessing;
-using MediawikiTranslator.Generators;
-using MediawikiTranslator.Models.Data.MHWI;
+﻿using MediawikiTranslator.Models.Data.MHWI;
 using MediawikiTranslator.Models.Weapon;
 using Newtonsoft.Json;
-using System;
 using System.Diagnostics;
-using System.Linq;
 using System.Text;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace MediawikiTranslator.Models.Data.MHRS
 {
@@ -474,8 +466,9 @@ namespace MediawikiTranslator.Models.Data.MHRS
 					{
 						levelText = "|TopL=3";
 					}
-					ret.AppendLine($"|{{{{IconPickerUniversalAlt|MHRS|{shellItem.WikiIconName}|{shellItem.Name}|Color={Generators.Weapon.GetColorString(shellItem.WikiIconColor)}{levelText}}}}}");
-					ret.AppendLine($"|{bulletNumList[i]}");
+					ret.AppendLine("<tr>");
+					ret.AppendLine($"<td>{{{{IconPickerUniversalAlt|MHRS|{shellItem.WikiIconName}|{shellItem.Name}|Color={Generators.Weapon.GetColorString(shellItem.WikiIconColor)}{levelText}}}}}</td>");
+					ret.AppendLine($"<td>{bulletNumList[i]}</td>");
 					int recoilValInt = Convert.ToInt32(recoilVal[(recoilVal.IndexOf('_') + 1)..]);
 					string recoil = "";
 					if (shellItem.Name.Contains("Wyvern"))
@@ -538,8 +531,8 @@ namespace MediawikiTranslator.Models.Data.MHRS
 							reload = "Slowest";
 						}
 					}
-					ret.AppendLine($"|{recoil}");
-					ret.AppendLine($"|{reload}");
+					ret.AppendLine($"<td>{recoil}</td>");
+					ret.AppendLine($"<td>{reload}</td>");
 					string icons = "";
 					string wepType = wep.GetType() == typeof(HeavyBowGunParam) ? "HBG" : "LBG";
 					switch (bulletTypeList[i])
@@ -576,8 +569,8 @@ namespace MediawikiTranslator.Models.Data.MHRS
 					{
 						icons += $" [[File:MHRS-Ammo Cluster Icon Red.png|24x24px|link=|Cluster]]";
 					}
-					ret.AppendLine($"|{(string.IsNullOrEmpty(icons) ? " -" : icons)}");
-					ret.AppendLine("|-");
+					ret.AppendLine($"<td>{(string.IsNullOrEmpty(icons) ? " -" : icons)}</td>");
+					ret.AppendLine("</tr>");
 				}
 			}
 			return ret.ToString();

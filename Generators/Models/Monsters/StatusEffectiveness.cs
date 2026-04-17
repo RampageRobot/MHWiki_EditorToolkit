@@ -1,143 +1,182 @@
 ﻿using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Newtonsoft.Json.Linq;
+using System.Diagnostics;
 
 namespace MediawikiTranslator.Models.Monsters
 {
 	public class StatusEffectiveness
-    {
-        public StatusType Type { get; set; }
+	{
+		public int Order { get; set; } = 0;
+		public StatusType Type { get; set; }
 		public string Threshold { get; set; } = string.Empty;
-        public float Increase { get; set; }
-        public float Duration { get; set; }
-        public float Decay { get; set; }
-        public float DecayDuration { get; set; }
-        public float Damage { get; set; }
+		public float Increase { get; set; }
+		public float Duration { get; set; }
+		public float Decay { get; set; }
+		public float DecayDuration { get; set; }
+		public float Damage { get; set; }
 
-        public static StatusEffectiveness[] GetStatuses(string monsterName)
-        {
-            List<StatusEffectiveness> ret = [];
-            string fileName = $@"{System.Configuration.ConfigurationManager.AppSettings.Get("DesktopPath")}test monster stuff\MHWI\{monsterName}\Damage Attributes.json";
-            if (File.Exists(fileName))
+		public static StatusEffectiveness[] GetStatuses(string monsterName, Games game)
+		{
+			List<StatusEffectiveness> ret = [];
+			try
 			{
-				Dictionary<string, dynamic[]> effectData = JsonConvert.DeserializeObject<Dictionary<string, dynamic[]>>(File.ReadAllText(fileName))!;
-				string[] typeNames = ["Poison", "Paralysis", "Sleep", "Blastblight", "Stun", "Exhaustion", "Mount", "Elderseal"];
-                StatusType[] types = Enum.GetValues<StatusType>();
-				for (int i = 0; i < types.Length; i++)
-                {
-                    StatusType type = types[i];
-                    string typeName = typeNames[i];
-                    switch (type)
-                    {
-                        case StatusType.Poison:
-                            {
-                                dynamic effDyn = effectData["Status Buildup: Poison"].First();
-                                dynamic damageAttr = effectData.First(x => x.Value.First().Poison_Damage != null).Value.First();
-								ret.Add(new()
-                                {
-                                    Type = type,
-                                    Duration = (float)Math.Round((float)effDyn.Duration, 2),
-                                    Decay = effDyn.Drain_Value,
-                                    DecayDuration = (float)Math.Round((float)effDyn.Drain_Time, 2),
-                                    Damage = damageAttr.Poison_Damage * damageAttr.Poison_Interval * effDyn.Duration,
-                                    Increase = effDyn.Buildup,
-                                    Threshold = $"{effDyn.Base}→{effDyn.Max_Cap}"
-                                });
-                            }
-                            break;
-                        case StatusType.Sleep:
-                        case StatusType.Stun:
-                        case StatusType.Paralysis:
+				if (game == Games.MHWI || game == Games.MHWorld)
+				{
+					string fileName = $@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWI\Monster Data\{monsterName}\Damage Attributes.json";
+					if (File.Exists(fileName))
+					{
+						Dictionary<string, dynamic[]> effectData = JsonConvert.DeserializeObject<Dictionary<string, dynamic[]>>(File.ReadAllText(fileName))!;
+						string[] typeNames = ["Poison", "Paralysis", "Sleep", "Blastblight", "Stun", "Exhaustion", "Mount", "Elderseal"];
+						StatusType[] types = Enum.GetValues<StatusType>();
+						for (int i = 0; i < types.Length; i++)
+						{
+							StatusType type = types[i];
+							string typeName = typeNames[i];
+							switch (type)
 							{
-								dynamic effDyn = effectData["Status Buildup: Sleep/Paralysis/Stun/Exhaustion"].First(x => x.Name == typeName);
-								ret.Add(new()
-								{
-									Type = type,
-									Duration = (float)Math.Round((float)effDyn.Duration, 2),
-									Decay = effDyn.Drain_Value,
-									DecayDuration = (float)Math.Round((float)effDyn.Drain_Time, 2),
-									Damage = 0,
-									Increase = effDyn.Buildup,
-									Threshold = $"{effDyn.Base}→{effDyn.Max_Cap}"
-								});
+								case StatusType.Poison:
+									{
+										dynamic effDyn = effectData["Status Buildup: Poison"].First();
+										dynamic damageAttr = effectData.First(x => x.Value.First().Poison_Damage != null).Value.First();
+										ret.Add(new()
+										{
+											Type = type,
+											Duration = (float)Math.Round((float)effDyn.Duration, 2),
+											Decay = effDyn.Drain_Value,
+											DecayDuration = (float)Math.Round((float)effDyn.Drain_Time, 2),
+											Damage = damageAttr.Poison_Damage * damageAttr.Poison_Interval * effDyn.Duration,
+											Increase = effDyn.Buildup,
+											Threshold = $"{effDyn.Base}→{effDyn.Max_Cap}"
+										});
+									}
+									break;
+								case StatusType.Sleep:
+								case StatusType.Stun:
+								case StatusType.Paralysis:
+									{
+										dynamic effDyn = effectData["Status Buildup: Sleep/Paralysis/Stun/Exhaustion"].First(x => x.Name == typeName);
+										ret.Add(new()
+										{
+											Type = type,
+											Duration = (float)Math.Round((float)effDyn.Duration, 2),
+											Decay = effDyn.Drain_Value,
+											DecayDuration = (float)Math.Round((float)effDyn.Drain_Time, 2),
+											Damage = 0,
+											Increase = effDyn.Buildup,
+											Threshold = $"{effDyn.Base}→{effDyn.Max_Cap}"
+										});
+									}
+									break;
+								case StatusType.Exhaust:
+									{
+										dynamic effDyn = effectData["Status Buildup: Sleep/Paralysis/Stun/Exhaustion"].First(x => x.Name == typeName);
+										dynamic exhaustDam = effectData.First(x => x.Value.First().Exhaustion_Damage != null).Value.First();
+										ret.Add(new()
+										{
+											Type = type,
+											Duration = (float)Math.Round((float)effDyn.Duration, 2),
+											Decay = effDyn.Drain_Value,
+											DecayDuration = (float)Math.Round((float)effDyn.Drain_Time, 2),
+											Damage = exhaustDam.Exhaustion_Damage,
+											Increase = effDyn.Buildup,
+											Threshold = $"{effDyn.Base}→{effDyn.Max_Cap}"
+										});
+									}
+									break;
+								case StatusType.Blast:
+									{
+										dynamic effDyn = effectData["Status Buildup: Mount/Blastblight"].First(x => x.Name == typeName);
+										dynamic blastDam = effectData.First(x => x.Value.First().Blastblight_Damage != null).Value.First();
+										ret.Add(new()
+										{
+											Type = type,
+											Duration = (float)Math.Round((float)effDyn.Duration, 2),
+											Decay = effDyn.Drain_Value,
+											DecayDuration = (float)Math.Round((float)effDyn.Drain_Time, 2),
+											Damage = blastDam.Blastblight_Damage,
+											Increase = effDyn.Buildup,
+											Threshold = $"{effDyn.Base}→{effDyn.Max_Cap}"
+										});
+									}
+									break;
+								case StatusType.Mount:
+									{
+										dynamic effDyn = effectData["Status Buildup: Mount/Blastblight"].First(x => x.Name == typeName);
+										ret.Add(new()
+										{
+											Type = type,
+											Duration = (float)Math.Round((float)effDyn.Duration, 2),
+											Decay = effDyn.Drain_Value,
+											DecayDuration = (float)Math.Round((float)effDyn.Drain_Time, 2),
+											Damage = 0,
+											Increase = effDyn.Buildup,
+											Threshold = $"{effDyn.Base}→{effDyn.Max_Cap}"
+										});
+									}
+									break;
+								case StatusType.Elderseal:
+									{
+										dynamic effDyn = effectData["Status Buildup: Dragonseal"].First(x => x.Name == "Dragonseal");
+										ret.Add(new()
+										{
+											Type = type,
+											Duration = (float)Math.Round((float)effDyn.Duration, 2),
+											Decay = effDyn.Drain_Value,
+											DecayDuration = (float)Math.Round((float)effDyn.Drain_Time, 2),
+											Damage = 0,
+											Increase = effDyn.Buildup,
+											Threshold = $"{effDyn.Base}→{effDyn.Max_Cap}"
+										});
+									}
+									break;
 							}
-                            break;
-						case StatusType.Exhaust:
-							{
-								dynamic effDyn = effectData["Status Buildup: Sleep/Paralysis/Stun/Exhaustion"].First(x => x.Name == typeName);
-                                dynamic exhaustDam = effectData.First(x => x.Value.First().Exhaustion_Damage != null).Value.First();
-								ret.Add(new()
-								{
-									Type = type,
-									Duration = (float)Math.Round((float)effDyn.Duration, 2),
-									Decay = effDyn.Drain_Value,
-									DecayDuration = (float)Math.Round((float)effDyn.Drain_Time, 2),
-									Damage = exhaustDam.Exhaustion_Damage,
-									Increase = effDyn.Buildup,
-									Threshold = $"{effDyn.Base}→{effDyn.Max_Cap}"
-								});
-							}
-							break;
-                        case StatusType.Blast:
-                            {
-                                dynamic effDyn = effectData["Status Buildup: Mount/Blastblight"].First(x => x.Name == typeName);
-								dynamic blastDam = effectData.First(x => x.Value.First().Blastblight_Damage != null).Value.First();
-								ret.Add(new()
-								{
-									Type = type,
-									Duration = (float)Math.Round((float)effDyn.Duration, 2),
-									Decay = effDyn.Drain_Value,
-									DecayDuration = (float)Math.Round((float)effDyn.Drain_Time, 2),
-									Damage = blastDam.Blastblight_Damage,
-									Increase = effDyn.Buildup,
-									Threshold = $"{effDyn.Base}→{effDyn.Max_Cap}"
-								});
-							}
-                            break;
-                        case StatusType.Mount:
-							{
-								dynamic effDyn = effectData["Status Buildup: Mount/Blastblight"].First(x => x.Name == typeName);
-								ret.Add(new()
-								{
-									Type = type,
-									Duration = (float)Math.Round((float)effDyn.Duration, 2),
-									Decay = effDyn.Drain_Value,
-									DecayDuration = (float)Math.Round((float)effDyn.Drain_Time, 2),
-									Damage = 0,
-									Increase = effDyn.Buildup,
-									Threshold = $"{effDyn.Base}→{effDyn.Max_Cap}"
-								});
-							}
-                            break;
-                        case StatusType.Elderseal:
-							{
-								dynamic effDyn = effectData["Status Buildup: Dragonseal"].First(x => x.Name == "Dragonseal");
-								ret.Add(new()
-								{
-									Type = type,
-									Duration = (float)Math.Round((float)effDyn.Duration, 2),
-									Decay = effDyn.Drain_Value,
-									DecayDuration = (float)Math.Round((float)effDyn.Drain_Time, 2),
-									Damage = 0,
-									Increase = effDyn.Buildup,
-									Threshold = $"{effDyn.Base}→{effDyn.Max_Cap}"
-								});
-							}
-                            break;
+						}
 					}
-                }
-            }
-            return [.. ret];
-        }
+				}
+				else if (game == Games.MHWilds)
+				{
+					MonsterId monster = Monster.WildsMonsterIds.First(x => x.Name == monsterName);
+					JObject status = (JObject)Attacks.MonsterMasterlist[monster.Id]["statusEffectiveness"];
+					Dictionary<StatusType, string> statuses = new()
+				{
+					{ StatusType.Poison, "Poison" },
+					{ StatusType.Paralysis, "Paralysis" },
+					{ StatusType.Sleep, "Sleep" },
+					{ StatusType.Blast, "Blast" },
+					{ StatusType.Stun, "Stun" },
+					{ StatusType.Exhaust, "Exhaust" },
+					{ StatusType.Mount, "Mount" }
+				};
+					foreach (KeyValuePair<StatusType, string> kvp in statuses)
+					{
+						ret.Add(new()
+						{
+							Damage = status.Value<int>(kvp.Value + "Damage"),
+							Decay = status.Value<int>(kvp.Value + "DecayAmount"),
+							DecayDuration = status.Value<int>(kvp.Value + "DecayInterval"),
+							Threshold = status.Value<int>(kvp.Value + "Base") + "→" + status.Value<int>(kvp.Value + "Max"),
+							Duration = status.Value<int>(kvp.Value + "Duration"),
+							Increase = status.Value<int>(kvp.Value + "Increase"),
+							Type = kvp.Key
+						});
+					}
+				}
+				int cntr = 0;
+				foreach (StatusEffectiveness eff in ret)
+				{
+					eff.Order = cntr;
+					cntr++;
+				}
+			}
+			catch { }
+			return [.. ret];
+		}
 
 		public static string Format(StatusEffectiveness[] statuses, string name)
 		{
 			if (statuses.Any())
 			{
-				dynamic[] statusStars = JsonConvert.DeserializeObject<dynamic[]>(File.ReadAllText($@"{System.Configuration.ConfigurationManager.AppSettings.Get("DesktopPath")}test monster stuff\MHWI\statusStars.json"))!;
+				dynamic[] statusStars = JsonConvert.DeserializeObject<dynamic[]>(File.ReadAllText($@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWI\Monster Data\statusStars.json"))!;
 				StatusEffectiveness poison = statuses.First(x => x.Type == StatusType.Poison);
 				dynamic? thisStar = statusStars.FirstOrDefault(x => x.Name == name);
 				thisStar ??= new
@@ -201,15 +240,15 @@ namespace MediawikiTranslator.Models.Monsters
 		}
 	}
 
-    public enum StatusType
-    {
-        Poison,
-        Paralysis,
-        Sleep,
-        Blast,
-        Stun,
-        Exhaust,
-        Mount,
-        Elderseal
-    }
+	public enum StatusType
+	{
+		Poison,
+		Paralysis,
+		Sleep,
+		Blast,
+		Stun,
+		Exhaust,
+		Mount,
+		Elderseal
+	}
 }

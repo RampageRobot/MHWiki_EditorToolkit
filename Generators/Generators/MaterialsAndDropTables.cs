@@ -1,6 +1,5 @@
 ﻿using MediawikiTranslator.Models.MaterialsAndDropTables;
 using System.Text;
-using System.Xml.Linq;
 
 namespace MediawikiTranslator.Generators
 {
@@ -75,7 +74,7 @@ namespace MediawikiTranslator.Generators
 !style=""width:400px;text-align:left"" | Item
 !style=""width:65px;text-align:left"" | Rarity
 !style=""width:200px;text-align:left"" | Price");
-			if (game == "MHWI")
+			if (game == "MHWI" || game == "MHWorld")
 			{
 				Models.Data.MHWI.Items[] itemArray = Models.Data.MHWI.Items.Fetch();
 				foreach (WebToolkitData data in srcData)
@@ -98,7 +97,7 @@ namespace MediawikiTranslator.Generators
 					}
 				}
 			}
-			else if (game == "MHRS")
+			else if (game == "MHRS" || game == "MHRise")
 			{
 				Models.Data.MHRS.Items[] itemArray = Models.Data.MHRS.Items.Fetch();
 				foreach (WebToolkitData data in srcData)

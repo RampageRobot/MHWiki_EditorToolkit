@@ -156,268 +156,282 @@ namespace MediawikiTranslator.Models.Data.MHWI
 		[JsonIgnore]
 		public SharpnessData Sharpness { get; set; }
 
-		public static WebToolkitData[] GetToolkitData()
+		public static Weapon.WebToolkitData[] GetToolkitData(string game, int? maxRarity = null)
 		{
-			List<WebToolkitData> ret = new List<WebToolkitData>();
+			List<Weapon.WebToolkitData> ret = new List<Weapon.WebToolkitData>();
 			WeaponCraftingData[] craftingData = WeaponCraftingData.GetCraftingData();
 			WeaponForgingData[] forgingData = WeaponForgingData.GetForgingData();
 			Items[] allItems = Items.Fetch();
-			BlademasterData[] data = [..GetBlademasterData().Where(x => x.Name != "Unavailable")];
-			foreach (BlademasterData obj in data)
+			BlademasterData[] srcData = [.. GetBlademasterData().Where(x => x.Name != "Unavailable")];
+			foreach (BlademasterData srcBlade in srcData)
 			{
-				WebToolkitData newObj = new WebToolkitData()
+				Weapon.WebToolkitData toolkitBlade = new Weapon.WebToolkitData()
 				{
-					Type = GetWeaponType(obj.WeaponType),
-					Affinity = obj.Affinity,
-					Attack = obj.Damage!.Value.ToString(),
-					Defense = obj.Defense!.Value.ToString(),
-					Description = obj.Description,
-					Name = obj.Name,
-					Elderseal = obj.Elderseal,
-					Element1 = obj.HiddenElement != "None" ? "(" + obj.HiddenElement + ")" : obj.Element == "None" ? null : obj.Element,
-					ElementDmg1 = obj.HiddenElement != "None" ? "(" + obj.HiddenElementDamage!.Value.ToString() + ")" : obj.ElementDamage == null ? null : obj.ElementDamage!.Value.ToString(),
-					Game = "MHWI",
-					Rarity = obj.Rarity + 1,
-					Tree = GetWeaponTree(obj.TreeId!.Value)
+					Type = GetWeaponType(srcBlade.WeaponType),
+					Affinity = srcBlade.Affinity,
+					Attack = srcBlade.Damage!.Value.ToString(),
+					Defense = srcBlade.Defense!.Value.ToString(),
+					Description = srcBlade.Description,
+					Name = srcBlade.Name,
+					Elderseal = srcBlade.Elderseal,
+					Element1 = srcBlade.HiddenElement != "None" ? "(" + srcBlade.HiddenElement + ")" : srcBlade.Element == "None" ? null : srcBlade.Element,
+					ElementDmg1 = srcBlade.HiddenElement != "None" ? "(" + srcBlade.HiddenElementDamage!.Value.ToString() + ")" : srcBlade.ElementDamage == null ? null : srcBlade.ElementDamage!.Value.ToString(),
+					Game = game,
+					Rarity = srcBlade.Rarity + 1,
+					Tree = GetWeaponTree(srcBlade.TreeId!.Value)
 				};
-				int maxSharp = Convert.ToInt32((50 * obj.SharpnessAmount!.Value) + 150);
-				SharpnessData oldSharp = obj.Sharpness;
-				long[] limits = new long[] { obj.Sharpness.Red!.Value, obj.Sharpness.Orange!.Value, obj.Sharpness.Yellow!.Value, obj.Sharpness.Green!.Value, obj.Sharpness.Blue!.Value, obj.Sharpness.White!.Value, obj.Sharpness.Purple!.Value };
-				long[] newSharpArray = new long[7];
-				for (int cntr = 0; cntr < newSharpArray.Length; cntr++)
+				if (maxRarity == null || toolkitBlade.Rarity < maxRarity)
 				{
-					if (limits[cntr] > maxSharp)
+					int maxSharp = Convert.ToInt32((50 * srcBlade.SharpnessAmount!.Value) + 150);
+					SharpnessData oldSharp = srcBlade.Sharpness;
+					long[] limits = new long[] { srcBlade.Sharpness.Red!.Value, srcBlade.Sharpness.Orange!.Value, srcBlade.Sharpness.Yellow!.Value, srcBlade.Sharpness.Green!.Value, srcBlade.Sharpness.Blue!.Value, srcBlade.Sharpness.White!.Value, srcBlade.Sharpness.Purple!.Value };
+					long[] newSharpArray = new long[7];
+					for (int cntr = 0; cntr < newSharpArray.Length; cntr++)
 					{
-						newSharpArray[cntr] = Math.Min(maxSharp, limits[cntr]);
-					}
-					else
-					{
-						newSharpArray[cntr] = limits[cntr];
-					}
-				}
-				SharpnessData newSharp = new SharpnessData()
-				{
-					Red = newSharpArray[0],
-					Orange = newSharpArray[1],
-					Yellow = newSharpArray[2],
-					Green = newSharpArray[3],
-					Blue = newSharpArray[4],
-					White = newSharpArray[5],
-					Purple = newSharpArray[6]
-				};
-				SharpnessData handi = new SharpnessData()
-				{
-					Red = newSharp.Red,
-					Orange = newSharp.Orange,
-					Yellow = newSharp.Yellow,
-					Green = newSharp.Green,
-					Blue = newSharp.Blue,
-					White = newSharp.White,
-					Purple = newSharp.Purple
-				};
-				long[] vals = new long[] { handi.Red!.Value, handi.Orange!.Value, handi.Yellow!.Value, handi.Green!.Value, handi.Blue!.Value, handi.White!.Value, handi.Purple!.Value };
-				long leftovers = 50;
-				long runningTotal = 0;
-				for (int cntr = 0; cntr < vals.Length; cntr++)
-				{
-					if (leftovers > 0)
-					{
-						long thisVal = vals[cntr];
-						if (thisVal < limits[cntr])
+						if (limits[cntr] > maxSharp)
 						{
-							if (thisVal + leftovers > limits[cntr])
+							newSharpArray[cntr] = Math.Min(maxSharp, limits[cntr]);
+						}
+						else
+						{
+							newSharpArray[cntr] = limits[cntr];
+						}
+					}
+					SharpnessData newSharp = new SharpnessData()
+					{
+						Red = newSharpArray[0],
+						Orange = newSharpArray[1],
+						Yellow = newSharpArray[2],
+						Green = newSharpArray[3],
+						Blue = newSharpArray[4],
+						White = newSharpArray[5],
+						Purple = newSharpArray[6]
+					};
+					SharpnessData handi = new SharpnessData()
+					{
+						Red = newSharp.Red,
+						Orange = newSharp.Orange,
+						Yellow = newSharp.Yellow,
+						Green = newSharp.Green,
+						Blue = newSharp.Blue,
+						White = newSharp.White,
+						Purple = newSharp.Purple
+					};
+					long[] vals = new long[] { handi.Red!.Value, handi.Orange!.Value, handi.Yellow!.Value, handi.Green!.Value, handi.Blue!.Value, handi.White!.Value, handi.Purple!.Value };
+					long leftovers = 50;
+					long runningTotal = 0;
+					for (int cntr = 0; cntr < vals.Length; cntr++)
+					{
+						if (leftovers > 0)
+						{
+							long thisVal = vals[cntr];
+							if (thisVal < limits[cntr])
 							{
-								long used = leftovers - ((thisVal + leftovers) - Math.Min(limits[cntr], 400));
-								vals[cntr] += used;
-								if (cntr != vals.Length - 1 && newSharpArray[cntr] == newSharpArray[cntr + 1])
+								if (thisVal + leftovers > limits[cntr])
 								{
-									vals[cntr + 1] = vals[cntr];
+									long used = leftovers - ((thisVal + leftovers) - Math.Min(limits[cntr], 400));
+									vals[cntr] += used;
+									if (cntr != vals.Length - 1 && newSharpArray[cntr] == newSharpArray[cntr + 1])
+									{
+										vals[cntr + 1] = vals[cntr];
+									}
+									leftovers -= used;
 								}
-								leftovers -= used;
+								else
+								{
+									vals[cntr] += leftovers;
+									if (vals[cntr] > 400)
+									{
+										vals[cntr] = 400;
+									}
+									leftovers = 0;
+								}
 							}
-							else
+						}
+						else
+						{
+							vals[cntr] = limits[cntr] == 0 ? 0 : runningTotal;
+						}
+						if (vals[cntr] > 0)
+						{
+							runningTotal = vals[cntr];
+						}
+					}
+					handi = new SharpnessData()
+					{
+						Red = vals[0],
+						Orange = vals[1],
+						Yellow = vals[2],
+						Green = vals[3],
+						Blue = vals[4],
+						White = vals[5],
+						Purple = vals[6]
+					};
+					srcBlade.Sharpness = newSharp;
+					srcBlade.Sharpness = new SharpnessData()
+					{
+						Red = srcBlade.Sharpness.Red,
+						Orange = srcBlade.Sharpness.Orange - srcBlade.Sharpness.Red,
+						Yellow = srcBlade.Sharpness.Yellow - srcBlade.Sharpness.Orange,
+						Green = srcBlade.Sharpness.Green - srcBlade.Sharpness.Yellow,
+						Blue = srcBlade.Sharpness.Blue - srcBlade.Sharpness.Green,
+						White = srcBlade.Sharpness.White - srcBlade.Sharpness.Blue < 0 ? 0 : srcBlade.Sharpness.White - srcBlade.Sharpness.Blue,
+						Purple = srcBlade.Sharpness.Purple - srcBlade.Sharpness.White < 0 ? 0 : srcBlade.Sharpness.Purple - srcBlade.Sharpness.White
+					};
+					handi = new SharpnessData()
+					{
+						Red = handi.Red - srcBlade.Sharpness.Red,
+						Orange = handi.Orange - handi.Red - srcBlade.Sharpness.Orange,
+						Yellow = handi.Yellow - handi.Orange - srcBlade.Sharpness.Yellow,
+						Green = handi.Green - handi.Yellow - srcBlade.Sharpness.Green,
+						Blue = handi.Blue - handi.Green - srcBlade.Sharpness.Blue,
+						White = handi.White - handi.Blue < 0 ? 0 : handi.White - handi.Blue - srcBlade.Sharpness.White,
+						Purple = handi.Purple - handi.White < 0 ? 0 : handi.Purple - handi.White - srcBlade.Sharpness.Purple
+					};
+					toolkitBlade.Sharpness = $"[[{srcBlade.Sharpness.Red},{srcBlade.Sharpness.Orange},{srcBlade.Sharpness.Yellow},{srcBlade.Sharpness.Green},{srcBlade.Sharpness.Blue},{srcBlade.Sharpness.White},{srcBlade.Sharpness.Purple}],[{handi.Red},{handi.Orange},{handi.Yellow},{handi.Green},{handi.Blue},{handi.White},{handi.Purple}]]";
+					long[] newHandiVals = new long[] { handi.Red!.Value, handi.Orange!.Value, handi.Yellow!.Value, handi.Green!.Value, handi.Blue!.Value, handi.White!.Value, handi.Purple!.Value };
+#nullable enable
+					WeaponCraftingData? thisCraft = craftingData.FirstOrDefault(x => x.EquipmentId!.Value == srcBlade.Index!.Value && x.EquipmentCategory == srcBlade.WeaponType.Replace("Great Sword", "Greatsword").Replace("Long Sword", "Longsword").Replace(" ", "_"));
+					if (srcBlade.TreePosition > 0 && thisCraft != null && thisCraft.Mat1Id > 0)
+					{
+						WeaponCraftingData? parentCraft = craftingData.FirstOrDefault(x => x.EquipmentCategory == srcBlade.WeaponType.Replace("Great Sword", "Greatsword").Replace("Long Sword", "Longsword").Replace(" ", "_") && (x.ChildIndex1!.Value == thisCraft.Index!.Value || x.ChildIndex2!.Value == thisCraft.Index!.Value || x.ChildIndex3!.Value == thisCraft.Index!.Value || x.ChildIndex4!.Value == thisCraft.Index!.Value));
+						BlademasterData? parent = srcData.FirstOrDefault(x => parentCraft != null && x.WeaponType == srcBlade.WeaponType && x.Name == parentCraft.EquipmentName);
+						if (parent == null || parentCraft == null)
+						{
+							WeaponForgingData forge = forgingData.First(x => x.EquipmentIndex!.Value == srcBlade.Index!.Value && x.EquipmentType == srcBlade.WeaponType.Replace("Great Sword", "Greatsword").Replace("Long Sword", "Longsword").Replace(" ", "_"));
+							parent = srcData.FirstOrDefault(x => x.WeaponType == srcBlade.WeaponType && x.Name == forge.EquipmentName);
+						}
+						toolkitBlade.PreviousName = parent!.Name;
+						toolkitBlade.PreviousRarity = parent!.Rarity + 1;
+						toolkitBlade.UpgradeCost = srcBlade.Cost;
+						toolkitBlade.UpgradeMaterials = GetMaterials(parent!, thisCraft, allItems);
+					}
+#nullable disable
+					if (forgingData.Any(x => x.EquipmentIndex!.Value == srcBlade.Index!.Value && x.EquipmentType == srcBlade.WeaponType.Replace("Great Sword", "Greatsword").Replace("Long Sword", "Longsword").Replace(" ", "_")))
+					{
+						WeaponForgingData forge = forgingData.First(x => x.EquipmentIndex!.Value == srcBlade.Index!.Value && x.EquipmentType == srcBlade.WeaponType.Replace("Great Sword", "Greatsword").Replace("Long Sword", "Longsword").Replace(" ", "_"));
+						toolkitBlade.ForgeCost = srcBlade.Cost;
+						toolkitBlade.ForgeMaterials = GetForgeMaterials(srcBlade, forge, allItems);
+					}
+					if (srcBlade.IsFixedUpgrade == "TRUE")
+					{
+						toolkitBlade.Rollback = "true";
+					}
+					if (thisCraft != null)
+					{
+						if (thisCraft.ChildIndex1 > 0)
+						{
+							WeaponCraftingData childCraft = craftingData.First(x => x.EquipmentCategory == srcBlade.WeaponType.Replace("Great Sword", "Greatsword").Replace("Long Sword", "Longsword").Replace(" ", "_") && x.Index!.Value == thisCraft.ChildIndex1!.Value);
+							BlademasterData child = srcData.First(x => x.WeaponType == srcBlade.WeaponType && x.Index!.Value == childCraft.EquipmentId!.Value);
+							if (maxRarity == null || child.Rarity + 1 < maxRarity)
 							{
-								vals[cntr] += leftovers;
-								if (vals[cntr] > 400)
-								{
-									vals[cntr] = 400;
-								}
-								leftovers = 0;
+								toolkitBlade.Next1Name = child.Name;
+								toolkitBlade.Next1Rarity = child.Rarity + 1;
+								toolkitBlade.Next1Cost = srcBlade.Cost;
+								toolkitBlade.Next1Materials = GetMaterials(child, childCraft, allItems);
+							}
+						}
+						if (thisCraft.ChildIndex2 > 0)
+						{
+							WeaponCraftingData childCraft = craftingData.First(x => x.EquipmentCategory == srcBlade.WeaponType.Replace("Great Sword", "Greatsword").Replace("Long Sword", "Longsword").Replace(" ", "_") && x.Index!.Value == thisCraft.ChildIndex2!.Value);
+							BlademasterData child = srcData.First(x => x.WeaponType == srcBlade.WeaponType && x.Index!.Value == childCraft.EquipmentId!.Value);
+							if (maxRarity == null || child.Rarity + 1 < maxRarity)
+							{
+								toolkitBlade.Next2Name = child.Name;
+								toolkitBlade.Next2Rarity = child.Rarity + 1;
+								toolkitBlade.Next2Cost = srcBlade.Cost;
+								toolkitBlade.Next2Materials = GetMaterials(child, childCraft, allItems);
+							}
+						}
+						if (thisCraft.ChildIndex3 > 0)
+						{
+							WeaponCraftingData childCraft = craftingData.First(x => x.EquipmentCategory == srcBlade.WeaponType.Replace("Great Sword", "Greatsword").Replace("Long Sword", "Longsword").Replace(" ", "_") && x.Index!.Value == thisCraft.ChildIndex3!.Value);
+							BlademasterData child = srcData.First(x => x.WeaponType == srcBlade.WeaponType && x.Index!.Value == childCraft.EquipmentId!.Value);
+							if (maxRarity == null || child.Rarity + 1 < maxRarity)
+							{
+								toolkitBlade.Next3Name = child.Name;
+								toolkitBlade.Next3Rarity = child.Rarity + 1;
+								toolkitBlade.Next3Cost = srcBlade.Cost;
+								toolkitBlade.Next3Materials = GetMaterials(child, childCraft, allItems);
+							}
+						}
+						if (thisCraft.ChildIndex4 > 0)
+						{
+							WeaponCraftingData childCraft = craftingData.First(x => x.EquipmentCategory == srcBlade.WeaponType.Replace("Great Sword", "Greatsword").Replace("Long Sword", "Longsword").Replace(" ", "_") && x.Index!.Value == thisCraft.ChildIndex4!.Value);
+							BlademasterData child = srcData.First(x => x.WeaponType == srcBlade.WeaponType && x.Index!.Value == childCraft.EquipmentId!.Value);
+							if (maxRarity == null || child.Rarity + 1 < maxRarity)
+							{
+								toolkitBlade.Next4Name = child.Name;
+								toolkitBlade.Next4Rarity = child.Rarity + 1;
+								toolkitBlade.Next4Cost = srcBlade.Cost;
+								toolkitBlade.Next4Materials = GetMaterials(child, childCraft, allItems);
 							}
 						}
 					}
-					else
+					toolkitBlade.Decos1 = (srcBlade.Slot1Size == 1 ? 1 : 0) + (srcBlade.Slot2Size == 1 ? 1 : 0) + (srcBlade.Slot3Size == 1 ? 1 : 0);
+					toolkitBlade.Decos2 = (srcBlade.Slot1Size == 2 ? 1 : 0) + (srcBlade.Slot2Size == 2 ? 1 : 0) + (srcBlade.Slot3Size == 2 ? 1 : 0);
+					toolkitBlade.Decos3 = (srcBlade.Slot1Size == 3 ? 1 : 0) + (srcBlade.Slot2Size == 3 ? 1 : 0) + (srcBlade.Slot3Size == 3 ? 1 : 0);
+					toolkitBlade.Decos4 = (srcBlade.Slot1Size == 4 ? 1 : 0) + (srcBlade.Slot2Size == 4 ? 1 : 0) + (srcBlade.Slot3Size == 4 ? 1 : 0);
+					if (toolkitBlade.Type == "HH")
 					{
-						vals[cntr] = limits[cntr] == 0 ? 0 : runningTotal;
+						string[] notes = GetHHNotes(srcBlade.SpecialAbility1Id!.Value);
+						toolkitBlade.HhNote1 = notes[0].Replace("_", " ");
+						toolkitBlade.HhNote2 = notes[1].Replace("_", " ");
+						toolkitBlade.HhNote3 = notes[2].Replace("_", " ");
 					}
-					if (vals[cntr] > 0)
+					else if (toolkitBlade.Type == "GL")
 					{
-						runningTotal = vals[cntr];
+						Tuple<string, int> shellType = GetGLShellingType(srcBlade.SpecialAbility1Id!.Value);
+						toolkitBlade.GlShellingType = shellType.Item1.Replace("_", " ");
+						toolkitBlade.GlShellingLevel = shellType.Item2.ToString();
 					}
-				}
-				handi = new SharpnessData()
-				{
-					Red = vals[0],
-					Orange = vals[1],
-					Yellow = vals[2],
-					Green = vals[3],
-					Blue = vals[4],
-					White = vals[5],
-					Purple = vals[6]
-				};
-				obj.Sharpness = newSharp;
-				//Comment the below out when switching to new sharpness template
-				handi = new SharpnessData()
-				{
-					Red = handi.Red,
-					Orange = handi.Orange - handi.Red,
-					Yellow = handi.Yellow - handi.Orange,
-					Green = handi.Green - handi.Yellow,
-					Blue = handi.Blue - handi.Green,
-					White = handi.White - handi.Blue < 0 ? 0 : handi.White - handi.Blue,
-					Purple = handi.Purple - handi.White < 0 ? 0 : handi.Purple - handi.White
-				};
-				obj.Sharpness = new SharpnessData()
-				{
-					Red = obj.Sharpness.Red,
-					Orange = obj.Sharpness.Orange - obj.Sharpness.Red,
-					Yellow = obj.Sharpness.Yellow - obj.Sharpness.Orange,
-					Green = obj.Sharpness.Green - obj.Sharpness.Yellow,
-					Blue = obj.Sharpness.Blue - obj.Sharpness.Green,
-					White = obj.Sharpness.White - obj.Sharpness.Blue < 0 ? 0 : obj.Sharpness.White - obj.Sharpness.Blue,
-					Purple = obj.Sharpness.Purple - obj.Sharpness.White < 0 ? 0 : obj.Sharpness.Purple - obj.Sharpness.White
-				};
-				newObj.Sharpness = $"[[{obj.Sharpness.Red},{obj.Sharpness.Orange},{obj.Sharpness.Yellow},{obj.Sharpness.Green},{obj.Sharpness.Blue},{obj.Sharpness.White},{obj.Sharpness.Purple}],[{handi.Red},{handi.Orange},{handi.Yellow},{handi.Green},{handi.Blue},{handi.White},{handi.Purple}]]";
-				long[] newHandiVals = new long[] { handi.Red!.Value, handi.Orange!.Value, handi.Yellow!.Value, handi.Green!.Value, handi.Blue!.Value, handi.White!.Value, handi.Purple!.Value };
-#nullable enable
-				WeaponCraftingData? thisCraft = craftingData.FirstOrDefault(x => x.EquipmentId!.Value == obj.Index!.Value && x.EquipmentCategory == obj.WeaponType.Replace("Great Sword", "Greatsword").Replace("Long Sword", "Longsword").Replace(" ", "_"));
-				if (obj.TreePosition > 0 && thisCraft != null && thisCraft.Mat1Id > 0)
-				{
-					WeaponCraftingData? parentCraft = craftingData.FirstOrDefault(x => x.EquipmentCategory == obj.WeaponType.Replace("Great Sword", "Greatsword").Replace("Long Sword", "Longsword").Replace(" ", "_") && (x.ChildIndex1!.Value == thisCraft.Index!.Value || x.ChildIndex2!.Value == thisCraft.Index!.Value || x.ChildIndex3!.Value == thisCraft.Index!.Value || x.ChildIndex4!.Value == thisCraft.Index!.Value));
-					BlademasterData? parent = data.FirstOrDefault(x => parentCraft != null && x.WeaponType == obj.WeaponType && x.Name == parentCraft.EquipmentName);
-					if (parent == null || parentCraft == null)
+					else if (toolkitBlade.Type == "SA")
 					{
-						WeaponForgingData forge = forgingData.First(x => x.EquipmentIndex!.Value == obj.Index!.Value && x.EquipmentType == obj.WeaponType.Replace("Great Sword", "Greatsword").Replace("Long Sword", "Longsword").Replace(" ", "_"));
-						parent = data.FirstOrDefault(x => x.WeaponType == obj.WeaponType && x.Name == forge.EquipmentName);
+						Tuple<string, int> shellType = GetSAPhialType(srcBlade.SpecialAbility1Id!.Value);
+						toolkitBlade.SaPhialType = shellType.Item1.Replace("_", " ");
 					}
-					newObj.PreviousName = parent!.Name;
-					newObj.PreviousRarity = parent!.Rarity + 1;
-					newObj.UpgradeCost = obj.Cost;
-					newObj.UpgradeMaterials = GetMaterials(parent!, thisCraft, allItems);
-				}
-#nullable disable
-				if (forgingData.Any(x => x.EquipmentIndex!.Value == obj.Index!.Value && x.EquipmentType == obj.WeaponType.Replace("Great Sword", "Greatsword").Replace("Long Sword", "Longsword").Replace(" ", "_")))
-				{
-					WeaponForgingData forge = forgingData.First(x => x.EquipmentIndex!.Value == obj.Index!.Value && x.EquipmentType == obj.WeaponType.Replace("Great Sword", "Greatsword").Replace("Long Sword", "Longsword").Replace(" ", "_"));
-					newObj.ForgeCost = obj.Cost;
-					newObj.ForgeMaterials = GetForgeMaterials(obj, forge, allItems);
-				}
-				if (obj.IsFixedUpgrade == "TRUE")
-				{
-					newObj.Rollback = "true";
-				}
-				if (thisCraft != null)
-				{
-					if (thisCraft.ChildIndex1 > 0)
+					else if (toolkitBlade.Type == "CB")
 					{
-						WeaponCraftingData childCraft = craftingData.First(x => x.EquipmentCategory == obj.WeaponType.Replace("Great Sword", "Greatsword").Replace("Long Sword", "Longsword").Replace(" ", "_") && x.Index!.Value == thisCraft.ChildIndex1!.Value);
-						BlademasterData child = data.First(x => x.WeaponType == obj.WeaponType && x.Index!.Value == childCraft.EquipmentId!.Value);
-						newObj.Next1Name = child.Name;
-						newObj.Next1Rarity = child.Rarity + 1;
-						newObj.Next1Cost = obj.Cost;
-						newObj.Next1Materials = GetMaterials(child, childCraft, allItems);
+						toolkitBlade.CbPhialType = srcBlade.SpecialAbility1Id!.Value == 0 ? "Impact Phial" : "Power Element Phial";
 					}
-					if (thisCraft.ChildIndex2 > 0)
+					else if (toolkitBlade.Type == "IG")
 					{
-						WeaponCraftingData childCraft = craftingData.First(x => x.EquipmentCategory == obj.WeaponType.Replace("Great Sword", "Greatsword").Replace("Long Sword", "Longsword").Replace(" ", "_") && x.Index!.Value == thisCraft.ChildIndex2!.Value);
-						BlademasterData child = data.First(x => x.WeaponType == obj.WeaponType && x.Index!.Value == childCraft.EquipmentId!.Value);
-						newObj.Next2Name = child.Name;
-						newObj.Next2Rarity = child.Rarity + 1;
-						newObj.Next2Cost = obj.Cost;
-						newObj.Next2Materials = GetMaterials(child, childCraft, allItems);
+						switch (srcBlade.SpecialAbility1Id!.Value)
+						{
+							case 0:
+								toolkitBlade.IgKinsectBonus = "Sever Boost";
+								break;
+							case 1:
+								toolkitBlade.IgKinsectBonus = "Blunt Boost";
+								break;
+							case 2:
+								toolkitBlade.IgKinsectBonus = "Element Boost";
+								break;
+							case 3:
+								toolkitBlade.IgKinsectBonus = "Speed Boost";
+								break;
+							case 4:
+								toolkitBlade.IgKinsectBonus = "Stamina Boost";
+								break;
+							case 5:
+								toolkitBlade.IgKinsectBonus = "Health Boost";
+								break;
+							case 6:
+								toolkitBlade.IgKinsectBonus = "Spirit & Strength Boost ";
+								break;
+							case 7:
+								toolkitBlade.IgKinsectBonus = "Stamina Upgrade & Healing";
+								break;
+						}
 					}
-					if (thisCraft.ChildIndex3 > 0)
+					else if (toolkitBlade.Type == "DB")
 					{
-						WeaponCraftingData childCraft = craftingData.First(x => x.EquipmentCategory == obj.WeaponType.Replace("Great Sword", "Greatsword").Replace("Long Sword", "Longsword").Replace(" ", "_") && x.Index!.Value == thisCraft.ChildIndex3!.Value);
-						BlademasterData child = data.First(x => x.WeaponType == obj.WeaponType && x.Index!.Value == childCraft.EquipmentId!.Value);
-						newObj.Next3Name = child.Name;
-						newObj.Next3Rarity = child.Rarity + 1;
-						newObj.Next3Cost = obj.Cost;
-						newObj.Next3Materials = GetMaterials(child, childCraft, allItems);
+						toolkitBlade = GetDBElements(srcBlade, toolkitBlade);
 					}
-					if (thisCraft.ChildIndex4 > 0)
+					if (!ret.Any(x => x.Name == toolkitBlade.Name && x.Rarity == toolkitBlade.Rarity))
 					{
-						WeaponCraftingData childCraft = craftingData.First(x => x.EquipmentCategory == obj.WeaponType.Replace("Great Sword", "Greatsword").Replace("Long Sword", "Longsword").Replace(" ", "_") && x.Index!.Value == thisCraft.ChildIndex4!.Value);
-						BlademasterData child = data.First(x => x.WeaponType == obj.WeaponType && x.Index!.Value == childCraft.EquipmentId!.Value);
-						newObj.Next4Name = child.Name;
-						newObj.Next4Rarity = child.Rarity + 1;
-						newObj.Next4Cost = obj.Cost;
-						newObj.Next4Materials = GetMaterials(child, childCraft, allItems);
+						ret.Add(toolkitBlade);
 					}
-				}
-				newObj.Decos1 = (obj.Slot1Size == 1 ? 1 : 0) + (obj.Slot2Size == 1 ? 1 : 0) + (obj.Slot3Size == 1 ? 1 : 0);
-				newObj.Decos2 = (obj.Slot1Size == 2 ? 1 : 0) + (obj.Slot2Size == 2 ? 1 : 0) + (obj.Slot3Size == 2 ? 1 : 0);
-				newObj.Decos3 = (obj.Slot1Size == 3 ? 1 : 0) + (obj.Slot2Size == 3 ? 1 : 0) + (obj.Slot3Size == 3 ? 1 : 0);
-				newObj.Decos4 = (obj.Slot1Size == 4 ? 1 : 0) + (obj.Slot2Size == 4 ? 1 : 0) + (obj.Slot3Size == 4 ? 1 : 0);
-				if (newObj.Type == "HH")
-				{
-					string[] notes = GetHHNotes(obj.SpecialAbility1Id!.Value);
-					newObj.HhNote1 = notes[0].Replace("_", " ");
-					newObj.HhNote2 = notes[1].Replace("_", " ");
-					newObj.HhNote3 = notes[2].Replace("_", " ");
-				}
-				else if (newObj.Type == "GL")
-				{
-					Tuple<string, int> shellType = GetGLShellingType(obj.SpecialAbility1Id!.Value);
-					newObj.GlShellingType = shellType.Item1.Replace("_", " ");
-					newObj.GlShellingLevel = shellType.Item2.ToString();
-				}
-				else if (newObj.Type == "SA")
-				{
-					Tuple<string, int> shellType = GetSAPhialType(obj.SpecialAbility1Id!.Value);
-					newObj.SaPhialType = shellType.Item1.Replace("_", " ");
-				}
-				else if (newObj.Type == "CB")
-				{
-					newObj.CbPhialType = obj.SpecialAbility1Id!.Value == 0 ? "Impact Phial" : "Power Element Phial";
-				}
-				else if (newObj.Type == "IG")
-				{
-					switch (obj.SpecialAbility1Id!.Value)
-					{
-						case 0:
-							newObj.IgKinsectBonus = "Sever Boost";
-							break;
-						case 1:
-							newObj.IgKinsectBonus = "Blunt Boost";
-							break;
-						case 2:
-							newObj.IgKinsectBonus = "Element Boost";
-							break;
-						case 3:
-							newObj.IgKinsectBonus = "Speed Boost";
-							break;
-						case 4:
-							newObj.IgKinsectBonus = "Stamina Boost";
-							break;
-						case 5:
-							newObj.IgKinsectBonus = "Health Boost";
-							break;
-						case 6:
-							newObj.IgKinsectBonus = "Spirit & Strength Boost ";
-							break;
-						case 7:
-							newObj.IgKinsectBonus = "Stamina Upgrade & Healing";
-							break;
-					}
-				}
-				else if (newObj.Type == "DB")
-				{
-					newObj = GetDBElements(obj, newObj);
-				}
-				if (!ret.Any(x => x.Name == newObj.Name && x.Rarity == newObj.Rarity))
-				{
-					ret.Add(newObj);
 				}
 			}
 			return [.. ret];
@@ -441,7 +455,7 @@ namespace MediawikiTranslator.Models.Data.MHWI
 			}
 			return upgradeFromMats + "]";
 		}
-		
+
 		private static long[] ValidateHandicraft(string name)
 		{
 			return new Dictionary<string, long[]>
@@ -3321,7 +3335,7 @@ namespace MediawikiTranslator.Models.Data.MHWI
 			return upgradeFromMats + "]";
 		}
 
-		private static WebToolkitData GetDBElements(BlademasterData src, WebToolkitData ret)
+		private static Weapon.WebToolkitData GetDBElements(BlademasterData src, Weapon.WebToolkitData ret)
 		{
 			switch (src.SpecialAbility1Id!.Value)
 			{

@@ -11,7 +11,7 @@ namespace MediawikiTranslator.Models.Data.MHRS
 
 		public static Weapon[] Fetch()
 		{
-			return FromJson(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Raw Data\MHRS\natives\stm\data\define\player\weapon\slashaxe\slashaxebasedata.user.2.json")).SnowEquipSlashAxeBaseUserData.Param;
+			return FromJson(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHRS\natives\stm\data\define\player\weapon\slashaxe\slashaxebasedata.user.2.json")).SnowEquipSlashAxeBaseUserData.Param;
 		}
 	}
 

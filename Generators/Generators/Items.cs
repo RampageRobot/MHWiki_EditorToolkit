@@ -1,15 +1,43 @@
-﻿using DocumentFormat.OpenXml.Office2010.Excel;
-using MediawikiTranslator.Models.Data.MHRS;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using MediawikiTranslator.Models.Monsters;
 
 namespace MediawikiTranslator.Generators
 {
 	public class Items
 	{
+		public string? InternalID { get; set; }
+		public int InternalOrder { get; set; }
+		public string? Name { get; set; }
+		public string? JPName { get; set; }
+		public string? Description { get; set; }
+		public string? Category { get; set; }
+		public int BuyPrice { get; set; }
+		public int SellPrice { get; set; }
+		public int CarryLimit { get; set; }
+		public int BuddyCarryLimit { get; set; }
+		public int Rarity { get; set; }
+		public string? WikiIconColor { get; set; }
+		public string? WikiIconName { get; set; }
+		public string? WikiIconDecorations { get; set; }
+		public List<ItemCrafting> Combinations { get; set; } = [];
+		public List<ItemSource> Sources { get; set; } = [];
+		public List<ItemEquipment> Equipment { get; set; } = [];
+
+
+		public static Items[] FetchGameItems(Games game)
+		{
+			switch (game)
+			{
+				case Games.MHWI:
+				case Games.MHWorld:
+					return Models.Data.MHWI.Items.FetchParsed();
+				case Games.MHRS:
+				case Games.MHRise:
+					return Models.Data.MHRS.Items.FetchParsed();
+				case Games.MHWilds:
+					return Models.Data.MHWilds.Items.FetchParsed();
+				default: return [];
+			}
+		}
 		public static Dictionary<int, string> GetMHWIWikiColors()
 		{
 			return new()
@@ -66,5 +94,33 @@ namespace MediawikiTranslator.Generators
 				{ 51, "Pink" }
 			};
 		}
+	}
+
+	public class ItemCrafting
+	{
+		public int Number { get; set; }
+		public string Result { get; set; }
+		public string MaterialA { get; set; }
+		public string MaterialB { get; set; }
+	}
+
+	public class ItemEquipment
+	{
+		public string EquipmentName { get; set; }
+		public string EquipmentType { get; set; }
+	}
+
+	public class ItemSource
+	{
+		public string Stage { get; set; }
+		public int Zone { get; set; }
+		public string MonsterName { get; set; } = string.Empty;
+		public string QuestName { get; set; } = string.Empty;
+		public int Quantity { get; set; }
+		public int Probability { get; set; }
+		public int QuantityRare { get; set; }
+		public int ProbabilityRare { get; set; }
+		public string Rank { get; set; }
+		public string Circumstance { get; set; }
 	}
 }

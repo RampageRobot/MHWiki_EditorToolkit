@@ -181,120 +181,144 @@ namespace MediawikiTranslator.Models.Data.MHWI
 		}
 
 
-		public static WebToolkitData[] GetToolkitData()
+		public static Weapon.WebToolkitData[] GetToolkitData(string game, int? maxRarity = null)
 		{
-			List<WebToolkitData> ret = new List<WebToolkitData>();
+			List<Weapon.WebToolkitData> ret = new List<Weapon.WebToolkitData>();
 			WeaponCraftingData[] craftingData = WeaponCraftingData.GetCraftingData();
 			WeaponForgingData[] forgingData = WeaponForgingData.GetForgingData();
 			Dictionary<string, ShellTable[]> shellTables = ShellTable.GetShellTables();
 			Items[] allItems = Items.Fetch();
-			GunnerData[] data = [.. GetGunnerData().Where(x => x.Name != "Unavailable")];
-			foreach (GunnerData obj in data)
+			GunnerData[] srcData = [.. GetGunnerData().Where(x => x.Name != "Unavailable")];
+			foreach (GunnerData srcGun in srcData)
 			{
-				WebToolkitData newObj = new WebToolkitData()
+				Weapon.WebToolkitData toolkitGun = new Weapon.WebToolkitData()
 				{
-					Type = GetWeaponType(obj.WeaponType),
-					Affinity = obj.Affinity,
-					Attack = obj.Damage!.Value.ToString(),
-					Defense = obj.Defense!.Value.ToString(),
-					Description = obj.Description,
-					Name = obj.Name,
-					Elderseal = obj.Elderseal,
-					Element1 = obj.HiddenElement != "None" ? "(" + obj.HiddenElement + ")" : obj.Element == "None" ? null : obj.Element,
-					ElementDmg1 = obj.HiddenElement != "None" ? "(" + obj.HiddenElementDamage!.Value.ToString() + ")" : obj.ElementDamage == null ? null : obj.ElementDamage!.Value.ToString(),
-					Game = "MHWI",
-					Rarity = obj.Rarity + 1,
-					Tree = GetWeaponTree(obj.TreeId!.Value)
+					Type = GetWeaponType(srcGun.WeaponType),
+					Affinity = srcGun.Affinity,
+					Attack = srcGun.Damage!.Value.ToString(),
+					Defense = srcGun.Defense!.Value.ToString(),
+					Description = srcGun.Description,
+					Name = srcGun.Name,
+					Elderseal = srcGun.Elderseal,
+					Element1 = srcGun.HiddenElement != "None" ? "(" + srcGun.HiddenElement + ")" : srcGun.Element == "None" ? null : srcGun.Element,
+					ElementDmg1 = srcGun.HiddenElement != "None" ? "(" + srcGun.HiddenElementDamage!.Value.ToString() + ")" : srcGun.ElementDamage == null ? null : srcGun.ElementDamage!.Value.ToString(),
+					Game = game,
+					Rarity = srcGun.Rarity + 1,
+					Tree = GetWeaponTree(srcGun.TreeId!.Value)
 				};
+				if (maxRarity == null || toolkitGun.Rarity < maxRarity)
+				{
 #nullable enable
-				WeaponCraftingData? thisCraft = craftingData.FirstOrDefault(x => x.EquipmentId!.Value == obj.Index!.Value && x.EquipmentCategory == obj.WeaponType.Replace(" ", "_"));
-				if (obj.TreePosition > 0 && thisCraft != null && thisCraft.Mat1Id > 0)
-				{
-					WeaponCraftingData? parentCraft = craftingData.FirstOrDefault(x => x.EquipmentCategory == obj.WeaponType.Replace(" ", "_") && (x.ChildIndex1!.Value == thisCraft.Index!.Value || x.ChildIndex2!.Value == thisCraft.Index!.Value || x.ChildIndex3!.Value == thisCraft.Index!.Value || x.ChildIndex4!.Value == thisCraft.Index!.Value));
-					GunnerData? parent = data.FirstOrDefault(x => parentCraft != null && x.WeaponType == obj.WeaponType && x.Name == parentCraft.EquipmentName);
-					if (parent == null || parentCraft == null)
+					WeaponCraftingData? thisCraft = craftingData.FirstOrDefault(x => x.EquipmentId!.Value == srcGun.Index!.Value && x.EquipmentCategory == srcGun.WeaponType.Replace(" ", "_"));
+					if (srcGun.TreePosition > 0 && thisCraft != null && thisCraft.Mat1Id > 0)
 					{
-						WeaponForgingData forge = forgingData.First(x => x.EquipmentIndex!.Value == obj.Index!.Value && x.EquipmentType == obj.WeaponType.Replace(" ", "_"));
-						parent = data.FirstOrDefault(x => x.WeaponType == obj.WeaponType && x.Name == forge.EquipmentName);
+						WeaponCraftingData? parentCraft = craftingData.FirstOrDefault(x => x.EquipmentCategory == srcGun.WeaponType.Replace(" ", "_") && (x.ChildIndex1!.Value == thisCraft.Index!.Value || x.ChildIndex2!.Value == thisCraft.Index!.Value || x.ChildIndex3!.Value == thisCraft.Index!.Value || x.ChildIndex4!.Value == thisCraft.Index!.Value));
+						GunnerData? parent = srcData.FirstOrDefault(x => parentCraft != null && x.WeaponType == srcGun.WeaponType && x.Name == parentCraft.EquipmentName);
+						if (parent == null || parentCraft == null)
+						{
+							WeaponForgingData forge = forgingData.First(x => x.EquipmentIndex!.Value == srcGun.Index!.Value && x.EquipmentType == srcGun.WeaponType.Replace(" ", "_"));
+							parent = srcData.FirstOrDefault(x => x.WeaponType == srcGun.WeaponType && x.Name == forge.EquipmentName);
+						}
+						toolkitGun.PreviousName = parent!.Name;
+						toolkitGun.PreviousRarity = parent!.Rarity;
+						toolkitGun.UpgradeCost = srcGun.Cost;
+						toolkitGun.UpgradeMaterials = GetMaterials(parent!, thisCraft, allItems);
 					}
-					newObj.PreviousName = parent!.Name;
-					newObj.PreviousRarity = parent!.Rarity;
-					newObj.UpgradeCost = obj.Cost;
-					newObj.UpgradeMaterials = GetMaterials(parent!, thisCraft, allItems);
-				}
 #nullable disable
-				if (forgingData.Any(x => x.EquipmentIndex!.Value == obj.Index!.Value && x.EquipmentType == obj.WeaponType.Replace(" ", "_")))
-				{
-					WeaponForgingData forge = forgingData.First(x => x.EquipmentIndex!.Value == obj.Index!.Value && x.EquipmentType == obj.WeaponType.Replace(" ", "_"));
-					newObj.ForgeCost = obj.Cost;
-					newObj.ForgeMaterials = GetForgeMaterials(obj, forge, allItems);
-				}
-				if (obj.IsFixedUpgrade == "TRUE")
-				{
-					newObj.Rollback = "true";
-				}
-				if (thisCraft != null)
-				{
-					if (thisCraft.ChildIndex1 > 0)
+					if (forgingData.Any(x => x.EquipmentIndex!.Value == srcGun.Index!.Value && x.EquipmentType == srcGun.WeaponType.Replace(" ", "_")))
 					{
-						WeaponCraftingData childCraft = craftingData.First(x => x.EquipmentCategory == obj.WeaponType.Replace(" ", "_") && x.Index!.Value == thisCraft.ChildIndex1!.Value);
-						GunnerData child = data.First(x => x.WeaponType == obj.WeaponType && x.Index!.Value == childCraft.EquipmentId!.Value);
-						newObj.Next1Name = child.Name;
-						newObj.Next1Rarity = child.Rarity;
-						newObj.Next1Cost = obj.Cost;
-						newObj.Next1Materials = GetMaterials(child, childCraft, allItems);
+						WeaponForgingData forge = forgingData.First(x => x.EquipmentIndex!.Value == srcGun.Index!.Value && x.EquipmentType == srcGun.WeaponType.Replace(" ", "_"));
+						toolkitGun.ForgeCost = srcGun.Cost;
+						toolkitGun.ForgeMaterials = GetForgeMaterials(srcGun, forge, allItems);
 					}
-					if (thisCraft.ChildIndex2 > 0)
+					if (srcGun.IsFixedUpgrade == "TRUE")
 					{
-						WeaponCraftingData childCraft = craftingData.First(x => x.EquipmentCategory == obj.WeaponType.Replace(" ", "_") && x.Index!.Value == thisCraft.ChildIndex2!.Value);
-						GunnerData child = data.First(x => x.WeaponType == obj.WeaponType && x.Index!.Value == childCraft.EquipmentId!.Value);
-						newObj.Next2Name = child.Name;
-						newObj.Next2Rarity = child.Rarity;
-						newObj.Next2Cost = obj.Cost;
-						newObj.Next2Materials = GetMaterials(child, childCraft, allItems);
+						toolkitGun.Rollback = "true";
 					}
-					if (thisCraft.ChildIndex3 > 0)
+					if (thisCraft != null)
 					{
-						WeaponCraftingData childCraft = craftingData.First(x => x.EquipmentCategory == obj.WeaponType.Replace(" ", "_") && x.Index!.Value == thisCraft.ChildIndex3!.Value);
-						GunnerData child = data.First(x => x.WeaponType == obj.WeaponType && x.Index!.Value == childCraft.EquipmentId!.Value);
-						newObj.Next3Name = child.Name;
-						newObj.Next3Rarity = child.Rarity;
-						newObj.Next3Cost = obj.Cost;
-						newObj.Next3Materials = GetMaterials(child, childCraft, allItems);
+						if (thisCraft.ChildIndex1 > 0)
+						{
+							WeaponCraftingData childCraft = craftingData.First(x => x.EquipmentCategory == srcGun.WeaponType.Replace(" ", "_") && x.Index!.Value == thisCraft.ChildIndex1!.Value);
+							GunnerData child = srcData.First(x => x.WeaponType == srcGun.WeaponType && x.Index!.Value == childCraft.EquipmentId!.Value);
+							if (maxRarity == null || child.Rarity + 1 < maxRarity)
+							{
+								toolkitGun.Next1Name = child.Name;
+								toolkitGun.Next1Rarity = child.Rarity;
+								toolkitGun.Next1Cost = srcGun.Cost;
+								toolkitGun.Next1Materials = GetMaterials(child, childCraft, allItems);
+							}
+						}
+						if (thisCraft.ChildIndex2 > 0)
+						{
+							WeaponCraftingData childCraft = craftingData.First(x => x.EquipmentCategory == srcGun.WeaponType.Replace(" ", "_") && x.Index!.Value == thisCraft.ChildIndex2!.Value);
+							GunnerData child = srcData.First(x => x.WeaponType == srcGun.WeaponType && x.Index!.Value == childCraft.EquipmentId!.Value);
+							if (maxRarity == null || child.Rarity + 1 < maxRarity)
+							{
+								toolkitGun.Next2Name = child.Name;
+								toolkitGun.Next2Rarity = child.Rarity;
+								toolkitGun.Next2Cost = srcGun.Cost;
+								toolkitGun.Next2Materials = GetMaterials(child, childCraft, allItems);
+							}
+						}
+						if (thisCraft.ChildIndex3 > 0)
+						{
+							WeaponCraftingData childCraft = craftingData.First(x => x.EquipmentCategory == srcGun.WeaponType.Replace(" ", "_") && x.Index!.Value == thisCraft.ChildIndex3!.Value);
+							GunnerData child = srcData.First(x => x.WeaponType == srcGun.WeaponType && x.Index!.Value == childCraft.EquipmentId!.Value);
+							if (maxRarity == null || child.Rarity + 1 < maxRarity)
+							{
+								toolkitGun.Next3Name = child.Name;
+								toolkitGun.Next3Rarity = child.Rarity;
+								toolkitGun.Next3Cost = srcGun.Cost;
+								toolkitGun.Next3Materials = GetMaterials(child, childCraft, allItems);
+							}
+						}
+						if (thisCraft.ChildIndex4 > 0)
+						{
+							WeaponCraftingData childCraft = craftingData.First(x => x.EquipmentCategory == srcGun.WeaponType.Replace(" ", "_") && x.Index!.Value == thisCraft.ChildIndex4!.Value);
+							GunnerData child = srcData.First(x => x.WeaponType == srcGun.WeaponType && x.Index!.Value == childCraft.EquipmentId!.Value);
+							if (maxRarity == null || child.Rarity + 1 < maxRarity)
+							{
+								toolkitGun.Next4Name = child.Name;
+								toolkitGun.Next4Rarity = child.Rarity + 1;
+								toolkitGun.Next4Cost = srcGun.Cost;
+								toolkitGun.Next4Materials = GetMaterials(child, childCraft, allItems);
+							}
+						}
 					}
-				}
-				newObj.Decos1 = (obj.Slot1Size == 1 ? 1 : 0) + (obj.Slot2Size == 1 ? 1 : 0) + (obj.Slot3Size == 1 ? 1 : 0);
-				newObj.Decos2 = (obj.Slot1Size == 2 ? 1 : 0) + (obj.Slot2Size == 2 ? 1 : 0) + (obj.Slot3Size == 2 ? 1 : 0);
-				newObj.Decos3 = (obj.Slot1Size == 3 ? 1 : 0) + (obj.Slot2Size == 3 ? 1 : 0) + (obj.Slot3Size == 3 ? 1 : 0);
-				newObj.Decos4 = (obj.Slot1Size == 4 ? 1 : 0) + (obj.Slot2Size == 4 ? 1 : 0) + (obj.Slot3Size == 4 ? 1 : 0);
-				if (newObj.Type == "HBG")
-				{
-					newObj.HbgSpecialAmmoType = obj.SpecialAmmoType2.Replace("Wyvernfire", "Wyvernheart");
-					newObj.HbgDeviation = obj.Deviation;
-				}
-				else if (newObj.Type == "LBG")
-				{
-					newObj.LbgSpecialAmmoType = obj.SpecialAmmoType2.Replace("Wyvernfire", "Wyvernheart");
-					newObj.LbgDeviation = obj.Deviation == "4" ? "Very High" : obj.Deviation;
-				}
-				else if (newObj.Type == "Bo")
-				{
-					newObj.BoCoatings = GetBoCoatings(obj.SpecialAmmoType!.Value);
-				}
-				newObj.ShellTable = shellTables[obj.ShellTypeId!.Value.ToString()];
-				if (newObj.ShellTable != null)
-				{
-					newObj.ShellTableWikitext = GetShellTableWikitext(newObj);
-				}
-				if (!ret.Any(x => x.Name == newObj.Name && x.Rarity == newObj.Rarity))
-				{
-					ret.Add(newObj);
+					toolkitGun.Decos1 = (srcGun.Slot1Size == 1 ? 1 : 0) + (srcGun.Slot2Size == 1 ? 1 : 0) + (srcGun.Slot3Size == 1 ? 1 : 0);
+					toolkitGun.Decos2 = (srcGun.Slot1Size == 2 ? 1 : 0) + (srcGun.Slot2Size == 2 ? 1 : 0) + (srcGun.Slot3Size == 2 ? 1 : 0);
+					toolkitGun.Decos3 = (srcGun.Slot1Size == 3 ? 1 : 0) + (srcGun.Slot2Size == 3 ? 1 : 0) + (srcGun.Slot3Size == 3 ? 1 : 0);
+					toolkitGun.Decos4 = (srcGun.Slot1Size == 4 ? 1 : 0) + (srcGun.Slot2Size == 4 ? 1 : 0) + (srcGun.Slot3Size == 4 ? 1 : 0);
+					if (toolkitGun.Type == "HBG")
+					{
+						toolkitGun.HbgSpecialAmmoType = srcGun.SpecialAmmoType2.Replace("Wyvernfire", "Wyvernheart");
+						toolkitGun.HbgDeviation = srcGun.Deviation;
+					}
+					else if (toolkitGun.Type == "LBG")
+					{
+						toolkitGun.LbgSpecialAmmoType = srcGun.SpecialAmmoType2.Replace("Wyvernfire", "Wyvernheart");
+						toolkitGun.LbgDeviation = srcGun.Deviation == "4" ? "Very High" : srcGun.Deviation;
+					}
+					else if (toolkitGun.Type == "Bo")
+					{
+						toolkitGun.BoCoatings = GetBoCoatings(srcGun.SpecialAmmoType!.Value);
+					}
+					toolkitGun.ShellTable = shellTables[srcGun.ShellTypeId!.Value.ToString()];
+					if (toolkitGun.ShellTable != null)
+					{
+						toolkitGun.ShellTableWikitext = GetShellTableWikitext(toolkitGun);
+					}
+					if (!ret.Any(x => x.Name == toolkitGun.Name && x.Rarity == toolkitGun.Rarity))
+					{
+						ret.Add(toolkitGun);
+					}
 				}
 			}
 			return [.. ret];
 		}
 
-		private static string GetShellTableWikitext(WebToolkitData weapon)
+		private static string GetShellTableWikitext(Weapon.WebToolkitData weapon)
 		{
 			StringBuilder ret = new();
 			foreach (ShellTable shell in weapon.ShellTable.Where(x => x.Capacity > 0 && !x.Name.StartsWith("Unknown")))
@@ -315,10 +339,11 @@ namespace MediawikiTranslator.Models.Data.MHWI
 				{
 					levelText = "|TopL=3";
 				}
-				ret.AppendLine($"|{{{{IconPickerUniversalAlt|{weapon.Game}|Ammo|{shellItem.Name}|Color={Generators.Weapon.GetColorString(shellItem.WikiIconColor!.Value.ToString())}{levelText}}}}}");
-				ret.AppendLine($"|{shell.Capacity}");
-				ret.AppendLine($"|{recoil}");
-				ret.AppendLine($"|{reload}");
+				ret.AppendLine("<tr>");
+				ret.AppendLine($"<td>{{{{IconPickerUniversalAlt|{weapon.Game}|Ammo|{shellItem.Name}|Color={Generators.Weapon.GetColorString(shellItem.WikiIconColor.ToString())}{levelText}}}}}</td>");
+				ret.AppendLine($"<td>{shell.Capacity}</td>");
+				ret.AppendLine($"<td>{recoil}</td>");
+				ret.AppendLine($"<td>{reload}</td>");
 				string icons = "";
 				bool movingShotEnabled = false;
 				bool movingReloadEnabled = false;
@@ -388,8 +413,8 @@ namespace MediawikiTranslator.Models.Data.MHWI
 				{
 					icons = " -";
 				}
-				ret.AppendLine("|" + icons);
-				ret.AppendLine("|-");
+				ret.AppendLine("<td>" + icons + "</td>");
+				ret.AppendLine("</tr>");
 			}
 			return ret.ToString();
 		}

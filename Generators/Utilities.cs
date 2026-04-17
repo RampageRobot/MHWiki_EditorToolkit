@@ -1,40 +1,24 @@
 ﻿using ClosedXML.Excel;
-using DocumentFormat.OpenXml.Bibliography;
-using DocumentFormat.OpenXml.Drawing;
-using DocumentFormat.OpenXml.Drawing.Diagrams;
-using DocumentFormat.OpenXml.ExtendedProperties;
-using DocumentFormat.OpenXml.Office2010.Excel;
-using DocumentFormat.OpenXml.Office2013.Word;
-using DocumentFormat.OpenXml.Spreadsheet;
-using DocumentFormat.OpenXml.Wordprocessing;
 using Google.Apis.Translate.v2.Data;
 using MediawikiTranslator.Generators;
 using MediawikiTranslator.Models;
 using MediawikiTranslator.Models.Data;
-using MediawikiTranslator.Models.Data.MH3;
 using MediawikiTranslator.Models.Data.MHWI;
 using MediawikiTranslator.Models.Monsters;
 using MediawikiTranslator.Models.Weapon;
-using Microsoft.VisualBasic;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using System;
 using System.Data;
 using System.Diagnostics;
-using System.Dynamic;
-using System.Linq;
+using System.IO.Compression;
+using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading;
-using System.Threading.Tasks;
-using System.Xml.Linq;
 using WikiClientLibrary;
 using WikiClientLibrary.Client;
 using WikiClientLibrary.Generators;
-using WikiClientLibrary.Generators.Primitive;
 using WikiClientLibrary.Pages;
 using WikiClientLibrary.Pages.Parsing;
-using WikiClientLibrary.Pages.Queries.Properties;
 using WikiClientLibrary.Sites;
 
 namespace MediawikiTranslator
@@ -46,7 +30,7 @@ namespace MediawikiTranslator
 			DateTime start = DateTime.Now;
 			using (WikiClient client = new()
 			{
-				ClientUserAgent = "MHWikiToolkit/1.1.2 " + System.Configuration.ConfigurationManager.AppSettings.Get("WikiUsername")!,
+				ClientUserAgent = "MHWikiToolkit/" + Assembly.GetEntryAssembly()!.GetName().Version + " " + System.Configuration.ConfigurationManager.AppSettings.Get("WikiUsername")!,
 			})
 			{
 				WikiSite site = new(client, "https://monsterhunterwiki.org/api.php");
@@ -73,6 +57,157 @@ namespace MediawikiTranslator
 				}
 				await site.LogoutAsync();
 			}
+		}
+
+		public static Dictionary<string, Dictionary<string,object>> ToJsonDicts(this LargeMonsterPage[] largeMonsterPages)
+		{
+			Dictionary<string, Dictionary<string, object>> ret = new()
+			{
+				{ "DropRates", new Dictionary<string, object>() },
+				{ "InfoBox", new Dictionary<string, object>() },
+				{ "HuntersNotes", new Dictionary<string, object>() },
+				{ "PartsTable", new Dictionary<string, object>() },
+				{ "DamageEffectiveness", new Dictionary<string, object>() },
+				{ "ItemEffectiveness", new Dictionary<string, object>() },
+				{ "StatusEffectiveness", new Dictionary<string, object>() },
+				{ "Attacks", new Dictionary<string, object>() },
+				{ "Enrage", new Dictionary<string, object>() },
+				{ "Stamina", new Dictionary<string, object>() },
+				{ "Quests", new Dictionary<string, object>() },
+				{ "Equipment", new Dictionary<string, object>() }
+			};
+			foreach (LargeMonsterPage page in largeMonsterPages)
+			{
+				ret["DropRates"].Add(page.MonsterName, page.DropRates == null ? [] : page.DropRates);
+				//ret["InfoBox"].Add(page.MonsterName, page.InfoBox);
+				//ret["HuntersNotes"].Add(page.MonsterName, page.HuntersNotes);
+				//ret["PartsTable"].Add(page.MonsterName, page.PartsTable == null ? [] : page.PartsTable);
+				//ret["DamageEffectiveness"].Add(page.MonsterName, page.DamageEffectiveness);
+				//ret["ItemEffectiveness"].Add(page.MonsterName, page.ItemEffectiveness);
+				//ret["StatusEffectiveness"].Add(page.MonsterName, page.StatusEffectiveness);
+				//ret["Attacks"].Add(page.MonsterName, page.Attacks);
+				//ret["Enrage"].Add(page.MonsterName, page.Enrage == null ? new { } : page.Enrage);
+				//ret["Stamina"].Add(page.MonsterName, page.Stamina == null ? new { } : page.Stamina);
+				//ret["Quests"].Add(page.MonsterName, page.Quests == null ? [] : page.Quests);
+				//ret["Equipment"].Add(page.MonsterName, page.Equipment);
+			}
+			return ret;
+		}
+
+		public static async Task UploadDBs()
+		{
+			DateTime start = DateTime.Now;
+			Dictionary<string, string> dbsToAdd = [];
+			foreach (Games game in new Games[] { /*Games.MHWorld, Games.MHWI, Games.MHRise,*/ Games.MHRS/*, Games.MHWilds*/ })
+			{
+				string gameAcronym = game.ToAcronymString();
+				foreach (KeyValuePair<string, Dictionary<string, object>> page in LargeMonsterPage.GetAll(game).ToJsonDicts())
+				{
+					dbsToAdd.Add($"Module:{gameAcronym}/data/Monsters/{page.Key}.json", JsonConvert.SerializeObject(page.Value, Formatting.Indented));
+				}
+				WebToolkitData[] weapons = Weapon.GetWebToolkitData(gameAcronym);
+				if (game == Games.MHWorld || game == Games.MHRise)
+				{
+					weapons = [.. weapons.Where(x => (game == Games.MHRise && x.Rarity!.Value < 8) || (game == Games.MHWorld && x.Rarity!.Value < 9))];
+				}
+				string weaponStr = GetNameKeyedObject(JsonConvert.SerializeObject(weapons, Formatting.Indented));
+				//File.WriteAllText(@"C:\Users\mkast\Desktop\temp\" + gameAcronym + ".json", weaponStr);
+				string ammo = GetNameKeyedObject(JsonConvert.SerializeObject(weapons.Where(x => x.Type == "LBG" || x.Type == "HBG").Select(x => new { Name = x.Name, ShellTable = x.ShellTableWikitext }), Formatting.Indented));
+				//File.WriteAllText(@"C:\Users\mkast\Desktop\temp\" + gameAcronym + "_Ammo.json", ammo);
+				//dbsToAdd.Add($"Module:{gameAcronym}/data/Weapons.json", weaponStr);
+				//dbsToAdd.Add($"Module:{gameAcronym}/data/Weapons/Ammo.json", ammo);
+				//if (game != Games.MHWilds)
+				//{
+				//	dbsToAdd.Add($"Module:{gameAcronym}/data/Armor.json", GetNameKeyedObject(JsonConvert.SerializeObject(ArmorSets.GetWebToolkitData(gameAcronym), Formatting.Indented)));
+				//}
+				string items = GetNameKeyedObject(JsonConvert.SerializeObject(Generators.Items.FetchGameItems(game), Formatting.Indented));
+				//File.WriteAllText(@"C:\Users\mkast\Desktop\temp2\" + gameAcronym + ".json", items);
+				//dbsToAdd.Add($"Module:{gameAcronym}/data/Items.json", items);
+				//Models.Quests.WebToolkitData[] quests = Models.Quests.WebToolkitData.Fetch(game);
+				//if (game == Games.MHRise || game == Games.MHWorld)
+				//{
+				//	quests = [.. quests.Where(x => x.Rank != "Master Rank")];
+				//}
+				//dbsToAdd.Add($"Module:{gameAcronym}/data/Quests.json", GetNameKeyedObject(JsonConvert.SerializeObject(quests, Formatting.Indented)));
+				////These need to be made agnostic
+				//dbsToAdd.Add($"Module:{gameAcronym}/data/Skills.json", GetNameKeyedObject(JsonConvert.SerializeObject(Models.Data.MHWilds.Skill.GetSkills(), Formatting.Indented)));
+				//dbsToAdd.Add($"Module:{gameAcronym}/data/Talismans.json", GetNameKeyedObject(JsonConvert.SerializeObject(Models.Data.MHWilds.Talisman.GetTalismans(), Formatting.Indented)));
+				//dbsToAdd.Add($"Module:{gameAcronym}/data/Decorations.json", GetNameKeyedObject(JsonConvert.SerializeObject(Models.Data.MHWilds.Decoration.GetDecorations(), Formatting.Indented)));
+			}
+			Debugger.Break();
+			using (WikiClient client = new()
+			{
+				ClientUserAgent = "MHWikiToolkit/" + Assembly.GetEntryAssembly()!.GetName().Version + " " + System.Configuration.ConfigurationManager.AppSettings.Get("WikiUsername")!,
+			})
+			{
+				WikiSite site = new(client, "https://monsterhunterwiki.org/api.php");
+				await site.Initialization;
+				try
+				{
+					await site.Login();
+					int totalCount = dbsToAdd.Count();
+					int cnt = 1;
+					foreach (KeyValuePair<string, string> kvp in dbsToAdd)
+					{
+						WikiPage page = new(site, kvp.Key);
+						await page.RefreshAsync();
+						string action = "Created";
+						if (page.Exists)
+						{
+							action = "Updated";
+						}
+						await page.EditAsync(new WikiPageEditOptions()
+						{
+							Bot = true,
+							Content = kvp.Value,
+							Minor = false,
+							Summary = $"{action} inital .json DB pages for Lua module use",
+							Watch = AutoWatchBehavior.None
+						});
+						Console.WriteLine($"({cnt}/{totalCount}) {page.Title} added.");
+						cnt++;
+					}
+					Console.WriteLine("======================================================");
+					Console.WriteLine("Finished!");
+					TimeSpan elapsed = DateTime.Now - start;
+					Console.WriteLine("Elapsed: " + elapsed.ToString());
+				}
+				catch (WikiClientException ex)
+				{
+					Console.WriteLine(ex.Message);
+				}
+				await site.LogoutAsync();
+			}
+		}
+
+		private static string GetNameKeyedObject(string input)
+		{
+			JArray iptObj = JsonConvert.DeserializeObject<JArray>(input)!;
+			JObject outObj = new JObject();
+			foreach (JObject obj in iptObj)
+			{
+				if (obj.ContainsKey("Name"))
+				{
+					outObj[obj.Value<string>("Name")!] = obj;
+				}
+				else if (obj.ContainsKey("SetName"))
+				{
+					outObj[obj.Value<string>("SetName")!] = obj;
+				}
+				else if (obj.ContainsKey("QuestName"))
+				{
+					outObj[obj.Value<string>("QuestName")!] = obj;
+				}
+				else if (obj.ContainsKey("SkillName"))
+				{
+					outObj[obj.Value<string>("SkillName")!] = obj;
+				}
+				else
+				{
+					Debugger.Break();
+				}
+			}
+			return JsonConvert.SerializeObject(outObj, Formatting.Indented);
 		}
 
 		private static Dictionary<string, MonsterNames> MonsterNameDict = FetchMonsterNames();
@@ -115,13 +250,40 @@ namespace MediawikiTranslator
 		public static Dictionary<string, dynamic> MHWIQuestInfo = [];
 		public static Dictionary<string, string> Translations = JsonConvert.DeserializeObject<Dictionary<string, string>>(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\Translations\translations.json"))!;
 
+		public static void GeneratePebbleFiles()
+		{
+			string dir = $@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\PebbleExport_{DateTime.Now:yyyyMMdd}\";
+			Directory.CreateDirectory(dir);
+			Dictionary<string, string> filesToCompress = new() {
+				{ System.IO.Path.Combine(dir, "weaponsUpdate.json"), JsonConvert.SerializeObject(Models.Data.MHWilds.Weapon.GetAllWeapons()) },
+				{ System.IO.Path.Combine(dir, "talismansExport.json"), JsonConvert.SerializeObject(Models.Data.MHWilds.Talisman.GetTalismans()) },
+				{ System.IO.Path.Combine(dir, "decosExport.json"), JsonConvert.SerializeObject(Models.Data.MHWilds.Decoration.GetDecorations()) },
+				{ System.IO.Path.Combine(dir, "skillsExport.json"), JsonConvert.SerializeObject(Models.Data.MHWilds.Skill.GetSkills()) },
+				{ System.IO.Path.Combine(dir, "items.json"), JsonConvert.SerializeObject(Models.Data.MHWilds.Items.Fetch()) }
+			};
+			using (ZipArchive zip = ZipFile.Open(System.IO.Path.Combine(dir, "pebbleExport.zip"), ZipArchiveMode.Create))
+			{
+				foreach (KeyValuePair<string, string> file in filesToCompress)
+				{
+					File.WriteAllText(file.Key, file.Value);
+					zip.CreateEntryFromFile(file.Key, new FileInfo(file.Key).Name);
+				}
+			}
+		}
+
 		public static Dictionary<string, dynamic> GetMHWIQuestInfo()
 		{
 			if (MHWIQuestInfo.Count == 0)
 			{
-				MHWIQuestInfo = JsonConvert.DeserializeObject<Dictionary<string, dynamic>>(File.ReadAllText($@"{System.Configuration.ConfigurationManager.AppSettings.Get("DesktopPath")}\test monster stuff\MHWI\questInfo.json"))!;
+				MHWIQuestInfo = JsonConvert.DeserializeObject<Dictionary<string, dynamic>>(File.ReadAllText($@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWI\questInfo.json"))!;
 			}
 			return MHWIQuestInfo;
+		}
+
+		public static async Task MHWItoMHWorld()
+		{
+			//await UploadWeaponsWithAPI("MHWorld", maxRarity: 9);
+			await UploadArmorWithAPI("MHWorld", rarityUnder: 9);
 		}
 
 		public static Models.Data.MHRS.Items[] GetMHRSItems()
@@ -129,9 +291,116 @@ namespace MediawikiTranslator
 			return JsonConvert.DeserializeObject<Models.Data.MHRS.Items[]>(Properties.Resources.mhrs_items, Models.Data.MHWI.Converter.Settings)!;
 		}
 
-		public static Models.Data.MHWI.Items[] GetMHWIItems()
+		public static Models.Data.MHWI.Items[] GetMHWIItems(string game)
 		{
-			return JsonConvert.DeserializeObject<Models.Data.MHWI.Items[]>(Encoding.UTF8.GetString(Properties.Resources.mhwi_items), Models.Data.MHWI.Converter.Settings)!;
+			return [.. Models.Data.MHWI.Items.Fetch()!.Where(x => x.Name != "Unavailable" && x.Name != "HARDUMMY" && x.Name != "(None)" && x.Name != "--------" && (game == "MHWI" || x.Id!.Value < 1000))];
+		}
+
+		public static async Task UploadMHWIItemsOverviews(string game)
+		{
+			DateTime start = DateTime.Now;
+			using (WikiClient client = new()
+			{
+				ClientUserAgent = "MHWikiToolkit/" + Assembly.GetEntryAssembly()!.GetName().Version + " " + System.Configuration.ConfigurationManager.AppSettings.Get("WikiUsername")!,
+			})
+			{
+				WikiSite site = new(client, "https://monsterhunterwiki.org/api.php");
+				await site.Initialization;
+				try
+				{
+					await site.Login();
+					Models.Data.MHWI.Items[] src = GetMHWIItems(game);
+					List<string> categories = [.. src.Select(x => x.Category).Distinct()];
+					int totalCount = categories.Count;
+					int cnt = 1;
+					foreach (string cat in categories)
+					{
+						StringBuilder sb = new();
+						sb.AppendLine($@"{{{{#seo:
+|title=Items in {GetGameFullName(game)}
+|description=A list of all {cat.ToLower()} items in {GetGameFullName(game)}.
+|image=5thGen-Question Mark Icon White.png
+}}}}
+{{{{GenericNav|{game}}}}}
+<div class=""nav-center"">
+<p>[[{game}/Consumables|Consumables]]</p>
+<p>[[{game}/Equipment|Equipment]]</p>
+<p>[[{game}/Materials|Materials]]</p>
+<p>[[{game}/Ammo & Coatings|Ammo & Coatings]]</p>
+<p>[[{game}/Account Items|Account Items]]</p>
+<p>[[{game}/Jewels|Jewels]]</p>{(game == "MHWI" ? @"
+<p>[[MHWI/Room Furnishings|Room Furnishings]]</p>" : "")}
+</div>
+<br>
+The following is a list of all {cat.ToLower()} items that appear in [[{GetGameFullName(game)}]].
+== {cat} ==
+{{| class=""wikitable sortable mw-collapsible"" style=""width: 100%""");
+						switch (cat)
+						{
+							case "Equipment":
+								sb.AppendLine("! Name || Rarity || Description");
+								break;
+							case "Materials":
+								sb.AppendLine("! Name || Rarity || Sell Price || Description");
+								break;
+							case "Room Furnishings":
+							case "Jewels":
+								sb.AppendLine("! Name || Rarity || Buy Price || Sell Price || Description");
+								break;
+							default:
+								sb.AppendLine("! Name || Rarity || Buy Price || Sell Price || Carry || Description");
+								break;
+						}
+						sb.AppendLine("|-");
+						foreach (Models.Data.MHWI.Items item in src.Where(x => x.Category == cat).OrderBy(x => x.SortOrder))
+						{
+							sb.AppendLine($@"| {{{{IPUClassicSmall|MHWI|{item.WikiIconName}|{item.Name}|Color={item.WikiIconColor}{(game == "MHWorld" ? $"|Link={item.Name} (MHWorld)" : "")}}}}}
+| align=""center"" | {item.Rarity + 1}");
+							switch (cat)
+							{
+								case "Equipment":
+									break;
+								case "Materials":
+									sb.AppendLine(@$"| align=""center"" | {item.SellPrice}z");
+									break;
+								case "Room Furnishings":
+								case "Jewels":
+									sb.AppendLine(@$"| align=""center"" | {item.BuyPrice}z");
+									sb.AppendLine(@$"| align=""center"" | {item.SellPrice}z");
+									break;
+								default:
+									sb.AppendLine($@"| align=""center"" | {item.BuyPrice}z
+| align=""center"" | {item.SellPrice}z
+| align=""center"" | {(game == "MHWI" ? item.CarryLimit : item.CarryLimitNonIb)}");
+									break;
+							}
+							sb.AppendLine($@"| {item.Description.Replace("<STYL MOJI_YELLOW_DEFAULT>", "<span style=\"color: #b29400;\">").Replace("</STYL>", "</span>")}
+|-");
+						}
+						sb.AppendLine("|}");
+						WikiPage page = new(site, $"{game}/{cat}");
+						await page.EditAsync(new WikiPageEditOptions()
+						{
+							Bot = true,
+							Content = sb.ToString(),
+							Minor = false,
+							Summary = "Generated via MHWiki Toolkit",
+							Watch = AutoWatchBehavior.None
+						});
+						Console.WriteLine($"({cnt}/{totalCount}) {page.Title} edited.");
+						cnt++;
+					}
+					Console.WriteLine("======================================================");
+					Console.WriteLine("Finished!");
+					TimeSpan elapsed = DateTime.Now - start;
+					Console.WriteLine("Elapsed: " + elapsed.ToString());
+				}
+				catch (WikiClientException ex)
+				{
+					Console.WriteLine(ex.Message);
+				}
+				await site.LogoutAsync();
+			}
 		}
 
 		public static async Task<Dictionary<string, string>> GetMonsterRenders(MonsterData monsterData, WikiSite site, Dictionary<string, string[]>? gamePatterns = null)
@@ -176,7 +445,7 @@ namespace MediawikiTranslator
 			DateTime start = DateTime.Now;
 			using (WikiClient client = new()
 			{
-				ClientUserAgent = "MHWikiToolkit/1.1.2 " + System.Configuration.ConfigurationManager.AppSettings.Get("WikiUsername")!,
+				ClientUserAgent = "MHWikiToolkit/" + Assembly.GetEntryAssembly()!.GetName().Version + " " + System.Configuration.ConfigurationManager.AppSettings.Get("WikiUsername")!,
 			})
 			{
 				WikiSite site = new(client, "https://monsterhunterwiki.org/api.php");
@@ -433,7 +702,7 @@ namespace MediawikiTranslator
 			DateTime start = DateTime.Now;
 			using (WikiClient client = new()
 			{
-				ClientUserAgent = "MHWikiToolkit/1.1.2 " + System.Configuration.ConfigurationManager.AppSettings.Get("WikiUsername")!,
+				ClientUserAgent = "MHWikiToolkit/" + Assembly.GetEntryAssembly()!.GetName().Version + " " + System.Configuration.ConfigurationManager.AppSettings.Get("WikiUsername")!,
 			})
 			{
 				WikiSite site = new(client, "https://monsterhunterwiki.org/api.php");
@@ -494,7 +763,7 @@ namespace MediawikiTranslator
 							if (overview.Exists)
 							{
 								Console.WriteLine("Updating pages.");
-								Dictionary<string, string> gameRenders = await GetMonsterRenders(monsterData.Value, site); 
+								Dictionary<string, string> gameRenders = await GetMonsterRenders(monsterData.Value, site);
 								string appearancesNav = @$"{{{{MonsterAppearancesNav
 |Monster = {monsterData.Key}
 {string.Join("\r\n", srcDict[monsterData.Key].GameAppearances.Select(x => $"|{x.GameAcronym} = Y"))}
@@ -576,7 +845,7 @@ namespace MediawikiTranslator
 			DateTime start = DateTime.Now;
 			using (WikiClient client = new()
 			{
-				ClientUserAgent = "MHWikiToolkit/1.1.2 " + System.Configuration.ConfigurationManager.AppSettings.Get("WikiUsername")!,
+				ClientUserAgent = "MHWikiToolkit/" + Assembly.GetEntryAssembly()!.GetName().Version + " " + System.Configuration.ConfigurationManager.AppSettings.Get("WikiUsername")!,
 			})
 			{
 				WikiSite site = new(client, "https://monsterhunterwiki.org/api.php");
@@ -640,7 +909,7 @@ namespace MediawikiTranslator
 						else
 						{
 							/*Models.Data.MHWI.Items item = allItems.First(x => x.Name == quest.DeliveryItemName);
-							goalIcons += $"{{{{IconPickerUniversal|MH3|{item.WikiIconName}|Color={GetIconColorName(item.WikiIconColor!.Value)}|Size=50|Text=|Margin=0|ML=Y}}}}";*/
+							goalIcons += $"{{{{IconPickerUniversal|MH3|{item.WikiIconName}|Color={GetIconColorName(item.WikiIconColor)}|Size=50|Text=|Margin=0|ML=Y}}}}";*/
 						}
 						content.AppendLine(goalIcons);
 						content.AppendLine($@"|Requirements = HR {quest.QuestInfo.HrpRestriction}
@@ -649,7 +918,7 @@ namespace MediawikiTranslator
 |Failure Conditions = {quest.QuestInfo.FailureMessage.Replace("\n", "")}
 |Reward Money = {quest.ObjectiveDetails.MainQuest.ZennyReward}");
 						int largeCntr = 1;
-						string[] targetMonsters = [..new string[] {quest.ObjectiveDetails.MainQuest!.MonsterTarget, quest.ObjectiveDetails.Subquest1!.MonsterTarget, quest.ObjectiveDetails.Subquest2!.MonsterTarget}.Where(x => !string.IsNullOrEmpty(x))];
+						string[] targetMonsters = [.. new string[] { quest.ObjectiveDetails.MainQuest!.MonsterTarget, quest.ObjectiveDetails.Subquest1!.MonsterTarget, quest.ObjectiveDetails.Subquest2!.MonsterTarget }.Where(x => !string.IsNullOrEmpty(x))];
 						string otherLargeIcons = "|Other Large Monster Icons =";
 						foreach (string monster in new Models.Data.MH3.Monster[] { quest.LargeMonsters!.Monster1!, quest.LargeMonsters!.Monster2!, quest.LargeMonsters!.Monster3! }.Select(x => x.Name).Where(x => !string.IsNullOrEmpty(x) && x != "None" && !targetMonsters.Contains(x)).Select(x => x!))
 						{
@@ -1086,7 +1355,7 @@ __TOC__
 			DateTime start = DateTime.Now;
 			using (WikiClient client = new()
 			{
-				ClientUserAgent = "MHWikiToolkit/1.1.2 " + System.Configuration.ConfigurationManager.AppSettings.Get("WikiUsername")!,
+				ClientUserAgent = "MHWikiToolkit/" + Assembly.GetEntryAssembly()!.GetName().Version + " " + System.Configuration.ConfigurationManager.AppSettings.Get("WikiUsername")!,
 			})
 			{
 				WikiSite site = new(client, "https://monsterhunterwiki.org/api.php");
@@ -1191,7 +1460,7 @@ __TOC__
 			DateTime start = DateTime.Now;
 			using (WikiClient client = new()
 			{
-				ClientUserAgent = "MHWikiToolkit/1.1.2 " + System.Configuration.ConfigurationManager.AppSettings.Get("WikiUsername")!,
+				ClientUserAgent = "MHWikiToolkit/" + Assembly.GetEntryAssembly()!.GetName().Version + " " + System.Configuration.ConfigurationManager.AppSettings.Get("WikiUsername")!,
 			})
 			{
 				WikiSite site = new(client, "https://monsterhunterwiki.org/api.php");
@@ -1204,9 +1473,10 @@ __TOC__
 					{
 						progress = JsonConvert.DeserializeObject<List<string>>(File.ReadAllText(progressFile))!;
 					}
-					await site.Login(); Dictionary<string, MonsterData> monsterAppearances = JsonConvert.DeserializeObject<Dictionary<string, MonsterData>>(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\monsterData.json"))!;
+					await site.Login(); 
+					Dictionary<string, MonsterData> monsterAppearances = JsonConvert.DeserializeObject<Dictionary<string, MonsterData>>(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\monsterData.json"))!;
 					string[] allGameAcros = [.. new string[] { "MHWilds", "MHRS", "MHRise", "MHWI", "MHWorld", "MHGU", "MHGen", "MH4U", "MH4", "MH3U", "MHP3", "MH3", "MHFU", "MHF2", "MH2", "MHF1", "MHG", "MH1", "MHNow", "MHOutlanders", "MHPuzzles", "MHST1", "MHST2", "MHFrontier", "MHOnline", "MHExplore", "MHi", "MHRiders", "MHDiary", "MHDG", "MHDDX", "MHBGHQ", "MHDH", "MHMH", "MHPIV", "MHSpirits", "MHGii", "MHP1", "MHP2", "MHP2G", "MH3G", "MH4G", "MHX", "MHXX" }.Where(x => monsterAppearances.Any(y => y.Value.GameAppearances.Any(z => z.GameAcronym == x)))];
-					WikiPage[] monsters = [.. monsterAppearances.Where(x => !x.Value.LargeMonster).Select(x => new WikiPage(site, $"{x.Key}/Outdated")).Where(x => !progress.Contains(x.Title!))];
+					WikiPage[] monsters = [.. monsterAppearances.Select(x => new WikiPage(site, $"{x.Key}/Appearances")).Where(x => !progress.Contains(x.Title!))];
 					monsters = [.. monsters.Where(x => !x.Title!.Contains("Sandbox"))];
 					int cnt = 1;
 					int totalCount = monsters.Length;
@@ -1244,7 +1514,7 @@ __TOC__
 			DateTime start = DateTime.Now;
 			using (WikiClient client = new()
 			{
-				ClientUserAgent = "MHWikiToolkit/1.1.2 " + System.Configuration.ConfigurationManager.AppSettings.Get("WikiUsername")!,
+				ClientUserAgent = "MHWikiToolkit/" + Assembly.GetEntryAssembly()!.GetName().Version + " " + System.Configuration.ConfigurationManager.AppSettings.Get("WikiUsername")!,
 			})
 			{
 				WikiSite site = new(client, "https://monsterhunterwiki.org/api.php");
@@ -1345,13 +1615,13 @@ __TOC__
 		{
 			ConvertDir(@"D:\MH_Data Repo\MH_Data\Raw Data\MHWI\chunk");
 		}
-		
+
 		public static async Task EnsureGameCategory()
 		{
 			DateTime start = DateTime.Now;
 			using (WikiClient client = new()
 			{
-				ClientUserAgent = "MHWikiToolkit/1.1.2 " + System.Configuration.ConfigurationManager.AppSettings.Get("WikiUsername")!,
+				ClientUserAgent = "MHWikiToolkit/" + Assembly.GetEntryAssembly()!.GetName().Version + " " + System.Configuration.ConfigurationManager.AppSettings.Get("WikiUsername")!,
 			})
 			{
 				WikiSite site = new(client, "https://monsterhunterwiki.org/api.php");
@@ -1425,7 +1695,7 @@ __TOC__
 			DateTime start = DateTime.Now;
 			using (WikiClient client = new()
 			{
-				ClientUserAgent = "MHWikiToolkit/1.1.2 " + System.Configuration.ConfigurationManager.AppSettings.Get("WikiUsername")!,
+				ClientUserAgent = "MHWikiToolkit/" + Assembly.GetEntryAssembly()!.GetName().Version + " " + System.Configuration.ConfigurationManager.AppSettings.Get("WikiUsername")!,
 			})
 			{
 				WikiSite site = new(client, "https://monsterhunterwiki.org/api.php");
@@ -1503,7 +1773,7 @@ __TOC__
 			DateTime start = DateTime.Now;
 			using (WikiClient client = new()
 			{
-				ClientUserAgent = "MHWikiToolkit/1.1.2 " + System.Configuration.ConfigurationManager.AppSettings.Get("WikiUsername")!,
+				ClientUserAgent = "MHWikiToolkit/" + Assembly.GetEntryAssembly()!.GetName().Version + " " + System.Configuration.ConfigurationManager.AppSettings.Get("WikiUsername")!,
 			})
 			{
 				WikiSite site = new(client, "https://monsterhunterwiki.org/api.php");
@@ -1578,7 +1848,7 @@ __TOC__
 			string[] items = [];
 			using (WikiClient client = new()
 			{
-				ClientUserAgent = "MHWikiToolkit/1.1.2 " + System.Configuration.ConfigurationManager.AppSettings.Get("WikiUsername")!,
+				ClientUserAgent = "MHWikiToolkit/" + Assembly.GetEntryAssembly()!.GetName().Version + " " + System.Configuration.ConfigurationManager.AppSettings.Get("WikiUsername")!,
 			})
 			{
 				WikiSite site = new(client, "https://monsterhunterwiki.org/api.php");
@@ -1586,7 +1856,7 @@ __TOC__
 				try
 				{
 					await site.Login();
-					CategoryMembersGenerator generator = new(site, $"Category:{game} {weaponType} Renders")
+					CategoryMembersGenerator generator = new(site, $"Category:{(game == "MHWorld" ? "MHWI" : game)} {weaponType} Renders")
 					{
 						MemberTypes = CategoryMemberTypes.File
 					};
@@ -1605,7 +1875,7 @@ __TOC__
 		{
 			using (WikiClient client = new()
 			{
-				ClientUserAgent = "MHWikiToolkit/1.1.2 " + System.Configuration.ConfigurationManager.AppSettings.Get("WikiUsername")!,
+				ClientUserAgent = "MHWikiToolkit/" + Assembly.GetEntryAssembly()!.GetName().Version + " " + System.Configuration.ConfigurationManager.AppSettings.Get("WikiUsername")!,
 			})
 			{
 				WikiSite site = new(client, "https://monsterhunterwiki.org/api.php");
@@ -1615,7 +1885,7 @@ __TOC__
 					int cnt = 1;
 					await site.Login();
 					Dictionary<string, string> riseMonsterIds = JsonConvert.DeserializeObject<Dictionary<string, string>>(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHRS\monsterIds.json"))!;
-					JArray sizeList = JsonConvert.DeserializeObject<JObject>(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Raw Data\MHRS\natives\stm\enemy\user_data\system_enemy_sizelist_data.user.2.json"))!.Value<JObject>("snow.enemy.SystemEnemySizeListData")!.Value<JArray>("_SizeInfoList")!;
+					JArray sizeList = JsonConvert.DeserializeObject<JObject>(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHRS\natives\stm\enemy\user_data\system_enemy_sizelist_data.user.2.json"))!.Value<JObject>("snow.enemy.SystemEnemySizeListData")!.Value<JArray>("_SizeInfoList")!;
 					Dictionary<string, string[]> monsterAppearances = JsonConvert.DeserializeObject<Dictionary<string, string[]>>(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\allMonsterAppearances.json"))!;
 					int totalCnt = monsterAppearances.Count(x => x.Value.Contains("MHRS") || x.Value.Contains("MHRise"));
 					string[] sizeParams = ["|Gold Crown Small = ", "|Average = ", "|Silver Crown = ", "|Gold Crown Large = "];
@@ -1920,7 +2190,7 @@ __TOC__
 					monsterData[kvp.Key] = data;
 				}
 			}
-			File.WriteAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\monsterData.json", JsonConvert.SerializeObject(monsterData.OrderBy(x => x.Key).ToDictionary(x => x.Key, x => x.Value), Formatting.Indented));
+			File.WriteAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\monsterData.json", JsonConvert.SerializeObject(monsterData.Where(x => x.Value.GameAppearances.Any(y => y.GameAcronym != "MHOnline" || y.GameAcronym != "MHExplore")).OrderBy(x => x.Key).ToDictionary(x => x.Key, x => x.Value), Formatting.Indented));
 		}
 
 		private static async Task<Dictionary<string, List<GameAppearance>>> GetSmallMonsterPages()
@@ -1929,7 +2199,7 @@ __TOC__
 			DateTime start = DateTime.Now;
 			using (WikiClient client = new()
 			{
-				ClientUserAgent = "MHWikiToolkit/1.1.2 " + System.Configuration.ConfigurationManager.AppSettings.Get("WikiUsername")!,
+				ClientUserAgent = "MHWikiToolkit/" + Assembly.GetEntryAssembly()!.GetName().Version + " " + System.Configuration.ConfigurationManager.AppSettings.Get("WikiUsername")!,
 			})
 			{
 				WikiSite site = new(client, "https://monsterhunterwiki.org/api.php");
@@ -1963,7 +2233,7 @@ __TOC__
 							if (game != null && !smallMonsterDict[monsterName].Any(x => x.GameAcronym == game))
 							{
 								smallMonsterDict[monsterName].Add(new GameAppearance() { GameAcronym = game, GameFull = GetGameFullName(game) });
-								if (game == "MHWI" && !new string[] { "Anteka", "Popo", "Cortos", "Wulg", "Boaboa" }.Contains(monsterName))
+								if ((game == "MHWI" || game == "MHWorld") && !new string[] { "Anteka", "Popo", "Cortos", "Wulg", "Boaboa" }.Contains(monsterName))
 								{
 									smallMonsterDict[monsterName].Add(new GameAppearance() { GameAcronym = "MHWorld", GameFull = GetGameFullName("MHWorld") });
 								}
@@ -1979,7 +2249,7 @@ __TOC__
 							if (game != null)
 							{
 								apps = [new GameAppearance() { GameAcronym = game, GameFull = GetGameFullName(game) }];
-								if (game == "MHWI" && !new string[] { "Anteka", "Popo", "Cortos", "Wulg", "Boaboa" }.Contains(monsterName))
+								if ((game == "MHWI" || game == "MHWorld") && !new string[] { "Anteka", "Popo", "Cortos", "Wulg", "Boaboa" }.Contains(monsterName))
 								{
 									smallMonsterDict[monsterName].Add(new GameAppearance() { GameAcronym = "MHWorld", GameFull = GetGameFullName("MHWorld") });
 								}
@@ -2169,7 +2439,7 @@ __TOC__
 			}
 			using (WikiClient client = new()
 			{
-				ClientUserAgent = "MHWikiToolkit/1.1.2 " + System.Configuration.ConfigurationManager.AppSettings.Get("WikiUsername")!,
+				ClientUserAgent = "MHWikiToolkit/" + Assembly.GetEntryAssembly()!.GetName().Version + " " + System.Configuration.ConfigurationManager.AppSettings.Get("WikiUsername")!,
 			})
 			{
 				WikiSite site = new(client, "https://monsterhunterwiki.org/api.php");
@@ -2212,7 +2482,7 @@ __TOC__
 			DateTime start = DateTime.Now;
 			using (WikiClient client = new()
 			{
-				ClientUserAgent = "MHWikiToolkit/1.1.2 " + System.Configuration.ConfigurationManager.AppSettings.Get("WikiUsername")!,
+				ClientUserAgent = "MHWikiToolkit/" + Assembly.GetEntryAssembly()!.GetName().Version + " " + System.Configuration.ConfigurationManager.AppSettings.Get("WikiUsername")!,
 			})
 			{
 				WikiSite site = new(client, "https://monsterhunterwiki.org/api.php");
@@ -2273,7 +2543,7 @@ __TOC__
 			}
 			using (WikiClient client = new()
 			{
-				ClientUserAgent = "MHWikiToolkit/1.1.2 " + System.Configuration.ConfigurationManager.AppSettings.Get("WikiUsername")!,
+				ClientUserAgent = "MHWikiToolkit/" + Assembly.GetEntryAssembly()!.GetName().Version + " " + System.Configuration.ConfigurationManager.AppSettings.Get("WikiUsername")!,
 			})
 			{
 				WikiSite site = new(client, "https://monsterhunterwiki.org/api.php");
@@ -2864,7 +3134,7 @@ __TOC__
 		{
 			using (WikiClient client = new()
 			{
-				ClientUserAgent = "MHWikiToolkit/1.1.2 " + System.Configuration.ConfigurationManager.AppSettings.Get("WikiUsername")!,
+				ClientUserAgent = "MHWikiToolkit/" + Assembly.GetEntryAssembly()!.GetName().Version + " " + System.Configuration.ConfigurationManager.AppSettings.Get("WikiUsername")!,
 			})
 			{
 				WikiSite site = new(client, "https://monsterhunterwiki.org/api.php");
@@ -2931,7 +3201,7 @@ __TOC__
 		{
 			using (WikiClient client = new()
 			{
-				ClientUserAgent = "MHWikiToolkit/1.1.2 " + System.Configuration.ConfigurationManager.AppSettings.Get("WikiUsername")!,
+				ClientUserAgent = "MHWikiToolkit/" + Assembly.GetEntryAssembly()!.GetName().Version + " " + System.Configuration.ConfigurationManager.AppSettings.Get("WikiUsername")!,
 			})
 			{
 				WikiSite site = new(client, "https://monsterhunterwiki.org/api.php");
@@ -2976,7 +3246,7 @@ __TOC__
 		{
 			using (WikiClient client = new()
 			{
-				ClientUserAgent = "MHWikiToolkit/1.1.2 " + System.Configuration.ConfigurationManager.AppSettings.Get("WikiUsername")!,
+				ClientUserAgent = "MHWikiToolkit/" + Assembly.GetEntryAssembly()!.GetName().Version + " " + System.Configuration.ConfigurationManager.AppSettings.Get("WikiUsername")!,
 			})
 			{
 				WikiSite site = new(client, "https://monsterhunterwiki.org/api.php");
@@ -3072,7 +3342,7 @@ __TOC__
 		{
 			using (WikiClient client = new()
 			{
-				ClientUserAgent = "MHWikiToolkit/1.1.2 " + System.Configuration.ConfigurationManager.AppSettings.Get("WikiUsername")!,
+				ClientUserAgent = "MHWikiToolkit/" + Assembly.GetEntryAssembly()!.GetName().Version + " " + System.Configuration.ConfigurationManager.AppSettings.Get("WikiUsername")!,
 			})
 			{
 				WikiSite site = new(client, "https://monsterhunterwiki.org/api.php");
@@ -3215,7 +3485,7 @@ __TOC__
 		{
 			using (WikiClient client = new()
 			{
-				ClientUserAgent = "MHWikiToolkit/1.1.2 " + System.Configuration.ConfigurationManager.AppSettings.Get("WikiUsername")!,
+				ClientUserAgent = "MHWikiToolkit/" + Assembly.GetEntryAssembly()!.GetName().Version + " " + System.Configuration.ConfigurationManager.AppSettings.Get("WikiUsername")!,
 			})
 			{
 				WikiSite site = new(client, "https://monsterhunterwiki.org/api.php");
@@ -3415,7 +3685,7 @@ __TOC__
 		{
 			using (WikiClient client = new()
 			{
-				ClientUserAgent = "MHWikiToolkit/1.1.2 " + System.Configuration.ConfigurationManager.AppSettings.Get("WikiUsername")!,
+				ClientUserAgent = "MHWikiToolkit/" + Assembly.GetEntryAssembly()!.GetName().Version + " " + System.Configuration.ConfigurationManager.AppSettings.Get("WikiUsername")!,
 			})
 			{
 				WikiSite site = new(client, "https://monsterhunterwiki.org/api.php");
@@ -3452,7 +3722,7 @@ __TOC__
 		{
 			using (WikiClient client = new()
 			{
-				ClientUserAgent = "MHWikiToolkit/1.1.2 " + System.Configuration.ConfigurationManager.AppSettings.Get("WikiUsername")!,
+				ClientUserAgent = "MHWikiToolkit/" + Assembly.GetEntryAssembly()!.GetName().Version + " " + System.Configuration.ConfigurationManager.AppSettings.Get("WikiUsername")!,
 			})
 			{
 				WikiSite site = new(client, "https://monsterhunterwiki.org/api.php");
@@ -3461,12 +3731,12 @@ __TOC__
 				{
 					await site.Login();
 					int cntr = 1;
-					Dictionary<string, string>[] objInfo = JsonConvert.DeserializeObject<Dictionary<string, string>[]>(File.ReadAllText($@"{System.Configuration.ConfigurationManager.AppSettings.Get("DesktopPath")}test monster stuff\MHWI\questObjectiveTypes.json"))!;
+					Dictionary<string, string>[] objInfo = JsonConvert.DeserializeObject<Dictionary<string, string>[]>(File.ReadAllText($@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWI\Monster Data\questObjectiveTypes.json"))!;
 					CategoryMembersGenerator subpageGen = new(site, "Large_Monster_MHWI_Subpages")
 					{
 						MemberTypes = CategoryMemberTypes.Page
 					};
-					Models.Data.MHWI.Quests[] quests = Models.Data.MHWI.Quests.FetchQuests();
+					Models.Quests.WebToolkitData[] quests = Models.Data.MHWI.Quests.FetchQuests();
 					Models.Monsters.Quests[] questInfos = Models.Monsters.Quests.FetchQuests();
 					var test = quests.Select(x => x.QuestName).Where(x => !questInfos.Any(y => y.Name == x)).ToArray();
 					WikiPage[] monsters = await subpageGen.EnumPagesAsync().ToArrayAsync();
@@ -3488,7 +3758,7 @@ __TOC__
 !Targets
 |-");
 							string[] elderDragons = ["Behemoth", "Kirin", "Kulve Taroth", "Kushala Daora", "Lunastra", "Nergigante", "Teostra", "Vaal Hazak", "Xeno'jiiva", "Zorah Magdaros", "Alatreon", "Namielle", "Ruiner Nergigante", "Safi'jiiva", "Shara Ishvalda", "Blackveil Vaal Hazak", "Velkhana", "Fatalis"];
-							foreach (Models.Data.MHWI.Quests quest in quests.OrderBy(x => x.RankLevel + (x.Rank == "Master Rank" ? 10 : 0)).Where(x => x.TargetMonsters.Any(y => y == monster.Title!.Split('/')[0])))
+							foreach (Models.Quests.WebToolkitData quest in quests.OrderBy(x => x.RankLevel + (x.Rank == "Master Rank" ? 10 : 0)).Where(x => x.TargetMonsters.Any(y => y == monster.Title!.Split('/')[0])))
 							{
 								string rankAbbr = quest.Rank == "Low Rank" ? "LR" : quest.Rank == "High Rank" ? "HR" : "MR";
 								string objectiveIconType = quest.QuestType!;
@@ -3553,7 +3823,7 @@ __TOC__
 		{
 			using (WikiClient client = new()
 			{
-				ClientUserAgent = "MHWikiToolkit/1.1.2 " + System.Configuration.ConfigurationManager.AppSettings.Get("WikiUsername")!,
+				ClientUserAgent = "MHWikiToolkit/" + Assembly.GetEntryAssembly()!.GetName().Version + " " + System.Configuration.ConfigurationManager.AppSettings.Get("WikiUsername")!,
 			})
 			{
 				WikiSite site = new(client, "https://monsterhunterwiki.org/api.php");
@@ -3970,7 +4240,7 @@ __TOC__
 			Models.Data.MHWI.Items[] allItems = Models.Data.MHWI.Items.Fetch();
 			using (WikiClient client = new()
 			{
-				ClientUserAgent = "MHWikiToolkit/1.1.2 " + System.Configuration.ConfigurationManager.AppSettings.Get("WikiUsername")!,
+				ClientUserAgent = "MHWikiToolkit/" + Assembly.GetEntryAssembly()!.GetName().Version + " " + System.Configuration.ConfigurationManager.AppSettings.Get("WikiUsername")!,
 			})
 			{
 				WikiSite site = new(client, "https://monsterhunterwiki.org/api.php");
@@ -3979,8 +4249,8 @@ __TOC__
 				{
 					await site.Login();
 					int cntr = 1;
-					Models.Data.MHWI.Quests[] quests = [.. Models.Data.MHWI.Quests.FetchQuests().Where(x => x.Locale!.Contains("Arena (New World)"))];
-					foreach (Models.Data.MHWI.Quests quest in quests)
+					Models.Quests.WebToolkitData[] quests = [.. Models.Data.MHWI.Quests.FetchQuests().Where(x => x.Locale!.Contains("Arena (New World)"))];
+					foreach (Models.Quests.WebToolkitData quest in quests)
 					{
 						WikiPage page = new(site, $"{quest.QuestName} (MHWI Quest)");
 						await page.RefreshAsync(PageQueryOptions.FetchContent);
@@ -4027,7 +4297,7 @@ __TOC__
 						if (quest.QuestType == "Deliver")
 						{
 							Models.Data.MHWI.Items item = allItems.First(x => x.Name == quest.DeliveryItemName);
-							goalIcons += $"{{{{IconPickerUniversal|MHWI|{item.WikiIconName}|Color={GetIconColorName(item.WikiIconColor!.Value)}|Size=50|Text=|Margin=0|ML=Y}}}}";
+							goalIcons += $"{{{{IconPickerUniversal|MHWI|{item.WikiIconName}|Color={item.WikiIconColor}|Size=50|Text=|Margin=0|ML=Y}}}}";
 						}
 						else
 						{
@@ -4140,8 +4410,8 @@ __TOC__
 						finishedMonsterNames[worldMonsterName.English] = worldMonsterName;
 					}
 				}
-				List<JObject> riseFiles = [.. JsonConvert.DeserializeObject<JObject>(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Raw Data\MHRS\natives\stm\message\tag\tag_em_name.msg.539100710.json"))!.Value<JObject>("msgs")!.Values().Select(x => x.Value<JObject>("content")!)];
-				riseFiles.AddRange([.. JsonConvert.DeserializeObject<JObject>(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Raw Data\MHRS\natives\stm\message\tag_mr\tag_em_name_mr.msg.539100710.json"))!.Value<JObject>("msgs")!.Values().Select(x => x.Value<JObject>("content")!)]);
+				List<JObject> riseFiles = [.. JsonConvert.DeserializeObject<JObject>(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHRS\natives\stm\message\tag\tag_em_name.msg.539100710.json"))!.Value<JObject>("msgs")!.Values().Select(x => x.Value<JObject>("content")!)];
+				riseFiles.AddRange([.. JsonConvert.DeserializeObject<JObject>(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHRS\natives\stm\message\tag_mr\tag_em_name_mr.msg.539100710.json"))!.Value<JObject>("msgs")!.Values().Select(x => x.Value<JObject>("content")!)]);
 				foreach (JObject file in riseFiles)
 				{
 					MonsterNames riseMonsterName = new()
@@ -4241,7 +4511,7 @@ __TOC__
 		{
 			using (WikiClient client = new()
 			{
-				ClientUserAgent = "MHWikiToolkit/1.1.2 " + System.Configuration.ConfigurationManager.AppSettings.Get("WikiUsername")!
+				ClientUserAgent = "MHWikiToolkit/" + Assembly.GetEntryAssembly()!.GetName().Version + " " + System.Configuration.ConfigurationManager.AppSettings.Get("WikiUsername")!
 			})
 			{
 				//Armor
@@ -4443,9 +4713,9 @@ __TOC__
 						{
 							string oldContent = page.Content!;
 							string newContent = "";
-							if (game == "MHWI")
+							if (game == "MHWI" || game == "MHWorld")
 							{
-								Models.Monsters.Monster mon = new(monsterName, game);
+								Monster mon = new(monsterName, game);
 								if (oldContent.Contains($"{{{{:{monsterName.Replace(" ", "_")}/Lore}}}}"))
 								{
 									newContent = oldContent.Insert(oldContent.IndexOf($"{{{{:{monsterName.Replace(" ", "_")}/Lore}}}}") - 1, mon.Format());
@@ -4486,7 +4756,7 @@ __TOC__
 
 			using (WikiClient client = new()
 			{
-				ClientUserAgent = "MHWikiToolkit/1.1.2 " + System.Configuration.ConfigurationManager.AppSettings.Get("WikiUsername")!,
+				ClientUserAgent = "MHWikiToolkit/" + Assembly.GetEntryAssembly()!.GetName().Version + " " + System.Configuration.ConfigurationManager.AppSettings.Get("WikiUsername")!,
 			})
 			{
 				WikiSite site = new(client, "https://monsterhunterwiki.org/api.php");
@@ -4559,25 +4829,22 @@ __TOC__
 
 		public static async Task UploadItems(string game)
 		{
-			using (WikiClient client = new()
+			using (AsyncWikiClient client = new())
 			{
-				ClientUserAgent = "MHWikiToolkit/1.1.2 " + System.Configuration.ConfigurationManager.AppSettings.Get("WikiUsername")!,
-			})
-			{
-				WikiSite site = new(client, "https://monsterhunterwiki.org/api.php");
-				await site.Initialization;
-				try
+				client.ClientLog += Client_ClientLog;
+				DateTime start = DateTime.Now;
+				List<Task> allItemUploads = [];
+				int cntr = 1;
+				int totalCntr = 1;
+				if (game == "MHWilds")
 				{
-					await site.Login();
-					int cntr = 1;
-					if (game == "MHWilds")
+					Models.Data.MHWilds.Items[] mhwildsItems = Models.Data.MHWilds.Items.FillSources(Models.Data.MHWilds.Items.Fetch());
+					totalCntr = mhwildsItems.Length;
+					foreach (Models.Data.MHWilds.Items item in mhwildsItems)
 					{
-						Models.Data.MHWilds.Items[] mhwildsItems = Models.Data.MHWilds.Items.FillSources(Models.Data.MHWilds.Items.Fetch());
-						foreach (Models.Data.MHWilds.Items item in mhwildsItems)
-						{
-							WikiPage page = new(site, $"{item.Name} ({game})");
-							StringBuilder content = new();
-							content.AppendLine($@"{{{{#css:
+						WikiPage page = client.GetPage($"{item.Name} ({game})");
+						StringBuilder content = new();
+						content.AppendLine($@"{{{{#css:
 .toc
 {{
     width:45%;
@@ -4638,353 +4905,40 @@ __TOC__
 !
 ! style=""white-space:wrap;"" | Material B
 |-");
-							foreach (Models.Data.MHWilds.ItemCrafting combination in item.Combinations)
+						foreach (Generators.ItemCrafting combination in item.Combinations)
+						{
+							Models.Data.MHWilds.Items matA = mhwildsItems.First(x => x.Name == combination.MaterialA);
+							Models.Data.MHWilds.Items? matB = null;
+							if (!string.IsNullOrEmpty(combination.MaterialB))
 							{
-								Models.Data.MHWilds.Items matA = mhwildsItems.First(x => x.Name == combination.MaterialA);
-								Models.Data.MHWilds.Items? matB = null;
-								if (!string.IsNullOrEmpty(combination.MaterialB))
-								{
-									matB = mhwildsItems.First(x => x.Name == combination.MaterialB);
-								}
-								Models.Data.MHWilds.Items result = mhwildsItems.First(x => x.Name == combination.Result);
-								content.AppendLine($@"| {combination.Number} || {{{{GenericItemLink|MHWilds|{result.Name}|{result.Icon.Replace(" Great", "")}|{result.IconColor}}}}} || '''=''' || {{{{GenericItemLink|MHWilds|{matA.Name}|{matA.Icon.Replace(" Great", "")}|{matA.IconColor}}}}} || '''+''' || {(matB == null ? "-" : $"{{{{GenericItemLink|MHWilds|{matB.Name}|{matB.Icon}|{matB.IconColor}}}}}")}
-|-");
+								matB = mhwildsItems.First(x => x.Name == combination.MaterialB);
 							}
-							content.AppendLine(@"|}
+							Models.Data.MHWilds.Items result = mhwildsItems.First(x => x.Name == combination.Result);
+							content.AppendLine($@"| {combination.Number} || {{{{GenericItemLink|MHWilds|{result.Name}|{result.Icon.Replace(" Great", "")}|{result.IconColor}}}}} || '''=''' || {{{{GenericItemLink|MHWilds|{matA.Name}|{matA.Icon.Replace(" Great", "")}|{matA.IconColor}}}}} || '''+''' || {(matB == null ? "-" : $"{{{{GenericItemLink|MHWilds|{matB.Name}|{matB.Icon}|{matB.IconColor}}}}}")}
+|-");
+						}
+						content.AppendLine(@"|}
 </div>
 </div>");
-							string[] questSources = [.. item.Sources.Where(x => !string.IsNullOrEmpty(x.QuestName)).Select(source => $"* [[{source.QuestName} (MHWilds)|{source.QuestName}]]").Distinct()];
-							Models.Data.MHWilds.ItemSource[] monsterSources = [.. item.Sources.Where(x => !string.IsNullOrEmpty(x.MonsterName)).OrderBy(x => x.Rank).ThenByDescending(x => x.MonsterName).ThenByDescending(x => x.Circumstance).ThenByDescending(x => x.Probability)];
-							string[] stageOrder = ["Windward Plains", "Scarlet Forest", "Oilwell Basin", "Iceshard Cliffs", "Ruins of Wyveria"];
-							string[] gatheringSources = [.. item.Sources.Where(x => string.IsNullOrEmpty(x.QuestName) && string.IsNullOrEmpty(x.MonsterName)).OrderBy(x => Array.IndexOf(stageOrder, x.Stage)).ThenBy(x => x.Zone).Select(source => $"* [[{source.Stage}]] Zone {source.Zone}").Distinct()];
-							if (questSources.Length > 1)
-							{
-								content.AppendLine(@"<div class=""mw-collapsible"">
+						string[] questSources = [.. item.Sources.Where(x => !string.IsNullOrEmpty(x.QuestName)).Select(source => $"* [[{source.QuestName} (MHWilds)|{source.QuestName}]]").Distinct()];
+						ItemSource[] monsterSources = [.. item.Sources.Where(x => !string.IsNullOrEmpty(x.MonsterName)).OrderBy(x => x.Rank).ThenByDescending(x => x.MonsterName).ThenByDescending(x => x.Circumstance).ThenByDescending(x => x.Probability)];
+						string[] stageOrder = ["Windward Plains", "Scarlet Forest", "Oilwell Basin", "Iceshard Cliffs", "Ruins of Wyveria"];
+						string[] gatheringSources = [.. item.Sources.Where(x => string.IsNullOrEmpty(x.QuestName) && string.IsNullOrEmpty(x.MonsterName)).OrderBy(x => Array.IndexOf(stageOrder, x.Stage)).ThenBy(x => x.Zone).Select(source => $"* [[{source.Stage}]] Zone {source.Zone}").Distinct()];
+						if (questSources.Length > 1)
+						{
+							content.AppendLine(@"<div class=""mw-collapsible"">
 ==Quests==
 <div class=mw-collapsible-content>
 <div class=""threecol"" style=""clear:both;"">
 <div>");
-								int rows = 0;
-								int eachCol = Convert.ToInt32(Math.Floor(questSources.Length / 3f));
-								Dictionary<int, int> cols = new() {
-								{ 0, eachCol },
-								{ 1, eachCol },
-								{ 2, eachCol },
-							};
-								int remainder = questSources.Length % 3;
-								if (remainder > 0)
-								{
-									for (int i = 0; i < remainder; i++)
-									{
-										cols[i]++;
-									}
-								}
-								int cells = 0;
-								foreach (string source in questSources)
-								{
-									if (cells >= cols[rows])
-									{
-										cells = 0;
-										if (rows < (cols.Count - 1))
-										{
-											rows++;
-										}
-										content.AppendLine("</div>\r\n<div>");
-									}
-									content.AppendLine(source);
-									cells++;
-								}
-								content.AppendLine(@"</div>
-</div>
-</div>
-</div>");
-							}
-							if (monsterSources.Length > 0)
-							{
-								content.AppendLine(@"<div class=""mw-collapsible"">
-==Monsters==
-<div class=mw-collapsible-content>
-{| class=""wikitable sortable mobile-sm"" style=""width: 100%""
-! Name || style=""white-space:wrap""| Source || Chance || Rank
-|-");
-								foreach (Models.Data.MHWilds.ItemSource monsterSource in monsterSources)
-								{
-									content.AppendLine($@"| [[{monsterSource.MonsterName}/MHWilds|{monsterSource.MonsterName}]]
-| {monsterSource.Circumstance}
-| {monsterSource.Probability}%
-| {monsterSource.Rank}
-|-");
-								}
-								content.AppendLine(@"
-|}
-</div>
-</div>");
-							}
-							if (gatheringSources.Length > 0)
-							{
-								content.AppendLine(@"<div class=""mw-collapsible"">
-== Gathering <ref>[[User:Cola|Cola's]] interactive MHWilds map (https://c-ola.github.io/wildsmap/)</ref>==
-<div class=mw-collapsible-content>
-<div class=""threecol"">
-<div>");
-								int rows = 0;
-								int eachCol = Convert.ToInt32(Math.Floor(gatheringSources.Length / 3f));
-								Dictionary<int, int> cols = new() {
-									{ 0, eachCol },
-									{ 1, eachCol },
-									{ 2, eachCol },
-								};
-								int remainder = gatheringSources.Length % 3;
-								if (remainder > 0)
-								{
-									for (int i = 0; i < remainder; i++)
-									{
-										cols[i]++;
-									}
-								}
-								int cells = 0;
-								foreach (string source in gatheringSources)
-								{
-									if (cells >= cols[rows])
-									{
-										cells = 0;
-										if (rows < (cols.Count - 1))
-										{
-											rows++;
-										}
-										content.AppendLine("</div>\r\n<div>");
-									}
-									content.AppendLine(source);
-									cells++;
-								}
-								content.AppendLine(@"</div>
-</div>
-</div>
-</div>");
-							}
-							//if you ever define what "other" is, put it here
-							//content.AppendLine(@"<div class=""mw-collapsible"">
-							//==Other==
-							//<div class=mw-collapsible-content>
-							//<div>
-							//<div>");
-							if (item.Equipment.Any())
-							{
-								content.AppendLine(@"=Forging=");
-								if (item.Equipment.Any(x => x.EquipmentType != "Armor"))
-								{
-									content.AppendLine(@"<div class=""mw-collapsible"">
-==Weapons==
-<div class=mw-collapsible-content>
-<div class=""threecol"">
-<div>");
-									Models.Data.MHWilds.ItemEquipment[] weapons = [.. item.Equipment.Where(x => x.EquipmentType != "Armor")];
-									int rows = 0;
-									int eachCol = Convert.ToInt32(Math.Floor(weapons.Length / 3f));
-									Dictionary<int, int> cols = new() {
-										{ 0, eachCol },
-										{ 1, eachCol },
-										{ 2, eachCol },
-									};
-									int remainder = weapons.Length % 3;
-									if (remainder > 0)
-									{
-										for (int i = 0; i < remainder; i++)
-										{
-											cols[i]++;
-										}
-									}
-									int cells = 0;
-									foreach (Models.Data.MHWilds.ItemEquipment weapon in weapons)
-									{
-										if (cells >= cols[rows])
-										{
-											cells = 0;
-											if (rows < (cols.Count - 1))
-											{
-												rows++;
-											}
-											content.AppendLine("</div>\r\n<div>");
-										}
-										content.AppendLine($"* [[{weapon.EquipmentName} (MHWilds)|{weapon.EquipmentName}]]");
-										cells++;
-									}
-									content.AppendLine(@"</div>
-</div>
-</div>
-</div>");
-								}
-								if (item.Equipment.Any(x => x.EquipmentType == "Armor"))
-								{
-									content.AppendLine(@"<div class=""mw-collapsible"">
-== Armor ==
-<div class=mw-collapsible-content>
-<div class=""threecol"">
-<div>");
-									Models.Data.MHWilds.ItemEquipment[] armor = [.. item.Equipment.Where(x => x.EquipmentType == "Armor")];
-									int rows = 0;
-									int eachCol = Convert.ToInt32(Math.Floor(armor.Length / 3f));
-									Dictionary<int, int> cols = new() {
-										{ 0, eachCol },
-										{ 1, eachCol },
-										{ 2, eachCol },
-									};
-									int remainder = armor.Length % 3;
-									if (remainder > 0)
-									{
-										for (int i = 0; i < remainder; i++)
-										{
-											cols[i]++;
-										}
-									}
-									int cells = 0;
-									foreach (Models.Data.MHWilds.ItemEquipment arm in armor)
-									{
-										if (cells >= cols[rows])
-										{
-											cells = 0;
-											if (rows < (cols.Count - 1))
-											{
-												rows++;
-											}
-											content.AppendLine("</div>\r\n<div>");
-										}
-										content.AppendLine($"* [[{arm.EquipmentName} (MHWilds)|{arm.EquipmentName}]]");
-										cells++;
-									}
-									content.AppendLine(@"</div>
-</div>
-</div>
-</div>");
-								}
-							}
-							content.AppendLine(@"[[Category:MHWilds Items]]");
-							await page.RefreshAsync();
-							await page.EditAsync(new WikiPageEditOptions()
-							{
-								Bot = true,
-								Content = content.ToString(),
-								Minor = true,
-								Summary = "Updated monster source format and added TU1 + Collab data",
-								Watch = AutoWatchBehavior.None
-							});
-							Console.WriteLine($"({cntr}/{mhwildsItems.Length}) {item.Name} created.");
-							cntr++;
-						}
-					}
-					else if (game == "MHWI")
-					{
-						Models.Data.MHWI.Items[] mhwiItems = [.. Models.Data.MHWI.Items.Fetch().Where(x => x.Name != "Unavailable" && x.Name != "HARDUMMY" && x.Name != "(None)")];
-						//						StringBuilder overviewPage = new();
-						//						overviewPage.AppendLine(@"{{#seo:
-						//|title=Items in Monster Hunter World: Iceborne
-						//|description=A list of all gatherable items in Monster Hunter World: Iceborne.
-						//|image=5thGen-Question Mark Icon White.png
-						//}}
-						//{{GenericNav|MHWI}}
-						//The following is a list of all items that appear in [[Monster Hunter World: Iceborne]].
-						//__TOC__");
-						//						Dictionary<TypeEnum, string> itemTypeDict = new()
-						//						{
-						//							{ TypeEnum.Item, "Consumables" },
-						//							{ TypeEnum.Material, "Materials" },
-						//							{ TypeEnum.AmmoOrCoating, "Ammo / Coatings" },
-						//							{ TypeEnum.AccountItem, "Account Items" },
-						//							{ TypeEnum.Jewel, "Jewels" },
-						//							{ TypeEnum.RoomDecoration, "Room Furnishings" },
-						//						};
-						//						TypeEnum? lastCat = null;
-						//						TypeEnum[] allTypes = [..mhwiItems.Select(x => x.Type!.Value).Distinct()];
-						//						foreach (TypeEnum type in allTypes)
-						//						{
-						//							foreach (Models.Data.MHWI.Items item in mhwiItems.Where(x => x.Type == type).OrderBy(x => x.Id))
-						//							{
-						//								if (lastCat != item.Type!.Value)
-						//								{
-						//									if (lastCat != null)
-						//									{
-						//										overviewPage.AppendLine("|}");
-						//									}
-						//									overviewPage.AppendLine($@"== {itemTypeDict[item.Type!.Value]} ==
-						//{{| class=""wikitable sortable mw-collapsible"" style=""width: 100%""
-						//! Name || Rarity || Buy Price || Sell Price || Carry || Description");
-						//									lastCat = item.Type!.Value;
-						//								}
-						//								overviewPage.AppendLine($@"|-
-						//| {{{{IconPickerUniversalAlt|MHWI|{(item.WikiIconName != "NOT AVAILABLE" ? item.WikiIconName : "Question Mark")}|{item.Name}|Color={GetIconColorName(item.WikiIconColor!.Value)}}}}}
-						//| align=""center"" | {(item.Rarity != null ? item.Rarity.Value.ToString() : "-")}
-						//| align=""center"" | {(item.BuyPrice != null ? item.BuyPrice.Value.ToString() + "z" : "-")}
-						//| align=""center"" | {(item.SellPrice != null ? item.SellPrice.Value.ToString() + "z" : "-")}
-						//| align=""center"" | {(item.CarryLimit != null ? item.CarryLimit.Value.ToString() : "-")}
-						//| {item.Description.Replace("<STYL MOJI_YELLOW_DEFAULT>", "<span style=\"color: #b29400;\">").Replace("</STYL>", "</span>")}");
-						//							}
-						//						}
-						//						overviewPage.AppendLine(@"|}
-						//[[Category:Items_by_Game_Appearance]]");
-						//						WikiPage overviewWikiPage = new(site, "MHWI/Items");
-						//						await overviewWikiPage.RefreshAsync();
-						//						await overviewWikiPage.EditAsync(new WikiPageEditOptions()
-						//						{
-						//							Bot = true,
-						//							Content = overviewPage.ToString(),
-						//							Minor = false,
-						//							Summary = "Created MHWI Item overview",
-						//							Watch = AutoWatchBehavior.None
-						//						});
-						//						Console.WriteLine($"Overview created.");
-						ItemCrafting[] itemCrafting = ItemCrafting.Fetch();
-						Armor[] allArmor = Armor.GetArmors();
-						WeaponCraftingData[] weaponCraft = WeaponCraftingData.GetCraftingData();
-						WeaponForgingData[] weaponForge = WeaponForgingData.GetForgingData();
-						GunnerData[] mhwiGuns = GunnerData.GetGunnerData();
-						BlademasterData[] mhwiBlades = BlademasterData.GetBlademasterData();
-						foreach (Models.Data.MHWI.Items item in mhwiItems)
-						{
-							WikiPage page = new(site, $"{item.Name} ({game})");
-							StringBuilder content = new();
-							content.AppendLine($@"{{{{GenericNav|MHWI}}}}
-<br>
-{{{{ItemInfobox
-|English Name = {item.Name}
-|Japanese Name = {GetMHWIItemJPNName(item.Name)}
-|Type = {item.Type}
-|Image = MHWI-{(item.WikiIconName != "NOT AVAILABLE" ? item.WikiIconName : "Question Mark")} Icon {GetIconColorName(item.WikiIconColor!.Value)}.png
-|Description = {item.Description.Replace("<STYL MOJI_YELLOW_DEFAULT>", "<span style=\"color: #b29400;\">").Replace("</STYL>", "</span>")}
-|Rarity = {item.Rarity}
-|Price = {item.SellPrice}z
-|Carry Limit = {item.CarryLimit}x
-}}}}
-
-=Crafting Recipes=
-{{| class=""wikitable"" style=""text-align:center;""
-! Number !! Result !! !! Material A !! !! Material B
-|-");
-							foreach (ItemCrafting combination in itemCrafting.Where(x => x.ResultId == item.Id))
-							{
-								Models.Data.MHWI.Items matA = mhwiItems.First(x => x.Id == combination.Mat1Id);
-								Models.Data.MHWI.Items? matB = null;
-								if (combination.Mat2Id != null && combination.Mat2Id > 0)
-								{
-									matB = mhwiItems.First(x => x.Id == combination.Mat2Id);
-								}
-								content.AppendLine($@"| {combination.Qty} || {{{{GenericItemLink|MHWI|{item.Name}|{(item.WikiIconName != "NOT AVAILABLE" ? item.WikiIconName : "Question Mark")}|{GetIconColorName(item.WikiIconColor!.Value)}}}}} || '''=''' || {{{{GenericItemLink|MHWI|{matA.Name}|{(matA.WikiIconName != "NOT AVAILABLE" ? matA.WikiIconName : "Question Mark")}|{GetIconColorName(matA.WikiIconColor!.Value)}}}}}  || '''+''' || {(matB == null ? "-" : $"{{{{GenericItemLink|MHWI|{matB.Name}|{(matB.WikiIconName != "NOT AVAILABLE" ? matB.WikiIconName : "Question Mark")}|{GetIconColorName(matB.WikiIconColor!.Value)}}}}}")}
-|-");
-							}
-							content.AppendLine(@"|}
-=Sources=
-=Forging=
-==Weapons==
-<div class=""threecol"">
-<div>");
-							string[] weapons = GetEquipmentLinks(item, mhwiBlades, mhwiGuns, weaponCraft, weaponForge);
 							int rows = 0;
-							int eachCol = Convert.ToInt32(Math.Floor(weapons.Length / 3f));
+							int eachCol = Convert.ToInt32(Math.Floor(questSources.Length / 3f));
 							Dictionary<int, int> cols = new() {
 								{ 0, eachCol },
 								{ 1, eachCol },
 								{ 2, eachCol },
 							};
-							int remainder = weapons.Length % 3;
+							int remainder = questSources.Length % 3;
 							if (remainder > 0)
 							{
 								for (int i = 0; i < remainder; i++)
@@ -4993,7 +4947,7 @@ __TOC__
 								}
 							}
 							int cells = 0;
-							foreach (string weapon in weapons)
+							foreach (string source in questSources)
 							{
 								if (cells >= cols[rows])
 								{
@@ -5004,23 +4958,50 @@ __TOC__
 									}
 									content.AppendLine("</div>\r\n<div>");
 								}
-								content.AppendLine($"* {weapon}");
+								content.AppendLine(source);
 								cells++;
 							}
 							content.AppendLine(@"</div>
 </div>
-==Armor==
+</div>
+</div>");
+						}
+						if (monsterSources.Length > 0)
+						{
+							content.AppendLine(@"<div class=""mw-collapsible"">
+==Monsters==
+<div class=mw-collapsible-content>
+{| class=""wikitable sortable mobile-sm"" style=""width: 100%""
+! Name || style=""white-space:wrap""| Source || Chance || Rank
+|-");
+							foreach (ItemSource monsterSource in monsterSources)
+							{
+								content.AppendLine($@"| [[{monsterSource.MonsterName}/MHWilds|{monsterSource.MonsterName}]]
+| {monsterSource.Circumstance}
+| {monsterSource.Probability}%
+| {monsterSource.Rank}
+|-");
+							}
+							content.AppendLine(@"
+|}
+</div>
+</div>");
+						}
+						if (gatheringSources.Length > 0)
+						{
+							content.AppendLine(@"<div class=""mw-collapsible"">
+== Gathering <ref>[[User:Cola|Cola's]] interactive MHWilds map (https://c-ola.github.io/wildsmap/)</ref>==
+<div class=mw-collapsible-content>
 <div class=""threecol"">
 <div>");
-							string[] armor = GetArmorStrings(item, allArmor);
-							rows = 0;
-							eachCol = Convert.ToInt32(Math.Floor(armor.Length / 3f));
-							cols = new() {
-								{ 0, eachCol },
-								{ 1, eachCol },
-								{ 2, eachCol },
-							};
-							remainder = armor.Length % 3;
+							int rows = 0;
+							int eachCol = Convert.ToInt32(Math.Floor(gatheringSources.Length / 3f));
+							Dictionary<int, int> cols = new() {
+									{ 0, eachCol },
+									{ 1, eachCol },
+									{ 2, eachCol },
+								};
+							int remainder = gatheringSources.Length % 3;
 							if (remainder > 0)
 							{
 								for (int i = 0; i < remainder; i++)
@@ -5028,8 +5009,8 @@ __TOC__
 									cols[i]++;
 								}
 							}
-							cells = 0;
-							foreach (string arm in armor)
+							int cells = 0;
+							foreach (string source in gatheringSources)
 							{
 								if (cells >= cols[rows])
 								{
@@ -5040,31 +5021,254 @@ __TOC__
 									}
 									content.AppendLine("</div>\r\n<div>");
 								}
-								content.AppendLine($"* {arm}");
+								content.AppendLine(source);
 								cells++;
 							}
 							content.AppendLine(@"</div>
 </div>
-[[Category:MHWI Items]]");
-							await page.RefreshAsync(PageQueryOptions.FetchContent);
-							await page.EditAsync(new WikiPageEditOptions()
-							{
-								Bot = true,
-								Content = content.ToString(),
-								Minor = false,
-								Summary = "Added MHWI Item Pages",
-								Watch = AutoWatchBehavior.None
-							});
-							Console.WriteLine($"({cntr}/{mhwiItems.Length}) {item.Name} created.");
-							cntr++;
+</div>
+</div>");
 						}
+						//if you ever define what "other" is, put it here
+						//content.AppendLine(@"<div class=""mw-collapsible"">
+						//==Other==
+						//<div class=mw-collapsible-content>
+						//<div>
+						//<div>");
+						if (item.Equipment.Any())
+						{
+							content.AppendLine(@"=Forging=");
+							if (item.Equipment.Any(x => x.EquipmentType != "Armor"))
+							{
+								content.AppendLine(@"<div class=""mw-collapsible"">
+==Weapons==
+<div class=mw-collapsible-content>
+<div class=""threecol"">
+<div>");
+								ItemEquipment[] weapons = [.. item.Equipment.Where(x => x.EquipmentType != "Armor")];
+								int rows = 0;
+								int eachCol = Convert.ToInt32(Math.Floor(weapons.Length / 3f));
+								Dictionary<int, int> cols = new() {
+										{ 0, eachCol },
+										{ 1, eachCol },
+										{ 2, eachCol },
+									};
+								int remainder = weapons.Length % 3;
+								if (remainder > 0)
+								{
+									for (int i = 0; i < remainder; i++)
+									{
+										cols[i]++;
+									}
+								}
+								int cells = 0;
+								foreach (ItemEquipment weapon in weapons)
+								{
+									if (cells >= cols[rows])
+									{
+										cells = 0;
+										if (rows < (cols.Count - 1))
+										{
+											rows++;
+										}
+										content.AppendLine("</div>\r\n<div>");
+									}
+									content.AppendLine($"* [[{weapon.EquipmentName} (MHWilds)|{weapon.EquipmentName}]]");
+									cells++;
+								}
+								content.AppendLine(@"</div>
+</div>
+</div>
+</div>");
+							}
+							if (item.Equipment.Any(x => x.EquipmentType == "Armor"))
+							{
+								content.AppendLine(@"<div class=""mw-collapsible"">
+== Armor ==
+<div class=mw-collapsible-content>
+<div class=""threecol"">
+<div>");
+								ItemEquipment[] armor = [.. item.Equipment.Where(x => x.EquipmentType == "Armor")];
+								int rows = 0;
+								int eachCol = Convert.ToInt32(Math.Floor(armor.Length / 3f));
+								Dictionary<int, int> cols = new() {
+										{ 0, eachCol },
+										{ 1, eachCol },
+										{ 2, eachCol },
+									};
+								int remainder = armor.Length % 3;
+								if (remainder > 0)
+								{
+									for (int i = 0; i < remainder; i++)
+									{
+										cols[i]++;
+									}
+								}
+								int cells = 0;
+								foreach (ItemEquipment arm in armor)
+								{
+									if (cells >= cols[rows])
+									{
+										cells = 0;
+										if (rows < (cols.Count - 1))
+										{
+											rows++;
+										}
+										content.AppendLine("</div>\r\n<div>");
+									}
+									content.AppendLine($"* [[{arm.EquipmentName} (MHWilds)|{arm.EquipmentName}]]");
+									cells++;
+								}
+								content.AppendLine(@"</div>
+</div>
+</div>
+</div>");
+							}
+						}
+						content.AppendLine(@"[[Category:MHWilds Items]]");
+						allItemUploads.Add(page.EditAsync(new WikiPageEditOptions()
+						{
+							Bot = true,
+							Content = content.ToString(),
+							Minor = true,
+							Summary = "Added missing data",
+							Watch = AutoWatchBehavior.None
+						}));
 					}
 				}
-				catch (WikiClientException ex)
+				else if (game == "MHWI" || game == "MHWorld")
 				{
-					Console.WriteLine(ex.Message);
+					Models.Data.MHWI.Items[] mhwiItems = [.. Models.Data.MHWI.Items.Fetch().Where(x => x.Name != "Unavailable" && x.Name != "HARDUMMY" && x.Name != "(None)" && x.Name != "--------" && (game == "MHWI" || x.Id!.Value < 1000))];
+					totalCntr = mhwiItems.Length;
+					Models.Data.MHWI.ItemCrafting[] itemCrafting = Models.Data.MHWI.ItemCrafting.Fetch();
+					Armor[] allArmor = Armor.GetArmors();
+					WeaponCraftingData[] weaponCraft = WeaponCraftingData.GetCraftingData();
+					WeaponForgingData[] weaponForge = WeaponForgingData.GetForgingData();
+					GunnerData[] mhwiGuns = GunnerData.GetGunnerData();
+					BlademasterData[] mhwiBlades = BlademasterData.GetBlademasterData();
+					foreach (Models.Data.MHWI.Items item in mhwiItems.Take(25))
+					{
+						WikiPage page = client.GetPage($"{item.Name} ({game})");
+						StringBuilder content = new();
+						content.AppendLine($@"{{{{GenericNav|{game}}}}}
+<br>
+{{{{ItemInfobox
+|English Name = {item.Name}
+|Japanese Name = {GetMHWIItemJPNName(item.Name)}
+|Type = {item.Category}
+|Image = MHWI-{(item.WikiIconName != "NOT AVAILABLE" ? item.WikiIconName : "Question Mark")} Icon {item.WikiIconColor}.png
+|Description = {item.Description.Replace("<STYL MOJI_YELLOW_DEFAULT>", "<span style=\"color: #b29400;\">").Replace("</STYL>", "</span>")}
+|Rarity = {item.Rarity + 1}
+|Price = {item.SellPrice}z
+|Carry Limit = {item.CarryLimit}x
+}}}}
+
+=Crafting Recipes=
+{{| class=""wikitable"" style=""text-align:center;""
+! Number !! Result !! !! Material A !! !! Material B
+|-");
+						foreach (Models.Data.MHWI.ItemCrafting combination in itemCrafting.Where(x => x.ResultId == item.Id))
+						{
+							Models.Data.MHWI.Items matA = mhwiItems.First(x => x.Id == combination.Mat1Id);
+							Models.Data.MHWI.Items? matB = null;
+							if (combination.Mat2Id != null && combination.Mat2Id > 0)
+							{
+								matB = mhwiItems.First(x => x.Id == combination.Mat2Id);
+							}
+							content.AppendLine($@"| {combination.Qty} || {{{{GenericItemLink|{game}|{item.Name}|{(item.WikiIconName != "NOT AVAILABLE" ? item.WikiIconName : "Question Mark")}|{item.WikiIconColor}}}}} || '''=''' || {{{{GenericItemLink|{game}|{matA.Name}|{(matA.WikiIconName != "NOT AVAILABLE" ? matA.WikiIconName : "Question Mark")}|{matA.WikiIconColor}}}}}  || '''+''' || {(matB == null ? "-" : $"{{{{GenericItemLink|{game}|{matB.Name}|{(matB.WikiIconName != "NOT AVAILABLE" ? matB.WikiIconName : "Question Mark")}|{matB.WikiIconColor}}}}}")}
+|-");
+						}
+						content.AppendLine(@"|}
+=Sources=
+=Forging=
+==Weapons==
+<div class=""threecol"">
+<div>");
+						string[] weapons = GetEquipmentLinks(item, mhwiBlades, mhwiGuns, weaponCraft, weaponForge);
+						int rows = 0;
+						int eachCol = Convert.ToInt32(Math.Floor(weapons.Length / 3f));
+						Dictionary<int, int> cols = new() {
+							{ 0, eachCol },
+							{ 1, eachCol },
+							{ 2, eachCol },
+						};
+						int remainder = weapons.Length % 3;
+						if (remainder > 0)
+						{
+							for (int i = 0; i < remainder; i++)
+							{
+								cols[i]++;
+							}
+						}
+						int cells = 0;
+						foreach (string weapon in weapons)
+						{
+							if (cells >= cols[rows])
+							{
+								cells = 0;
+								if (rows < (cols.Count - 1))
+								{
+									rows++;
+								}
+								content.AppendLine("</div>\r\n<div>");
+							}
+							content.AppendLine($"* {weapon}");
+							cells++;
+						}
+						content.AppendLine(@"</div>
+</div>
+==Armor==
+<div class=""threecol"">
+<div>");
+						string[] armor = GetArmorStrings(item, allArmor);
+						rows = 0;
+						eachCol = Convert.ToInt32(Math.Floor(armor.Length / 3f));
+						cols = new() {
+							{ 0, eachCol },
+							{ 1, eachCol },
+							{ 2, eachCol },
+						};
+						remainder = armor.Length % 3;
+						if (remainder > 0)
+						{
+							for (int i = 0; i < remainder; i++)
+							{
+								cols[i]++;
+							}
+						}
+						cells = 0;
+						foreach (string arm in armor)
+						{
+							if (cells >= cols[rows])
+							{
+								cells = 0;
+								if (rows < (cols.Count - 1))
+								{
+									rows++;
+								}
+								content.AppendLine("</div>\r\n<div>");
+							}
+							content.AppendLine($"* {arm}");
+							cells++;
+						}
+						content.AppendLine($@"</div>
+</div>
+[[Category:{game} Items]]");
+						allItemUploads.Add(page.EditAsync(new WikiPageEditOptions()
+						{
+							Bot = true,
+							Content = content.ToString(),
+							Minor = true,
+							Summary = $"Added {game} Item Pages",
+							Watch = AutoWatchBehavior.None
+						}));
+						Console.WriteLine($"({cntr}/{mhwiItems.Length}) {item.Name} upload task added to queue.");
+						cntr++;
+					}
 				}
-				await site.LogoutAsync();
+				Console.WriteLine($"Finished building pages! Elapsed: {DateTime.Now - start}");
+				client.AsyncTasks = [.. allItemUploads];
+				await client.Execute();
 			}
 		}
 
@@ -5092,58 +5296,6 @@ __TOC__
 				.Replace("Kulve Taroth", "[[Kulve Taroth/MHWI|Kulve Taroth]]")
 				.Replace("Contract: Trouble in the [[Ancient Forest]]", "Contract: Trouble in the Ancient Forest")
 				.Replace("A Visitor From Eorzea", "A Visitor from Eorzea");
-		}
-
-		private static string GetIconColorName(WikiIconColor color)
-		{
-			switch (color)
-			{
-				case WikiIconColor.NA:
-					return "White";
-				case WikiIconColor.Blue:
-					return "Blue";
-				case WikiIconColor.Brown:
-					return "Brown";
-				case WikiIconColor.DarkPurple:
-					return "Dark Purple";
-				case WikiIconColor.Emerald:
-					return "Emerald";
-				case WikiIconColor.Gray:
-					return "Gray";
-				case WikiIconColor.Green:
-					return "Green";
-				case WikiIconColor.Lemon:
-					return "Lemon";
-				case WikiIconColor.LightBlue:
-					return "Light Blue";
-				case WikiIconColor.Moss:
-					return "Moss";
-				case WikiIconColor.NotAvailable:
-					return "White";
-				case WikiIconColor.Orange:
-					return "Orange";
-				case WikiIconColor.Pink:
-					return "Pink";
-				case WikiIconColor.Purple:
-					return "Purple";
-				case WikiIconColor.Red:
-					return "Red";
-				case WikiIconColor.Rose:
-					return "Rose";
-				case WikiIconColor.Tan:
-					return "Tan";
-				case WikiIconColor.Violet:
-					return "Violet";
-				case WikiIconColor.White:
-					return "White";
-				case WikiIconColor.Yellow:
-					return "Yellow";
-				case WikiIconColor.Vermilion:
-					return "Vermilion";
-				case WikiIconColor.LightGreen:
-					return "Light Green";
-				default: return "White";
-			}
 		}
 
 		private static string[] GetEquipmentLinks(Models.Data.MHWI.Items item, BlademasterData[] blades, GunnerData[] guns, WeaponCraftingData[] craftingData, WeaponForgingData[] forgingData)
@@ -5293,7 +5445,7 @@ __TOC__
 					.Select(x => $"[[{x.SetName} (MHWI)#{x.Name}|{x.Name}]]")];
 		}
 
-		private static bool DoesForgeMatchItem(GunnerData parent, WeaponForgingData parentCraft, Models.Data.MHWI.Items item)
+		public static bool DoesForgeMatchItem(GunnerData parent, WeaponForgingData parentCraft, Models.Data.MHWI.Items item)
 		{
 			return new Tuple<long?, long?>[] {
 				new(parentCraft.Mat1Id, parentCraft.Mat1Count),
@@ -5305,7 +5457,7 @@ __TOC__
 			.Any(x => x.Item1.Value == item.Id);
 		}
 
-		private static bool DoesMatchItem(GunnerData parent, WeaponCraftingData parentCraft, Models.Data.MHWI.Items item)
+		public static bool DoesMatchItem(GunnerData parent, WeaponCraftingData parentCraft, Models.Data.MHWI.Items item)
 		{
 			return new Tuple<long?, long?>[] {
 				new(parentCraft.Mat1Id, parentCraft.Mat1Count),
@@ -5317,7 +5469,7 @@ __TOC__
 			.Any(x => x.Item1.Value == item.Id);
 		}
 
-		private static bool DoesForgeMatchItem(BlademasterData parent, WeaponForgingData parentCraft, Models.Data.MHWI.Items item)
+		public static bool DoesForgeMatchItem(BlademasterData parent, WeaponForgingData parentCraft, Models.Data.MHWI.Items item)
 		{
 			return new Tuple<long?, long?>[] {
 				new(parentCraft.Mat1Id, parentCraft.Mat1Count),
@@ -5329,7 +5481,7 @@ __TOC__
 			.Any(x => x.Item1.Value == item.Id);
 		}
 
-		private static bool DoesMatchItem(BlademasterData parent, WeaponCraftingData parentCraft, Models.Data.MHWI.Items item)
+		public static bool DoesMatchItem(BlademasterData parent, WeaponCraftingData parentCraft, Models.Data.MHWI.Items item)
 		{
 			return new Tuple<long?, long?>[] {
 				new(parentCraft.Mat1Id, parentCraft.Mat1Count),
@@ -5341,7 +5493,7 @@ __TOC__
 			.Any(x => x.Item1.Value == item.Id);
 		}
 
-		private static string GetMHWIItemJPNName(string itemName)
+		public static string GetMHWIItemJPNName(string itemName)
 		{
 			if (itemName.StartsWith("Warrior's Streamstone"))
 			{
@@ -6218,7 +6370,7 @@ __TOC__
 		{
 			using (WikiClient client = new()
 			{
-				ClientUserAgent = "MHWikiToolkit/1.1.2 " + System.Configuration.ConfigurationManager.AppSettings.Get("WikiUsername")!,
+				ClientUserAgent = "MHWikiToolkit/" + Assembly.GetEntryAssembly()!.GetName().Version + " " + System.Configuration.ConfigurationManager.AppSettings.Get("WikiUsername")!,
 			})
 			{
 				WikiSite site = new(client, "https://monsterhunterwiki.org/api.php");
@@ -6252,7 +6404,7 @@ __TOC__
 			}
 		}
 
-		public static async Task UploadArmorWithAPI(string game)
+		public static async Task UploadArmorWithAPI(string game, bool onlyNewPages = false, int? rarityUnder = null)
 		{
 			string username = "";
 			string password = "";
@@ -6273,7 +6425,7 @@ __TOC__
 			Dictionary<Models.ArmorSets.WebToolkitData, string> src = ArmorSets.MassGenerate(game);
 			using (WikiClient client = new()
 			{
-				ClientUserAgent = "MHWikiToolkit/1.1.2 " + System.Configuration.ConfigurationManager.AppSettings.Get("WikiUsername")!
+				ClientUserAgent = "MHWikiToolkit/" + Assembly.GetEntryAssembly()!.GetName().Version + " " + System.Configuration.ConfigurationManager.AppSettings.Get("WikiUsername")!
 			})
 			{
 				WikiSite site = new(client, "https://monsterhunterwiki.org/api.php");
@@ -6287,18 +6439,32 @@ __TOC__
 					Console.WriteLine(ex.Message);
 				}
 				int totalCntr = 1;
+				Dictionary<Models.ArmorSets.WebToolkitData, string> allArmor = src.Where(x => x.Key.SetName != "Unavailable" && x.Key.SetName != "HARDUMMY").ToDictionary(x => x.Key, x => x.Value);
+				int total = allArmor.Count;
 				DateTime lastWrite = DateTime.MinValue;
-				foreach (KeyValuePair<Models.ArmorSets.WebToolkitData, string> data in src.Where(x => x.Key.SetName != "Unavailable" && x.Key.SetName != "HARDUMMY"))
+				foreach (KeyValuePair<Models.ArmorSets.WebToolkitData, string> data in allArmor)
 				{
 					WikiPage page = new(site, $"{data.Key.SetName} Set ({game})");
-					await page.EditAsync(new WikiPageEditOptions()
+					await page.RefreshAsync(PageQueryOptions.FetchContent);
+					if ((onlyNewPages && !page.Exists) || !onlyNewPages)
 					{
-						Content = data.Value,
-						Minor = false,
-						Bot = true,
-						Summary = "Auto-updated using the API through MH Wiki Toolkit."
-					});
-					Console.WriteLine($"Edited page \"{data.Key.SetName}\" ({totalCntr}/{src.Count})");
+						await page.EditAsync(new WikiPageEditOptions()
+						{
+							Content = data.Value,
+							Minor = false,
+							Bot = true,
+							Summary = "Auto-updated using the API through MH Wiki Toolkit."
+						});
+						Console.WriteLine($"Edited page \"{page.Title}\" ({totalCntr}/{src.Count})");
+					}
+					else
+					{
+						Console.WriteLine($"({totalCntr}/{total}) Skipped page \"{page.Title}\"");
+					}
+					if (totalCntr >= 5)
+					{
+						Debugger.Break();
+					}
 					totalCntr++;
 				}
 				StringBuilder setList = new();
@@ -6316,7 +6482,7 @@ The following is a list of all armor sets that appear in [[{gameNameFull}]] and 
 __TOC__");
 				string lastRank = "";
 				long? lastRarity = null;
-				foreach (Models.ArmorSets.WebToolkitData data in src.Keys.OrderBy(x => x.Rarity))
+				foreach (Models.ArmorSets.WebToolkitData data in allArmor.Keys.OrderBy(x => x.Rarity))
 				{
 					bool newRarity = false;
 					if (lastRarity == null || lastRarity != data.Rarity)
@@ -6368,7 +6534,7 @@ __TOC__");
 			Console.WriteLine("Elapsed: " + elapsed.ToString());
 		}
 
-		public static async Task UploadWeaponsWithAPI(string game, bool onlyNewPages = false)
+		public static async Task UploadWeaponsWithAPI(string game, bool onlyNewPages = false, bool noNewPages = false, bool onlyNames = false)
 		{
 			Models.Data.MHWI.Skills[] allSkills = Models.Data.MHWI.Skills.GetSkills();
 			string username = "";
@@ -6387,10 +6553,10 @@ __TOC__");
 				password = Console.ReadLine()!;
 			}
 			DateTime start = DateTime.Now;
-			Dictionary<WebToolkitData, string> src = Weapon.MassGenerate(game, false);
+			Dictionary<WebToolkitData, string> src = Weapon.MassGenerate(game, onlyNames);
 			using (WikiClient client = new()
 			{
-				ClientUserAgent = "MHWikiToolkit/1.1.2 " + System.Configuration.ConfigurationManager.AppSettings.Get("WikiUsername")!
+				ClientUserAgent = "MHWikiToolkit/" + Assembly.GetEntryAssembly()!.GetName().Version + " " + System.Configuration.ConfigurationManager.AppSettings.Get("WikiUsername")!
 			})
 			{
 				WikiSite site = new(client, "https://monsterhunterwiki.org/api.php");
@@ -6459,7 +6625,7 @@ __TOC__");
 					if (src.Keys.Count(x => x.Name == data.Key.Name!) > 1 && Weapon.GetRank(game, data.Key.Rarity) == "MR")
 					{
 						name = data.Key.Name + " (MR)";
-						if (!data.Key.Name!.StartsWith("Safi's") && data.Key.Tree == "Unavailable" && data.Key.Game == "MHWI")
+						if (!data.Key.Name!.StartsWith("Safi's") && data.Key.Tree == "Unavailable" && (data.Key.Game == "MHWI" || data.Key.Game == "MHWorld"))
 						{
 							string[] statuses = ["Poison", "Paralysis", "Sleep", "Blast"];
 							int otherRarity = (int)src.Keys.First(x => x.Name == data.Key.Name && x.Type == data.Key.Type && x.Rarity != data.Key.Rarity).Rarity!.Value;
@@ -6498,15 +6664,28 @@ __TOC__");
 					//WikiPage page = new(site, $"User:RampageRobot/Sandbox/{Weapon.GetWeaponTypeFullName(data.Key.Type!).Item1.Replace(" ", "")}");
 					WikiPage page = new(site, $"{name}_({game})");
 					await page.RefreshAsync(PageQueryOptions.FetchContent);
-					if ((onlyNewPages && !page.Exists) || !onlyNewPages)
+					if (((onlyNewPages && !page.Exists) || !onlyNewPages) && ((noNewPages && page.Exists) || !noNewPages))
 					{
-						await page.EditAsync(new WikiPageEditOptions()
+						if (onlyNames)
 						{
-							Content = Weapon.SingleGenerate(game, data.Key, [.. src.Keys]),
-							Minor = true,
-							Bot = true,
-							Summary = "Auto-updated using the API through MH Wiki Toolkit."
-						});
+							await page.EditAsync(new WikiPageEditOptions()
+							{
+								Content = $"{{{{#invoke:{game}|generateWeapon|{data.Key.Name}}}}}",
+								Minor = false,
+								Bot = true,
+								Summary = "Swapped to module invocation using the API through MH Wiki Toolkit."
+							});
+						}
+						else
+						{
+							await page.EditAsync(new WikiPageEditOptions()
+							{
+								Content = Weapon.SingleGenerate(game, data.Key, [.. src.Keys]),
+								Minor = true,
+								Bot = true,
+								Summary = "Swapped to module invocation using the API through MH Wiki Toolkit."
+							});
+						}
 						Console.WriteLine($"({totalCntr}/{total}) Edited page \"{name}\"");
 					}
 					else
@@ -6526,6 +6705,37 @@ __TOC__");
 		public static JArray GetWildsMessages(string file)
 		{
 			return JsonConvert.DeserializeObject<JObject>(File.ReadAllText(file))!.Value<JArray>("entries")!;
+		}
+
+		public static void GenerateNeededTranslations()
+		{
+			GetMonstersFiles().Wait();
+			List<string[]> neededTranslations = [];
+			JObject monsterData = JsonConvert.DeserializeObject<JObject>(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\monsterData.json"))!;
+			neededTranslations.AddRange(monsterData.Values().Select(x => new string[] { x.Value<string>("Name"), x.Value<string>("Title") }));
+			File.WriteAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\neededTranslations.txt", string.Join("\r\n", neededTranslations.Select(x => string.Join("\t", x))));
+		}
+
+		private static void Client_ClientLog(object? sender, WikiClientLogEventArgs e)
+		{
+			if (e.LogType == WikiClientLogTypes.ERROR)
+			{
+				Console.WriteLine(e.LogMessage);
+				Console.WriteLine(JsonConvert.SerializeObject(e.Exception));
+			}
+			else
+			{
+				Console.SetCursorPosition(0, Console.CursorTop - 1);
+				ClearCurrentConsoleLine();
+				Console.WriteLine(e.LogMessage);
+			}
+		}
+		private static void ClearCurrentConsoleLine()
+		{
+			int currentLineCursor = Console.CursorTop;
+			Console.SetCursorPosition(0, Console.CursorTop);
+			Console.Write(new string(' ', Console.WindowWidth));
+			Console.SetCursorPosition(0, currentLineCursor);
 		}
 	}
 

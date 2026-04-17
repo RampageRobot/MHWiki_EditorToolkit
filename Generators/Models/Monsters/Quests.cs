@@ -1,14 +1,11 @@
 ﻿using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace MediawikiTranslator.Models.Monsters
 {
     public class Quests
     {
+        public int Order { get; set; } = 0;
         public int Id { get; set; }
         public string Rank { get; set; } = string.Empty;
         public int Stars { get; set; }
@@ -20,20 +17,56 @@ namespace MediawikiTranslator.Models.Monsters
         public bool[] IsTempered { get; set; } = [];
 		public bool QuestIsAT { get; set; }
 
-		private static Dictionary<string, Quests> QuestInfo { get; set; } = [];
-
-        public static Quests[] FetchQuests(string? monsterName = null)
+        public static Quests[] FetchQuests(Games game = Games.MHWI, string? monsterName = null)
         {
-            if (QuestInfo.Count == 0)
+            if (game == Games.MHWI || game == Games.MHWorld)
             {
-                QuestInfo = JsonConvert.DeserializeObject<Dictionary<string, Quests>>(File.ReadAllText($@"{System.Configuration.ConfigurationManager.AppSettings.Get("DesktopPath")}test monster stuff\MHWI\questInfo.json"))!;
+				Dictionary<string, Quests> questInfo = JsonConvert.DeserializeObject<Dictionary<string, Quests>>(File.ReadAllText($@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWI\Monster Data\questInfo.json"))!;
+                if (game == Games.MHWorld)
+                {
+                    questInfo = questInfo.Where(x => x.Value.Rank != "Master Rank").ToDictionary(x => x.Key, x => x.Value);
+                }
+                Quests[] allQuestsForMonster = [..questInfo.Where(x => x.Value.ObjectiveMonsters.Any(y => monsterName == null || y == monsterName)).Select(x => x.Value)];
+                int cntr = 0;
+                foreach (Quests q in allQuestsForMonster)
+                {
+                    q.Order = cntr;
+                    cntr++;
+                }
+				return allQuestsForMonster;
+			}
+            else if (game == Games.MHRS || game == Games.MHRise)
+            {
+                Models.Quests.WebToolkitData[] src = Data.MHRS.Quests.GetWebToolkitData();
+                if (game == Games.MHRise)
+                {
+                    src = [.. src.Where(x => x.Rank != "Master Rank")];
+                }
+                return [.. src.Where(x => x.TargetMonsters!.Any(y => y == monsterName))
+                    .OrderBy(x => x.RankLevel)
+                    .Select((x, y) => new Quests() {
+                        Locale = x.Locale!,
+                        QuestIsAT = false,
+                        Id = x.Id,
+                        MonstersInZone = x.OtherMonstersLarge!,
+                        Name = x.QuestName!,
+                        IsTempered = [..x.TargetMonsters.Select(x => false)],
+                        ObjectiveMonsters = x.TargetMonsters!,
+                        Order = y + 1,
+                        ObjectiveType = x.QuestType!,
+                        Rank = x.Rank!,
+                        Stars = x.RankLevel!
+                    })];
             }
-            return [..QuestInfo.Where(x => x.Value.ObjectiveMonsters.Any(y => monsterName == null || y == monsterName)).Select(x => x.Value)];
+            else
+            {
+                return [];
+            }
         }
 
 		public static string Format(Quests[] quests, string monsterName)
         {
-            Dictionary<string, string>[] objInfo = JsonConvert.DeserializeObject<Dictionary<string, string>[]>(File.ReadAllText($@"{System.Configuration.ConfigurationManager.AppSettings.Get("DesktopPath")}test monster stuff\MHWI\questObjectiveTypes.json"))!;
+            Dictionary<string, string>[] objInfo = JsonConvert.DeserializeObject<Dictionary<string, string>[]>(File.ReadAllText($@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWI\Monster DataquestObjectiveTypes.json"))!;
             StringBuilder sb = new();
             sb.AppendLine(@"==Quests Targeting This Monster==
 {| class=""wikitable mobile-sm sortable"" style=""text-align:center;margin:auto""

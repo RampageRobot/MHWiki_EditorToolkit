@@ -14,7 +14,7 @@ namespace MediawikiTranslator.Models.Data.MHRS
 		public static DecorationsParam[] GetDecorations()
 		{
 			SkillsParam[] allSkills = Skills.GetSkills();
-			DecorationsParam[] src = FromJson(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Raw Data\MHRS\natives\stm\data\define\player\equip\decorations\decorationsbasedata.user.2.json")).SnowDataDecorationsBaseUserData.Param;
+			DecorationsParam[] src = FromJson(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHRS\natives\stm\data\define\player\equip\decorations\decorationsbasedata.user.2.json")).SnowDataDecorationsBaseUserData.Param;
 			List<DecorationsParam> ret = [];
 			foreach (DecorationsParam deco in src)
 			{

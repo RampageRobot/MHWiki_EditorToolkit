@@ -3,20 +3,43 @@ using MediawikiTranslator.Models.ArmorSets;
 using MediawikiTranslator.Models.DamageTable;
 using MediawikiTranslator.Models.Data.MHWI;
 using Newtonsoft.Json;
-using System;
-using System.Linq.Expressions;
-using System.Text;
 
 namespace MediawikiTranslator.Models.Monsters
 {
-    public class Equipment
-    {
-        public List<Weapon.WebToolkitData> Weapons { get; set; } = [];
-		public List<WebToolkitData> Armor { get; set; } = [];
+	public class SimpleWeapon(Weapon.WebToolkitData src)
+	{
+		public int Order { get; set; } = 0;
+		public string? Name { get; set; } = src.Name;
+		public long? Rarity { get; set; } = src.Rarity;
+		public string? Type { get; set; } = src.Type;
+		public string? Tree { get; set; } = src.Tree;
+		public string? MonsterName { get; set; } = src.MonsterName;
+	}
+
+	public class SimpleArmor(WebToolkitData src)
+	{
+		public int Order { get; set; } = 0;
+		public string SetName { get; set; } = src.SetName;
+		public long? Rarity { get; set; } = src.Rarity;
+		public string Rank { get; set; } = src.Rank;
+		public SimplePiece[] Pieces { get; set; } = [..src.Pieces.Select(x => new SimplePiece(x))];
+	}
+
+	public class SimplePiece(Piece src)
+	{
+		public int Order { get; set; } = 0;
+		public string Name { get; set; } = src.Name;
+		public string IconType { get; set; } = src.IconType;
+	}
+
+	public class SimpleEquipment
+	{
+		public List<SimpleWeapon> Weapons { get; set; } = [];
+		public List<SimpleArmor> Armor { get; set; } = [];
 		private static dynamic[] BookInfo { get; set; } = [];
 		public static List<string> badMonsterNames { get; set; } = [];
 
-		public Equipment(string monsterName, Games game)
+		public SimpleEquipment(string monsterName, Games game)
 		{
 			if (game == Games.MHWI || game == Games.MHWorld)
 			{
@@ -30,9 +53,9 @@ namespace MediawikiTranslator.Models.Monsters
 					Weapon.WebToolkitData[] allBlades = BlademasterData.GetToolkitData(GamesExtensions.ToAcronymString(game));
 					Weapon.WebToolkitData[] allGuns = GunnerData.GetToolkitData(GamesExtensions.ToAcronymString(game));
 					WebToolkitData[] allArmor = Data.MHWI.Armor.GetWebToolkitData(GamesExtensions.ToAcronymString(game));
-					Weapons = [.. allBlades.Where(x => x.Tree!.StartsWith(monsterName.Replace("Scarred Yian Garuga", "Yian Garuga")))];
-					Weapons.AddRange([.. allGuns.Where(x => x.Tree!.StartsWith(monsterName.Replace("Scarred Yian Garuga", "Yian Garuga")))]);
-					Armor = [.. allArmor.Where(x => x.SetName.Replace("β", "").Replace("α", "").Replace("γ", "").Trim().StartsWith(GetSetName(monsterName, allArmor)))];
+					Weapons = [.. allBlades.Where(x => (game == Games.MHWI || x.Rarity < 9) && x.Tree!.StartsWith(monsterName.Replace("Scarred Yian Garuga", "Yian Garuga"))).Select(x => new SimpleWeapon(x))];
+					Weapons.AddRange([.. allGuns.Where(x => (game == Games.MHWI || x.Rarity < 9) && x.Tree!.StartsWith(monsterName.Replace("Scarred Yian Garuga", "Yian Garuga"))).Select(x => new SimpleWeapon(x))]);
+					Armor = [.. allArmor.Where(x => (game == Games.MHWI || x.Rank != "Master Rank") && x.SetName.Replace("β", "").Replace("α", "").Replace("γ", "").Trim().StartsWith(GetSetName(monsterName, allArmor))).Select(x => new SimpleArmor(x))];
 				}
 			}
 			else if (game == Games.MHWilds)
@@ -49,19 +72,42 @@ namespace MediawikiTranslator.Models.Monsters
 					{ "Zoh Shia", "Numinous" }
 				};
 				Dictionary<Weapon.WebToolkitData, string> files = Generators.Weapon.MassGenerate("MHWilds");
-				Weapons = [..files.Where(x => x.Key.MonsterName == monsterName).Select(x => x.Key)];
-				Armor = [..Data.MHWilds.Armor.GetWebToolkitData().Where(x => x.SetName.StartsWith(monsterName) || (setReplace.ContainsKey(monsterName) && x.SetName.StartsWith(setReplace[monsterName])))];
+				Weapons = [.. files.Where(x => x.Key.MonsterName == monsterName).Select(x => new SimpleWeapon(x.Key))];
+				Armor = [.. Data.MHWilds.Armor.GetWebToolkitData().Where(x => x.SetName.StartsWith(monsterName) || (setReplace.ContainsKey(monsterName) && x.SetName.StartsWith(setReplace[monsterName]))).Select(x => new SimpleArmor(x))];
+			}
+			else if (game == Games.MHRS || game == Games.MHRise)
+			{
+				Dictionary<string, string> setReplace = new()
+				{
+					{ "Yian Kut-Ku", "Kut-Ku" },
+					{ "Congalala", "Conga" },
+					{ "Blangonga", "Blango" },
+					{ "Gore Magala", "Gore" },
+					{ "Guardian Fulgur Anjanath", "Guardian Fulgur" },
+					{ "Guardian Ebony Odogaron", "Guardian Ebony" },
+					{ "Jin Dahaad", "Dahaad" },
+					{ "Zoh Shia", "Numinous" }
+				};
+				Dictionary<Weapon.WebToolkitData, string> files = Generators.Weapon.MassGenerate("MHRS");
+				Weapons = [.. files.Where(x => (game == Games.MHRS || x.Key.Rarity < 8) && x.Key.MonsterName == monsterName).Select(x => new SimpleWeapon(x.Key))];
+				Armor = [.. Data.MHRS.Armor.GetWebToolkitData().Where(x => (game == Games.MHRS || x.Rank != "Master Rank") && x.SetName.StartsWith(monsterName) || (setReplace.ContainsKey(monsterName) && x.SetName.StartsWith(setReplace[monsterName]))).Select(x => new SimpleArmor(x))];
 			}
 			int cntr = 0;
-			foreach (Weapon.WebToolkitData weapon in Weapons)
+			foreach (SimpleWeapon weapon in Weapons)
 			{
 				weapon.Order = cntr;
 				cntr++;
 			}
 			cntr = 0;
-			foreach (WebToolkitData armor in Armor)
+			foreach (SimpleArmor armor in Armor)
 			{
 				armor.Order = cntr;
+				int cntr2 = 0;
+				foreach (SimplePiece piece in armor.Pieces)
+				{
+					piece.Order = cntr2;
+					cntr2++;
+				}
 				cntr++;
 			}
 		}
@@ -120,85 +166,6 @@ namespace MediawikiTranslator.Models.Monsters
 			{
 				return "ERROR";
 			}
-		}
-
-		public string Format()
-		{
-			StringBuilder sb = new();
-			sb.AppendLine(@"==Equipment==
-===Weapons===
-<div class=""threecol"">
-<div>");
-			int rows = 0;
-			int eachCol = Convert.ToInt32(Math.Floor(Weapons.Count / 3f));
-			Dictionary<int, int> cols = new() {
-				{ 0, eachCol },
-				{ 1, eachCol },
-				{ 2, eachCol },
-			};
-			int remainder = Weapons.Count % 3;
-			if (remainder > 0)
-			{
-				for (int i = 0; i < remainder; i++)
-				{
-					cols[i]++;
-				}
-			}
-			int cells = 0;
-			foreach (Weapon.WebToolkitData weapon in Weapons)
-			{
-				if (cells >= cols[rows])
-				{
-					cells = 0;
-					if (rows < (cols.Count - 1))
-					{
-						rows++;
-					}
-					sb.AppendLine("</div>\r\n<div>");
-				}
-				sb.AppendLine($"*{{{{GenericWeaponLink|MHWI|{weapon.Name}|{weapon.Type}|{weapon.Rarity}}}}}");
-				cells++;
-			}
-			sb.AppendLine(@"</div>
-</div>
-
-===Armor Sets===
-<div class=""threecol"">
-<div>");
-			rows = 0;
-			eachCol = Convert.ToInt32(Math.Floor(Armor.Count / 3f));
-			cols = new()
-			{
-				{ 0, eachCol },
-				{ 1, eachCol },
-				{ 2, eachCol },
-			};
-			remainder = Armor.Count % 3;
-			if (remainder > 0)
-			{
-				for (int i = 0; i < remainder; i++)
-				{
-					cols[i]++;
-				}
-			}
-			cells = 0;
-			foreach (WebToolkitData armor in Armor)
-			{
-				if (cells >= cols[rows])
-				{
-					cells = 0;
-					if (rows < (cols.Count - 1))
-					{
-						rows++;
-					}
-					sb.AppendLine("</div>\r\n<div>");
-				}
-				sb.AppendLine($"*{{{{GenericArmorLink|MHWI|{armor.SetName} Set|Chestplate|{armor.Rarity}}}}}");
-				cells++;
-			}
-			sb.AppendLine(@"</div>
-</div>");
-			return sb.ToString();
 		}
 	}
 }

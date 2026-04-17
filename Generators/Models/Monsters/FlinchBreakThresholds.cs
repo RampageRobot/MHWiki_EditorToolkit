@@ -1,9 +1,5 @@
 ﻿using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace MediawikiTranslator.Models.Monsters
 {
@@ -20,20 +16,24 @@ namespace MediawikiTranslator.Models.Monsters
 		public static FlinchBreakThresholds[] GetFlinchBreakThresholds(string monsterName)
 		{
 			List<FlinchBreakThresholds> ret = [];
-			string fileName = $@"{System.Configuration.ConfigurationManager.AppSettings.Get("DesktopPath")}test monster stuff\MHWI\{monsterName}\Parts.json";
-			if (File.Exists(fileName))
+			try
 			{
-				Dictionary<string, dynamic[]> partData = JsonConvert.DeserializeObject<Dictionary<string, dynamic[]>>(File.ReadAllText(fileName))!;
-				foreach (dynamic dyn in partData["Flinches"])
+				string fileName = $@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWI\Monster Data\{monsterName}\Parts.json";
+				if (File.Exists(fileName))
 				{
-					ret.Add(new()
+					Dictionary<string, dynamic[]> partData = JsonConvert.DeserializeObject<Dictionary<string, dynamic[]>>(File.ReadAllText(fileName))!;
+					foreach (dynamic dyn in partData["Flinches"])
 					{
-						Name = dyn.Name,
-						CanFlinch = true, //??? when is this gonna be false
-						Essence = GetKinsectEssence((int)dyn.Kinsect_Color)
-					});
+						ret.Add(new()
+						{
+							Name = dyn.Name,
+							CanFlinch = true, //??? when is this gonna be false
+							Essence = Monster.GetKinsectEssence((int)dyn.Kinsect_Color)
+						});
+					}
 				}
 			}
+			catch { }
 			return [.. ret];
 		}
 
@@ -57,20 +57,5 @@ namespace MediawikiTranslator.Models.Monsters
 			sb.AppendLine("|}");
 			return sb.ToString();
 		}
-
-		private static KinsectEssence GetKinsectEssence(int id)
-		{
-			id++;
-			return (KinsectEssence)id;
-		}
-	}
-
-	public enum KinsectEssence
-	{
-		None,
-		Red,
-		White,
-		Orange,
-		Green
 	}
 }

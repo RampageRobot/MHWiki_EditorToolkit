@@ -1,13 +1,6 @@
-﻿using ClosedXML.Excel;
-using DocumentFormat.OpenXml.Drawing;
-using DocumentFormat.OpenXml.Wordprocessing;
-using MediawikiTranslator.Models.ArmorSets;
-using System.IO.Compression;
+﻿using MediawikiTranslator.Models.ArmorSets;
+using MediawikiTranslator.Models.Monsters;
 using System.Text;
-using WikiClientLibrary;
-using WikiClientLibrary.Client;
-using WikiClientLibrary.Pages;
-using WikiClientLibrary.Sites;
 
 namespace MediawikiTranslator.Generators
 {
@@ -91,6 +84,7 @@ The {set.SetName}{setGenderMark} Set is a {GetRankLink(set.Game, set.Rarity)} ar
 				return game switch
 				{
 					"MHWI" => rarity < 5 ? $"[[{game}/Armor#Low Rank|Low Rank (LR)]]" : rarity < 9 ? $"[[{game}/Armor#High Rank|High Rank (HR)]]" : $"[[{game}/Armor#Master Rank|Master Rank (MR)]]",
+					"MHWorld" => rarity < 5 ? $"[[{game}/Armor#Low Rank|Low Rank (LR)]]" : rarity < 9 ? $"[[{game}/Armor#High Rank|High Rank (HR)]]" : $"[[{game}/Armor#Master Rank|Master Rank (MR)]]",
 					"MHRS" => rarity < 4 ? $"[[{game}/Armor#Low Rank|Low Rank (LR)]]" : rarity < 8 ? $"[[{game}/Armor#High Rank|High Rank (HR)]]" : $"[[{game}/Armor#Master Rank|Master Rank (MR)]]",
 					_ => $"[[{game}/Armor#Low Rank|Low Rank (LR)]]",
 				};
@@ -108,6 +102,7 @@ The {set.SetName}{setGenderMark} Set is a {GetRankLink(set.Game, set.Rarity)} ar
 				return game switch
 				{
 					"MHWI" => rarity < 5 ? "Low Rank" : rarity < 9 ? "High Rank" : "Master Rank",
+					"MHWorld" => rarity < 5 ? "Low Rank" : rarity < 9 ? "High Rank" : "Master Rank",
 					"MHRS" => rarity < 4 ? "Low Rank" : rarity < 8 ? "High Rank" : "Master Rank",
 					_ => "Low Rank",
 				};
@@ -167,26 +162,45 @@ The {set.SetName}{setGenderMark} Set is a {GetRankLink(set.Game, set.Rarity)} ar
 			return Generate(WebToolkitData.FromJson(json), []).Result;
         }
 
+		public static WebToolkitData[] GetWebToolkitData(string game)
+		{
+			int? rarityUnder = null;
+			if (game == "MHWorld")
+			{
+				game = "MHWI";
+				rarityUnder = 9;
+			}
+			else if (game == "MHRise")
+			{
+				game = "MHRS";
+				rarityUnder = 8;
+			}
+			WebToolkitData[] src = [];
+			if (game == "MHWI" || game == "MHWorld")
+			{
+				src = Models.Data.MHWI.Armor.GetWebToolkitData(game, rarityUnder);
+			}
+			else if (game == "MHRS")
+			{
+				src = Models.Data.MHRS.Armor.GetWebToolkitData(rarityUnder);
+			}
+			else if (game == "MHWilds")
+			{
+				src = Models.Data.MHWilds.Armor.GetWebToolkitData();
+			}
+			return src;
+		}
+
 		public static Dictionary<WebToolkitData, string> MassGenerate(string game)
 		{
 			Dictionary<WebToolkitData, string> ret = [];
-			WebToolkitData[] src = [];
-			if (game == "MHWI")
-			{
-				src = Models.Data.MHWI.Armor.GetWebToolkitData();
-			}
-			else
-			{
-				src = Models.Data.MHRS.Armor.GetWebToolkitData();
-			}
+			WebToolkitData[] src = GetWebToolkitData(game);
 			foreach (WebToolkitData data in src.Where(x => x.Pieces.Length > 0))
 			{
 				string setGenderMark = data.OnlyForGender != null && src.Any(x => x.SetName == data.SetName && x.OnlyForGender != data.OnlyForGender) ? " (" + data.OnlyForGender + ")" : "";
 				ret.Add(data, Generate(data, src).Result);
-				//File.WriteAllText($@"{System.Configuration.ConfigurationManager.AppSettings.Get("DesktopPath")}MHWiki Generated Armor Sets\{game}\{data.SetName!.Replace("\"", "")}{setGenderMark} Set.txt", Generate(data, src).Result);
 			}
 			return ret;
-			//File.WriteAllText($@"{System.Configuration.ConfigurationManager.AppSettings.Get("DesktopPath")}MHWiki Generated Armor Sets\{game}\_setlist.txt", setList.ToString());
 		}
 	}
 

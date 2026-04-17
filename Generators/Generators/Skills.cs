@@ -1,10 +1,5 @@
 ﻿using MediawikiTranslator.Models.Data.MHRS;
 using MediawikiTranslator.Models.Data.MHWI;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace MediawikiTranslator.Generators
 {
@@ -13,7 +8,7 @@ namespace MediawikiTranslator.Generators
 		public static SimplifiedSkill[] GetSimplifiedSkillsMHRS()
 		{
 			Dictionary<string, int> skillEnum = GetMHRISkillEnum();
-			Models.Data.MHRS.Skills skillDict = Models.Data.MHRS.Skills.FromJson(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Raw Data\MHRS\natives\stm\data\define\player\skill\plequipskill\plequipskillbasedata.user.2.json"));
+			Models.Data.MHRS.Skills skillDict = Models.Data.MHRS.Skills.FromJson(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHRS\natives\stm\data\define\player\skill\plequipskill\plequipskillbasedata.user.2.json"));
 			Dictionary<int, string> mhrsColors = Items.GetMHRSWikiColors();
 			List<SimplifiedSkill> simplifiedSkills = [];
 			foreach (SkillsParam data in skillDict.SnowDataPlEquipSkillBaseUserData.Param.Where(x => skillEnum.ContainsKey(x.Id!)))

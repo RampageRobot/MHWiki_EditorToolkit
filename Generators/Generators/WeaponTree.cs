@@ -1,5 +1,4 @@
-﻿using MediawikiTranslator.Models.DamageTable.PartsData;
-using MediawikiTranslator.Models.Data.MHWI;
+﻿using MediawikiTranslator.Models.Data.MHWI;
 using MediawikiTranslator.Models.WeaponTree;
 using Microsoft.VisualBasic.FileIO;
 using Newtonsoft.Json;
@@ -123,7 +122,7 @@ namespace MediawikiTranslator.Generators
 						mobileHeaderBuilder.AppendLine("!{{UI|MHWI|HBG Special Ammo}}");
 						ret.AppendLine("!class=\"hide-on-mobile\"|{{UI|MHWI|HBG Deviation}}");
 						mobileHeaderBuilder.AppendLine("!{{UI|MHWI|HBG Deviation}}");
-						if (srcData[0].Game != "MHWI")
+						if (srcData[0].Game != "MHWI" && srcData[0].Game != "MHWorld")
 						{
 							ret.AppendLine("!class=\"hide-on-mobile\"|Reload / Recoil");
 							mobileHeaderBuilder.AppendLine("!Reload / Recoil");
@@ -134,7 +133,7 @@ namespace MediawikiTranslator.Generators
 						mobileHeaderBuilder.AppendLine("!{{UI|MHWI|LBG Special Ammo}}");
 						ret.AppendLine("!class=\"hide-on-mobile\"|{{UI|MHWI|LBG Deviation}}");
 						mobileHeaderBuilder.AppendLine("!{{UI|MHWI|LBG Deviation}}");
-						if (srcData[0].Game != "MHWI")
+						if (srcData[0].Game != "MHWI" && srcData[0].Game != "MHWorld")
 						{
 							ret.AppendLine("!class=\"hide-on-mobile\"|Reload / Recoil");
 							mobileHeaderBuilder.AppendLine("!Reload / Recoil");
@@ -224,7 +223,7 @@ namespace MediawikiTranslator.Generators
 			if (!string.IsNullOrEmpty(dataObj.Decos))
 			{
 				Decoration[] objDecos = [.. Newtonsoft.Json.JsonConvert.DeserializeObject<Decoration[]>(dataObj.Decos)!.OrderBy(x => !x.IsRampage).ThenBy(x => x.Level)];
-				if (new string[] { "MHWI", "MHW", "MHRS", "MHRise", "MHWilds" }.Contains(dataArray.Game))
+				if (new string[] { "MHWI", "MHWorld", "MHRS", "MHRise", "MHWilds" }.Contains(dataArray.Game))
 				{
 					foreach (Decoration deco in objDecos)
 					{
@@ -372,7 +371,7 @@ namespace MediawikiTranslator.Generators
 				case "HBG":
 					ret.AppendLine($"|{(!string.IsNullOrEmpty(dataObj.HBGSpecialAmmoType) ? dataObj.HBGSpecialAmmoType : " - ")}");
 					ret.AppendLine($"|{(!string.IsNullOrEmpty(dataObj.HBGDeviation) ? dataObj.HBGDeviation : " - ")}");
-					if (dataArray.Game != "MHWI")
+					if (dataArray.Game != "MHWI" && dataArray.Game != "MHWorld")
 					{
 						ret.AppendLine($"|{(!string.IsNullOrEmpty(dataObj.HBGReloadRecoil) ? dataObj.HBGReloadRecoil : " - ")}");
 					}
@@ -380,7 +379,7 @@ namespace MediawikiTranslator.Generators
 				case "LBG":
 					ret.AppendLine($"|{(!string.IsNullOrEmpty(dataObj.LBGSpecialAmmoType) ? dataObj.LBGSpecialAmmoType : " - ")}");
 					ret.AppendLine($"|{(!string.IsNullOrEmpty(dataObj.LBGDeviation) ? dataObj.LBGDeviation : " - ")}");
-					if (dataArray.Game != "MHWI")
+					if (dataArray.Game != "MHWI" && dataArray.Game != "MHWorld")
 					{
 						ret.AppendLine($"|{(!string.IsNullOrEmpty(dataObj.LBGReloadRecoil) ? dataObj.LBGReloadRecoil : " - ")}");
 					}

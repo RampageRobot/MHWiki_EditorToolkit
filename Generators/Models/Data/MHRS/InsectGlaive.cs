@@ -12,7 +12,7 @@ namespace MediawikiTranslator.Models.Data.MHRS
 
 		public static Weapon[] Fetch()
 		{
-			return FromJson(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Raw Data\MHRS\natives\stm\data\define\player\weapon\insectglaive\insectglaivebasedata.user.2.json")).SnowEquipInsectBaseUserData.Param;
+			return FromJson(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHRS\natives\stm\data\define\player\weapon\insectglaive\insectglaivebasedata.user.2.json")).SnowEquipInsectBaseUserData.Param;
 		}
 	}
 

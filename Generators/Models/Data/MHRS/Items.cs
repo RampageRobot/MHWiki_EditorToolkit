@@ -5,46 +5,51 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 namespace MediawikiTranslator.Models.Data.MHRS
 {
-	public class Items : ItemsParam
+	public partial class RawItems
 	{
-		public string Name { get; set; }
-		public string Description { get; set; }
-		public string WikiIconColor { get; set; }
-		public string WikiIconName { get; set; }
-		public static Items[] Fetch() => [..RawItems.FromJson(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Raw Data\MHRS\natives\stm\data\system\contentsidsystem\item\normal\itemdata.user.2.json")).SnowDataItemUserData.Param.Where(x => x.IconColor != "ITEM_ICON_COLOR_00").Select(x => new Items(x))];
-		public Items() { }
-		public Items(ItemsParam src)
+		[JsonProperty("snow.data.ItemUserData", NullValueHandling = NullValueHandling.Ignore)]
+		public SnowDataItemUserData SnowDataItemUserData { get; set; }
+	}
+
+	public partial class SnowDataItemUserData
+	{
+		[JsonProperty("_Param", NullValueHandling = NullValueHandling.Ignore)]
+		public Items[] Param { get; set; }
+	}
+
+	public partial class Items
+	{
+		public static Items[] Fetch()
 		{
-			Id = src.Id;
-			CariableFilter = src.CariableFilter;
-			Type = src.Type;
-			Rare = src.Rare;
-			PlMaxCount = src.PlMaxCount;
-			OtMaxCount = src.OtMaxCount;
-			SortId = src.SortId;
-			Supply = src.Supply;
-			CanPutInOtDogPouch = src.CanPutInOtDogPouch;
-			ShowItemWindow = src.ShowItemWindow;
-			ShowActionWindow = src.ShowActionWindow;
-			Infinite = src.Infinite;
-			Default = src.Default;
-			IconCanEat = src.IconCanEat;
-			IconItemRank = src.IconItemRank;
-			EffectRare = src.EffectRare;
-			IconChara = src.IconChara;
-			IconColor = src.IconColor;
-			SeType = src.SeType;
-			SellPrice = src.SellPrice;
-			BuyPrice = src.BuyPrice;
-			ItemActionType = src.ItemActionType;
-			RankType = src.RankType;
-			ItemGroup = src.ItemGroup;
-			CategoryWorth = src.CategoryWorth;
-			MaterialCategory = src.MaterialCategory;
-			EvalutionValue = src.EvalutionValue;
-			Name = CommonMsgs.GetMsg("I_" + src.Id.Substring(src.Id.LastIndexOf("_") + 1) + "_Name");
-			WikiIconName = GetIconName(Convert.ToInt32(src.IconChara.Substring(src.IconChara.LastIndexOf("_") + 1)));
-			WikiIconColor = GetIconColor(Convert.ToInt32(src.IconColor.Substring(src.IconColor.LastIndexOf("_") + 1)));
+			Items[] items = [.. RawItems.FromJson(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHRS\natives\stm\data\system\contentsidsystem\item\normal\itemdata.user.2.json")).SnowDataItemUserData.Param.Where(x => x.IconColor != "ITEM_ICON_COLOR_00")];
+			foreach (Items item in items)
+			{
+				item.JPName = CommonMsgs.GetMsg("I_" + item.Id.Substring(item.Id.LastIndexOf("_") + 1) + "_Name", 0);
+				item.Name = CommonMsgs.GetMsg("I_" + item.Id.Substring(item.Id.LastIndexOf("_") + 1) + "_Name");
+				item.WikiIconName = GetIconName(Convert.ToInt32(item.IconChara.Substring(item.IconChara.LastIndexOf("_") + 1)));
+				item.WikiIconColor = GetIconColor(Convert.ToInt32(item.IconColor.Substring(item.IconColor.LastIndexOf("_") + 1)));
+			}
+			return items;
+		}
+
+		public static Generators.Items[] FetchParsed()
+		{
+			return [..Fetch().Select(item => new Generators.Items()
+			{
+				BuddyCarryLimit = (int)item.OtMaxCount,
+				BuyPrice = (int)item.BuyPrice,
+				CarryLimit = (int)item.PlMaxCount,
+				Category = item.MaterialCategory[0],
+				Description = item.Description,
+				InternalID = item.Id,
+				InternalOrder = (int)item.SortId,
+				JPName = item.JPName,
+				Name = item.Name,
+				Rarity = Convert.ToInt32(string.Join("", item.Rare.Where(x => char.IsDigit(x)))),
+				SellPrice = (int)item.SellPrice,
+				WikiIconColor = item.WikiIconColor,
+				WikiIconName = item.WikiIconName
+			})];
 		}
 
 		public static string GetIconColor(int colorId)
@@ -137,22 +142,6 @@ namespace MediawikiTranslator.Models.Data.MHRS
 				{ 205, "NOT AVAILABLE" }
 			}[iconId];
 		}
-	}
-
-	public partial class RawItems
-	{
-		[JsonProperty("snow.data.ItemUserData", NullValueHandling = NullValueHandling.Ignore)]
-		public SnowDataItemUserData SnowDataItemUserData { get; set; }
-	}
-
-	public partial class SnowDataItemUserData
-	{
-		[JsonProperty("_Param", NullValueHandling = NullValueHandling.Ignore)]
-		public ItemsParam[] Param { get; set; }
-	}
-
-	public partial class ItemsParam
-	{
 		[JsonProperty("_Id", NullValueHandling = NullValueHandling.Ignore)]
 		public string Id { get; set; }
 
@@ -233,6 +222,11 @@ namespace MediawikiTranslator.Models.Data.MHRS
 
 		[JsonProperty("_EvalutionValue", NullValueHandling = NullValueHandling.Ignore)]
 		public long? EvalutionValue { get; set; }
+		public string Name { get; set; }
+		public string JPName { get; set; }
+		public string Description { get; set; }
+		public string WikiIconColor { get; set; }
+		public string WikiIconName { get; set; }
 	}
 
 	public partial class RawItems

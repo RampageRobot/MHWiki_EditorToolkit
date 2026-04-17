@@ -7,19 +7,19 @@ namespace MediawikiTranslator.Models.WeaponTree
 {
 	public partial class WebToolkitData
 	{
-		[JsonProperty("pathName", NullValueHandling = NullValueHandling.Ignore)]
+		[JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
 		public string PathName { get; set; }
 
-		[JsonProperty("treeType", NullValueHandling = NullValueHandling.Ignore)]
+		[JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
 		public string TreeType { get; set; }
 
-		[JsonProperty("game", NullValueHandling = NullValueHandling.Ignore)]
+		[JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
 		public string Game { get; set; }
 
-		[JsonProperty("defaultIconType", NullValueHandling = NullValueHandling.Ignore)]
+		[JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
 		public string DefaultIconType { get; set; }
 
-		[JsonProperty("data", NullValueHandling = NullValueHandling.Ignore)]
+		[JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
 		public Datum[] Data { get; set; }
 
 		public static string GetWeaponName(string abbrev)
@@ -47,111 +47,111 @@ namespace MediawikiTranslator.Models.WeaponTree
 
 	public partial class Datum
 	{
-		[JsonProperty("can-forge", NullValueHandling = NullValueHandling.Ignore)]
+		[JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
 		public bool? CanForge { get; set; }
 
-		[JsonProperty("can-rollback", NullValueHandling = NullValueHandling.Ignore)]
+		[JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
 		public bool? CanRollback { get; set; }
 
-		[JsonProperty("name", NullValueHandling = NullValueHandling.Ignore)]
+		[JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
 		public string Name { get; set; }
 
-		[JsonProperty("parent", NullValueHandling = NullValueHandling.Ignore)]
+		[JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
 		public string Parent { get; set; }
 
-		[JsonProperty("path-link", NullValueHandling = NullValueHandling.Ignore)]
+		[JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
 		public string PathLink { get; set; }
 
-		[JsonProperty("icon-type", NullValueHandling = NullValueHandling.Ignore)]
+		[JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
 		public string IconType { get; set; }
 
-		[JsonProperty("rarity", NullValueHandling = NullValueHandling.Ignore)]
+		[JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
 		[JsonConverter(typeof(ParseStringConverter))]
 		public long? Rarity { get; set; }
 
-		[JsonProperty("attack", NullValueHandling = NullValueHandling.Ignore)]
+		[JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
 		public string Attack { get; set; }
 
-		[JsonProperty("defense", NullValueHandling = NullValueHandling.Ignore)]
+		[JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
 		public string Defense { get; set; }
 
-		[JsonProperty("element", NullValueHandling = NullValueHandling.Ignore)]
+		[JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
 		public string Element { get; set; }
 
-		[JsonProperty("element-damage", NullValueHandling = NullValueHandling.Ignore)]
+		[JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
 		public string ElementDamage { get; set; } = string.Empty;
 
-		[JsonProperty("element-2", NullValueHandling = NullValueHandling.Ignore)]
+		[JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
 		public string Element2 { get; set; }
 
-		[JsonProperty("element-damage-2", NullValueHandling = NullValueHandling.Ignore)]
+		[JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
 		public string ElementDamage2 { get; set; } = string.Empty;
 
-		[JsonProperty("elderseal", NullValueHandling = NullValueHandling.Ignore)]
+		[JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
 		public string Elderseal { get; set; } = string.Empty;
 
-		[JsonProperty("rampage-slots", NullValueHandling = NullValueHandling.Ignore)]
+		[JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
 		public string RampageSlots { get; set; } = string.Empty;
 
-		[JsonProperty("rampage-deco", NullValueHandling = NullValueHandling.Ignore)]
+		[JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
 		public string RampageDeco { get; set; } = string.Empty;
 
-		[JsonProperty("armor-skill", NullValueHandling = NullValueHandling.Ignore)]
+		[JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
 		public string ArmorSkill { get; set; } = string.Empty;
 
-		[JsonProperty("armor-skill-2", NullValueHandling = NullValueHandling.Ignore)]
+		[JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
 		public string ArmorSkill2 { get; set; } = string.Empty;
 
-		[JsonProperty("affinity", NullValueHandling = NullValueHandling.Ignore)]
+		[JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
 		[JsonConverter(typeof(ParseStringConverter))]
 		public long? Affinity { get; set; }
 
-		[JsonProperty("decos", NullValueHandling = NullValueHandling.Ignore)]
+		[JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
 		public string Decos { get; set; }
 
-		[JsonProperty("sharpness", NullValueHandling = NullValueHandling.Ignore)]
+		[JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
 		public string Sharpness { get; set; }
 
-		[JsonProperty("bo-coatings", NullValueHandling = NullValueHandling.Ignore)]
+		[JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
 		public string BoCoatings { get; set; }
 
-		[JsonProperty("sa-phial-type", NullValueHandling = NullValueHandling.Ignore)]
+		[JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
 		public string SAPhialType { get; set; }
 
-		[JsonProperty("cb-phial-type", NullValueHandling = NullValueHandling.Ignore)]
+		[JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
 		public string CBPhialType { get; set; }
 
-		[JsonProperty("gl-shelling-type", NullValueHandling = NullValueHandling.Ignore)]
+		[JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
 		public string GLShellingType { get; set; }
 
-		[JsonProperty("hh-note-1", NullValueHandling = NullValueHandling.Ignore)]
+		[JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
 		public string HHNote1 { get; set; }
 
-		[JsonProperty("hh-note-2", NullValueHandling = NullValueHandling.Ignore)]
+		[JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
 		public string HHNote2 { get; set; }
 
-		[JsonProperty("hh-note-3", NullValueHandling = NullValueHandling.Ignore)]
+		[JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
 		public string HHNote3 { get; set; }
 
-		[JsonProperty("ig-kinsect-bonus", NullValueHandling = NullValueHandling.Ignore)]
+		[JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
 		public string IGKinsectBonus { get; set; }
 
-		[JsonProperty("hbg-reload-recoil", NullValueHandling = NullValueHandling.Ignore)]
+		[JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
 		public string HBGReloadRecoil { get; set; }
 
-		[JsonProperty("hbg-special-ammo-type", NullValueHandling = NullValueHandling.Ignore)]
+		[JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
 		public string HBGSpecialAmmoType { get; set; }
 
-		[JsonProperty("hbg-deviation", NullValueHandling = NullValueHandling.Ignore)]
+		[JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
 		public string HBGDeviation { get; set; }
 
-		[JsonProperty("lbg-reload-recoil", NullValueHandling = NullValueHandling.Ignore)]
+		[JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
 		public string LBGReloadRecoil { get; set; }
 
-		[JsonProperty("lbg-special-ammo-type", NullValueHandling = NullValueHandling.Ignore)]
+		[JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
 		public string LBGSpecialAmmoType { get; set; }
 
-		[JsonProperty("lbg-deviation", NullValueHandling = NullValueHandling.Ignore)]
+		[JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
 		public string LBGDeviation { get; set; }
 	}
 

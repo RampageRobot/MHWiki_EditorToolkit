@@ -1,18 +1,8 @@
-﻿using ClosedXML.Excel;
-using DocumentFormat.OpenXml.Drawing;
-using DocumentFormat.OpenXml.Spreadsheet;
-using DocumentFormat.OpenXml.Wordprocessing;
-using MediawikiTranslator.Models.Data.MHRS;
-using MediawikiTranslator.Models.Data.MHWI;
+﻿using MediawikiTranslator.Models.Data.MHWI;
 using MediawikiTranslator.Models.Monsters;
 using MediawikiTranslator.Models.Weapon;
 using Newtonsoft.Json;
-using System.Diagnostics;
-using System.Globalization;
-using System.IO.Compression;
-using System.Reflection;
 using System.Text;
-using System.Text.Json.Serialization;
 using Path = System.IO.Path;
 
 namespace MediawikiTranslator.Generators
@@ -29,21 +19,22 @@ namespace MediawikiTranslator.Generators
 			{
 				Tuple<string, string, string> weaponNames = GetWeaponTypeFullName(weapon.Type!);
 				Tuple<string, string> renderKey = new(weapon.Game!, weaponNames.Item1);
-				if (!WeaponRenderFileNames.TryGetValue(renderKey, out string[]? value))
+				if (!WeaponRenderFileNames.TryGetValue(renderKey, out string[]? renderValues))
 				{
-					value = Utilities.GetWeaponRenders(renderKey.Item1, renderKey.Item2).Result;
-					WeaponRenderFileNames.TryAdd(renderKey, value);
+					renderValues = Utilities.GetWeaponRenders(renderKey.Item1, renderKey.Item2).Result;
+					WeaponRenderFileNames.TryAdd(renderKey, renderValues);
 				}
 				string? match = null;
 				if (weapon.Game != "MHWilds")
 				{
-					match = value.FirstOrDefault(x => !string.IsNullOrEmpty(x) && x.StartsWith($"File:{weapon.Game!}-{SanitizeRoman(weapon.Name!)}"));
+					string game = weapon.Game == "MHWorld" ? "MHWI" : weapon.Game == "MHRise" ? "MHRS" : weapon.Game!;
+					match = renderValues.FirstOrDefault(x => !string.IsNullOrEmpty(x) && x.StartsWith($"File:{game}-{SanitizeRoman(weapon.Name!)}"));
 					if (match == null)
 					{
 						WebToolkitData? parent = src.FirstOrDefault(x => x.Name == weapon.PreviousName);
 						while (parent != null && match == null)
 						{
-							match = value.FirstOrDefault(x => !string.IsNullOrEmpty(x) && x.StartsWith($"File:{parent.Game!}-{SanitizeRoman(parent.Name!)}"));
+							match = renderValues.FirstOrDefault(x => !string.IsNullOrEmpty(x) && x.StartsWith($"File:{game}-{SanitizeRoman(parent.Name!)}"));
 							if (match == null)
 							{
 								parent = src.FirstOrDefault(x => x.Name == parent.PreviousName);
@@ -209,7 +200,7 @@ The {weapon.Name} is {(weapon.Type == "IG" ? "an" : "a")} [[{weaponNames.Item1} 
 				}
 				switch (weapon.Game)
 				{
-					case "MHW":
+					case "MHWorld":
 					case "MHWI":
 						gameString = "Monster Hunter: World (MHW) and Monster Hunter World: Iceborne (MHWI)";
 						break;
@@ -319,7 +310,7 @@ The {weapon.Name} is {(weapon.Type == "IG" ? "an" : "a")} [[{weaponNames.Item1} 
 									melodyName = HighFreqNames.First(x => x.enumName == weapon.HighFreqEnum).skillName;
 								}
 							}
-							if (weapon.Game == "MHWI")
+							if (weapon.Game == "MHWI" || weapon.Game == "MHWorld")
 							{
 								Tuple<string, string> melodyInfo = GetWorldMelodyEffect(melody.Item1);
 								melodyInfoDesc = melodyInfo.Item2;
@@ -650,7 +641,7 @@ The {weapon.Name} is {(weapon.Type == "IG" ? "an" : "a")} [[{weaponNames.Item1} 
 					new("Melody of Life", ["Green", "Blue", "Green", "Purple"])
 				];
 			}
-			else if (game == "MHWI")
+			else if (game == "MHWI" || game == "MHWorld")
 			{
 				return
 				[
@@ -796,49 +787,68 @@ The {weapon.Name} is {(weapon.Type == "IG" ? "an" : "a")} [[{weaponNames.Item1} 
 			return Generate(data, src).Result;
 		}
 
-		public static Dictionary<WebToolkitData, string> MassGenerate(string game, bool genfiles = true)
+		public static WebToolkitData[] GetWebToolkitData(string game, bool onlyNames = false)
 		{
-			Dictionary<WebToolkitData, string> ret = [];
+			int? rarityUnder = null;
+			if (game == "MHWorld")
+			{
+				game = "MHWI";
+				rarityUnder = 9;
+			}
+			else if (game == "MHRise")
+			{
+				game = "MHRS";
+				rarityUnder = 8;
+			}
+			Dictionary<string, MonsterData> monsterAppearances = JsonConvert.DeserializeObject<Dictionary<string, MonsterData>>(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\monsterData.json"))!;
 			Monster[]? monsterList = null;
 			WebToolkitData[] src = [];
-			if (game == "MHWI")
+			if (game == "MHWI" || game == "MHWorld")
 			{
-				WebToolkitData[] bmData = [.. BlademasterData.GetToolkitData().Where(x => x.Name != "HARDUMMY")];
-				WebToolkitData[] gData = [.. GunnerData.GetToolkitData().Where(x => x.Name != "HARDUMMY")];
+				WebToolkitData[] bmData = [.. BlademasterData.GetToolkitData(game, rarityUnder).Where(x => x.Name != "HARDUMMY")];
+				WebToolkitData[] gData = [.. GunnerData.GetToolkitData(game, rarityUnder).Where(x => x.Name != "HARDUMMY")];
 				src = new WebToolkitData[bmData.Length + gData.Length];
 				bmData.CopyTo(src, 0);
 				gData.CopyTo(src, bmData.Length);
-				monsterList = [.. Directory.EnumerateDirectories($@"{System.Configuration.ConfigurationManager.AppSettings.Get("DesktopPath")}test monster stuff\\MHWI").Select(x => new Monster(new DirectoryInfo(x).Name, "MHWI"))];
+				if (rarityUnder != null)
+				{
+					src = [.. src.Where(x => x.Rarity < rarityUnder.Value)];
+				}
+				monsterList = [.. monsterAppearances.Where(x => x.Value.GameAppearances.Any(y => y.GameAcronym == "MHWorld")).Select(x => new Monster(x.Key, "MHWI"))];
 				foreach (WebToolkitData data in src)
 				{
 					data.MonsterName = monsterList.FirstOrDefault(x => x.Equipment.Weapons.Any(y => y.Name == data.Name))?.Name;
+					data.ShellTable = null;
 				}
 			}
 			else if (game == "MHWilds")
 			{
-				src = Models.Data.MHWilds.Weapon.GetWebToolkitData();
-				foreach (WebToolkitData data in src)
+				src = Models.Data.MHWilds.Weapon.GetWebToolkitData(onlyNames);
+				if (!onlyNames)
 				{
-					string monsterName = data.Tree!.Replace(" Tree", "");
-					if (monsterName.Contains("G."))
+					foreach (WebToolkitData data in src)
 					{
-						if (monsterName == "G. Ebony")
+						string monsterName = data.Tree!.Replace(" Tree", "");
+						if (monsterName.Contains("G."))
 						{
-							monsterName = "Guardian Ebony Odogaron";
+							if (monsterName == "G. Ebony")
+							{
+								monsterName = "Guardian Ebony Odogaron";
+							}
+							else if (monsterName == "G. Fulgur")
+							{
+								monsterName = "Guardian Fulgur Anjanath";
+							}
+							else
+							{
+								monsterName = monsterName.Replace("G. ", "Guardian");
+							}
 						}
-						else if (monsterName == "G. Fulgur")
-						{
-							monsterName = "Guardian Fulgur Anjanath";
-						}
-						else
-						{
-							monsterName = monsterName.Replace("G. ", "Guardian");
-						}
+						data.MonsterName = monsterName;
 					}
-					data.MonsterName = monsterName;
 				}
 			}
-			else
+			else if (game == "MHRise" || game == "MHRS")
 			{
 				string[] allMonsters = ["Aknosom", "Almudron", "Amatsu", "Anjanath", "Apex Arzuros", "Apex Diablos", "Apex Mizutsune", "Apex Rathalos", "Apex Rathian", "Apex Zinogre", "Arzuros", "Astalos", "Aurora Somnacanth", "Barioth", "Barroth", "Basarios", "Bazelgeuse", "Bishaten", "Blood Orange Bishaten", "Chameleos", "Chaotic Gore Magala", "Crimson Glow Valstrax", "Daimyo Hermitaur", "Diablos", "Espinas", "Flaming Espinas", "Furious Rajang", "Gaismagorm", "Garangolm", "Gold Rathian", "Gore Magala", "Goss Harag", "Great Baggi", "Great Izuchi", "Great Wroggi", "Jyuratodus", "Khezu", "Kulu-Ya-Ku", "Kushala Daora", "Lagombi", "Lucent Nargacuga", "Lunagaron", "Magma Almudron", "Magnamalo", "Malzeno", "Mizutsune", "Nargacuga", "Narwa the Allmother", "Pukei-Pukei", "Pyre Rakna-Kadaki", "Rajang", "Rakna-Kadaki", "Rathalos", "Rathian", "Risen Chameleos", "Risen Crimson Glow Valstrax", "Risen Kushala Daora", "Risen Shagaru Magala", "Risen Teostra", "Royal Ludroth", "Scorned Magnamalo", "Seething Bazelgeuse", "Seregios", "Shagaru Magala", "Shogun Ceanataur", "Silver Rathalos", "Somnacanth", "Teostra", "Tetranadon", "Thunder Serpent Narwa", "Tigrex", "Tobi-Kadachi", "Velkhana", "Violet Mizutsune", "Volvidon", "Wind Serpent Ibushi", "Zinogre", "Altaroth", "Anteka", "Baggi", "Bnahabra", "Boggi", "Bombadgy", "Bullfango", "Ceanataur", "Delex", "Felyne", "Gajau", "Gargwa", "Gowngoat", "Hermitaur", "Hornetaur", "Izuchi", "Jaggi", "Jaggia", "Jagras", "Kelbi", "Kestodon", "Ludroth", "Melynx", "Popo", "Pyrantula", "Rachnoid", "Remobra", "Rhenoplos", "Slagtoth", "Uroktor", "Velociprey", "Vespoid", "Wroggi", "Zamite"];
 				src = Models.Data.MHRS.Weapon.GetWebToolkitData();
@@ -951,31 +961,25 @@ The {weapon.Name} is {(weapon.Type == "IG" ? "an" : "a")} [[{weaponNames.Item1} 
 						}
 					}
 					data.MonsterName = monsterName;
+					data.ShellTable = null;
 				}
 			}
-			if (genfiles)
-			{
-				Directory.CreateDirectory($@"{System.Configuration.ConfigurationManager.AppSettings.Get("DesktopPath")}MHWiki Generated Pages\{game}");
-				foreach (string dir in Directory.EnumerateDirectories($@"{System.Configuration.ConfigurationManager.AppSettings.Get("DesktopPath")}MHWiki Generated Pages\{game}"))
-				{
-					Directory.Delete(dir, true);
-				}
-			}
+			return src;
+		}
+
+		public static Dictionary<WebToolkitData, string> MassGenerate(string game, bool onlyNames = false)
+		{
+			Dictionary<WebToolkitData, string> ret = [];
+			WebToolkitData[] src = GetWebToolkitData(game, onlyNames);
 			foreach (WebToolkitData data in src)
 			{
 				string wepName = GetWeaponTypeFullName(data.Type!).Item1;
-				string res = Generate(data, src).Result;
-				ret.Add(data, res);
-				if (genfiles)
+				string res = "";
+				if (!onlyNames)
 				{
-					Directory.CreateDirectory($@"{System.Configuration.ConfigurationManager.AppSettings.Get("DesktopPath")}MHWiki Generated Pages\{game}\{wepName}\");
-					string path = $@"{System.Configuration.ConfigurationManager.AppSettings.Get("DesktopPath")}MHWiki Generated Pages\{game}\{wepName}\{data.Name!.Replace("\"", "")}.txt";
-					if (File.Exists(path))
-					{
-						path = $@"{System.Configuration.ConfigurationManager.AppSettings.Get("DesktopPath")}MHWiki Generated Pages\{game}\{wepName}\{data.Name!.Replace("\"", "")} ({GetRank(data.Game!, data.Rarity)}).txt";
-					}
-					File.WriteAllText(path, res);
+					res = Generate(data, src).Result;
 				}
+				ret.Add(data, res);
 			}
 			return ret;
 		}
@@ -990,6 +994,7 @@ The {weapon.Name} is {(weapon.Type == "IG" ? "an" : "a")} [[{weaponNames.Item1} 
 			{
 				return game switch
 				{
+					"MHWorld" => rarity < 5 ? "LR" : rarity < 9 ? "HR" : "MR",
 					"MHWI" => rarity < 5 ? "LR" : rarity < 9 ? "HR" : "MR",
 					"MHRS" => rarity < 4 ? "LR" : rarity < 8 ? "HR" : "MR",
 					"MHWilds" => rarity < 5 ? "LR" : rarity < 9 ? "HR" : "MR",
@@ -1005,7 +1010,7 @@ The {weapon.Name} is {(weapon.Type == "IG" ? "an" : "a")} [[{weaponNames.Item1} 
 				return "";
 			}
 			string[][] data = JsonConvert.DeserializeObject<string[][]>(input!)!;
-			string ret = $"|Sharpness               = {{{{SharpnessBar|{data[0][0]}|{data[0][1]}|{data[0][2]}|{data[0][3]}|{data[0][4]}|{data[0][5]}|{data[0][6]}|Game={game}";
+			string ret = $"|Sharpness               = {{{{SharpnessBar|{data[0][0]}|{data[0][1]}|{data[0][2]}|{data[0][3]}|{data[0][4]}|{data[0][5]}|{data[0][6]}|Game={(game == "MHWorld" ? "MHWI" : game)}";
 			if (data.Length > 1)
 			{
 				char[] handiChars = ['R', 'O', 'Y', 'G', 'B', 'W', 'P'];
@@ -1013,7 +1018,10 @@ The {weapon.Name} is {(weapon.Type == "IG" ? "an" : "a")} [[{weaponNames.Item1} 
 				{
 					int regHits = Convert.ToInt32(data[0][i]);
 					int handiHits = Convert.ToInt32(data[1][i]);
-					ret += $"|H{handiChars[i]}={handiHits}";
+					if (regHits != handiHits)
+					{
+						ret += $"|H{handiChars[i]}={handiHits}";
+					}
 				}
 			}
 			ret += "}}";

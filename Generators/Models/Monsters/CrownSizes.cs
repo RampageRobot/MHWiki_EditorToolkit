@@ -1,57 +1,79 @@
 ﻿using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Newtonsoft.Json.Linq;
 
 namespace MediawikiTranslator.Models.Monsters
 {
-    public class CrownSizes
-    {
-        public float Base { get; set; }
-        public float Small { get; set; }
-        public float Silver { get; set; }
-        public float Gold { get; set; }
+	public class CrownSizes
+	{
+		public float Base { get; set; }
+		public float Small { get; set; }
+		public float Silver { get; set; }
+		public float Gold { get; set; }
 		public float SmallLimit { get; set; }
 		public float SilverLimit { get; set; }
 		public float GoldLimit { get; set; }
+		//only in wilds
+		public bool IsDisableRandom { get; set; } = false;
+		public bool IsSuperLarge { get; set; } = false;
 
-		public CrownSizes(string name)
+		public CrownSizes(string name, Games game = Games.MHWI)
 		{
-			Dictionary<string, dynamic[]> partData = JsonConvert.DeserializeObject<Dictionary<string, dynamic[]>>(File.ReadAllText($@"{System.Configuration.ConfigurationManager.AppSettings.Get("DesktopPath")}test monster stuff\MHWI\crownInfo.json"))!;
-			dynamic monsterSize = partData["Monsters"].First(x => GetMonsterId(name) == (int)x.Monster_Id && x.Monster_Id_button == $"{GetMonsterId(name)}: {name}");
-			Base = monsterSize.Base_Size;
-			SmallLimit = monsterSize.Gold_Small_Crown_Limit;
+			if (game == Games.MHWI)
+			{
+				Dictionary<string, dynamic[]> partData = JsonConvert.DeserializeObject<Dictionary<string, dynamic[]>>(File.ReadAllText($@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWI\Monster Data\crownInfo.json"))!;
+				dynamic? monsterSize = partData["Monsters"].FirstOrDefault(x => GetMonsterId(name) == (int)x.Monster_Id && x.Monster_Id_button == $"{GetMonsterId(name)}: {name}");
+				if (monsterSize != null)
+				{
+					Base = monsterSize.Base_Size;
+					SmallLimit = monsterSize.Gold_Small_Crown_Limit;
+					SilverLimit = monsterSize.Silver_Crown_Limit;
+					GoldLimit = monsterSize.Gold_Big_Crown_Limit;
+				}
+			}
+			else if (game == Games.MHRise || game == Games.MHRS)
+			{
+				Dictionary<string, string> riseMonsterIds = JsonConvert.DeserializeObject<Dictionary<string, string>>(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHRS\monsterIds.json"))!;
+				JArray sizeList = JsonConvert.DeserializeObject<JObject>(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHRS\natives\stm\enemy\user_data\system_enemy_sizelist_data.user.2.json"))!.Value<JObject>("snow.enemy.SystemEnemySizeListData")!.Value<JArray>("_SizeInfoList")!;
+				JToken crownObj = sizeList.First(x => x.Value<string>("_EmType") == riseMonsterIds[name]);
+				Base = crownObj.Value<float>("_BaseSize");
+				SmallLimit = crownObj.Value<float>("_SmallBorder");
+				SilverLimit = crownObj.Value<float>("_BigBorder");
+				GoldLimit = crownObj.Value<float>("_KingBorder");
+			}
+			else if (game == Games.MHWilds)
+			{
+				MonsterId monsterId = Monster.WildsMonsterIds.First(x => x.Name == name);
+				JArray partData = (JArray)JsonConvert.DeserializeObject<dynamic>(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\dtlnor rips\MHWs-in-json-main\natives\STM\GameDesign\Enemy\CommonData\Data\EmCommonSize.user.3.json"))![0]["app.user_data.EmParamSize"]._EnemySizeTbl;
+				foreach (JObject crownJObj in partData)
+				{
+					dynamic crownObj = crownJObj.ToObject<dynamic>()!["app.user_data.EmParamSize.cSizeData"];
+					if (crownObj._EmId.ToString().EndsWith(monsterId.Id))
+					{
+						Base = crownObj._BaseSize;
+						SmallLimit = crownObj._CrownSize_Small;
+						SilverLimit = crownObj._CrownSize_Big;
+						GoldLimit = crownObj._CrownSize_King;
+						IsDisableRandom = crownObj._IsDisableRandom;
+						IsSuperLarge = crownObj._IsSuperLargeSize;
+					}
+				}
+			}
 			Small = (SmallLimit / 100) * Base;
-			SilverLimit = monsterSize.Silver_Crown_Limit;
 			Silver = (SilverLimit / 100) * Base;
-			GoldLimit = monsterSize.Gold_Big_Crown_Limit;
 			Gold = (GoldLimit / 100) * Base;
 		}
 
 		public string Format()
 		{
-			return $@"==Crown Sizes==
-{{{{CrownSizes
-|Small Crown cm = {Math.Round(Small, 2):#.##}
-|Small Crown % = {Math.Round(SmallLimit, 2):#.##}
-
-|Average Size cm = {Math.Round(Base, 2):#.##}
-|Average Size % = 100
-
-|Silver Crown cm = {Math.Round(Silver, 2):#.##}
-|Silver Crown % = {Math.Round(SilverLimit, 2):#.##}
-
-|Gold Crown cm = {Math.Round(Gold, 2):#.##}
-|Gold Crown % = {Math.Round(GoldLimit, 2):#.##}
-}}}}
-";
+			return $@"|Average = {Math.Round(Base, 2):#.##}
+|Silver Crown = {(!IsDisableRandom ? Math.Round(Silver, 2).ToString("#.##") : "")}
+|Gold Crown Small = {(!IsDisableRandom ? Math.Round(Small, 2).ToString("#.##") : "")}
+|Gold Crown Large = {(!IsDisableRandom ? Math.Round(Gold, 2).ToString("#.##") : "")}";
 		}
 
-        public int GetMonsterId(string name)
-        {
-			return new Dictionary<string, int>()
+		public static int GetMonsterId(string name)
+		{
+			Dictionary<string, int> dict = new Dictionary<string, int>()
 			{
 				{ "Rathian", 9 },
 				{ "Pink Rathian", 10 },
@@ -152,7 +174,15 @@ namespace MediawikiTranslator.Models.Monsters
 				{ "Training Wagon", 60 },
 				{ "Wulg", 84 },
 				{ "Cortos", 64 }
-			}[name];
+			};
+			if (dict.ContainsKey(name))
+			{
+				return dict[name];
+			}
+			else
+			{
+				return -1;
+			}
 		}
-    }
+	}
 }

@@ -1,9 +1,5 @@
 ﻿using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace MediawikiTranslator.Models.Monsters
 {
@@ -13,15 +9,15 @@ namespace MediawikiTranslator.Models.Monsters
 		public Attacks[] Attacks { get; set; } = [];
 		public Enrage Enrage { get; set; } = new(name);
 		public Stamina Stamina { get; set; } = new(name);
-		public StatusEffectiveness[] StatusEffectiveness { get; set; } = Monsters.StatusEffectiveness.GetStatuses(name);
-		public TrapEffectiveness[] TrapEffectiveness { get; set; } = Monsters.TrapEffectiveness.GetTraps(name);
+		public StatusEffectiveness[] StatusEffectiveness { get; set; } = Monsters.StatusEffectiveness.GetStatuses(name, GamesExtensions.ToGamesEnum(game));
+		public TrapEffectiveness[] TrapEffectiveness { get; set; } = Monsters.TrapEffectiveness.GetTraps(name, GamesExtensions.ToGamesEnum(game));
 		public HitZoneValues[] HitZoneValues { get; set; } = Monsters.HitZoneValues.GetHitZoneValues(name);
         public FlinchBreakThresholds[] FlinchBreakThresholds { get; set; } = Monsters.FlinchBreakThresholds.GetFlinchBreakThresholds(name);
 		public CrownSizes CrownSizes { get; set; } = new(name);
 		public string Drops { get; set; } = Monsters.Drops.Format(name, GetAvailableRanks(name), [.. Monsters.HitZoneValues.GetHitZoneValues(name).Select(x => x.Name)]);
 		public OtherLanguages OtherLanguages = new(name);
-		public Quests[] Quests = Monsters.Quests.FetchQuests(name);
-		public Equipment Equipment = new(name, game);
+		public Quests[] Quests = Monsters.Quests.FetchQuests(GamesExtensions.ToGamesEnum(game), name);
+		public Equipment Equipment = new(name, GamesExtensions.ToGamesEnum(game));
 
 		private static readonly Dictionary<string, dynamic> QuestInfo = Utilities.GetMHWIQuestInfo();
 
@@ -47,7 +43,7 @@ namespace MediawikiTranslator.Models.Monsters
 </div>
 </div>");
 			sb.AppendLine("<div class=\"twocol\">\r\n<div>");
-			sb.AppendLine(Monsters.TrapEffectiveness.Format("MHWI", TrapEffectiveness, Name));
+			sb.AppendLine(Monsters.TrapEffectiveness.Format(game, TrapEffectiveness, Name));
 			sb.AppendLine("</div>\r\n<div>");
 			sb.AppendLine(Monsters.StatusEffectiveness.Format(StatusEffectiveness, Name));
 			sb.AppendLine("</div>\r\n</div>");
@@ -58,11 +54,17 @@ namespace MediawikiTranslator.Models.Monsters
 			sb.AppendLine("</div>\r\n</div>");
 			sb.AppendLine(Drops);
 			sb.AppendLine(Monsters.Quests.Format(Quests, Name));
-			sb.AppendLine(Equipment.Format());
+			//sb.AppendLine(Equipment.Format());
 			return sb.ToString();
 		}
 
-		private static int[] GetAvailableRanks(string name)
+		public static KinsectEssence GetKinsectEssence(int id)
+		{
+			id++;
+			return (KinsectEssence)id;
+		}
+
+		public static int[] GetAvailableRanks(string name)
 		{
 			List<int> ranksAvailable = [];
 			if (QuestInfo.Any(x => x.Value.Rank == "Low Rank"))
@@ -86,12 +88,12 @@ namespace MediawikiTranslator.Models.Monsters
 		public string IDNum { get; set; } = string.Empty;
 		public string IDFix { get; set; } = string.Empty;
 		public string IDBit { get; set; } = string.Empty;
-		public string Name { get; set; } = string.Empty;
-		public string BossIcon { get; set; } = string.Empty;
-		public string ZakoIcon { get; set; } = string.Empty;
-		public string ExtraName { get; set; } = string.Empty;
-		public string FrenzyName { get; set; } = string.Empty;
-		public string LegendaryName { get; set; } = string.Empty;
+		public string? Name { get; set; } = string.Empty;
+		public string? BossIcon { get; set; } = string.Empty;
+		public string? ZakoIcon { get; set; } = string.Empty;
+		public string? ExtraName { get; set; } = string.Empty;
+		public string? FrenzyName { get; set; } = string.Empty;
+		public string? LegendaryName { get; set; } = string.Empty;
 		public string MonsterType
 		{
 			get
@@ -99,5 +101,14 @@ namespace MediawikiTranslator.Models.Monsters
 				return Id.StartsWith("EM5") ? "Endemic" : Convert.ToInt32(Id.Substring(Id.IndexOf("EM") + 2, 4)) < 165 ? "Large" : "Small";
 			}
 		}
+	}
+
+	public enum KinsectEssence
+	{
+		None,
+		Red,
+		White,
+		Orange,
+		Green
 	}
 }

@@ -1,5 +1,4 @@
 ﻿using System.Globalization;
-using System.Threading;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 
@@ -7,6 +6,7 @@ namespace MediawikiTranslator.Models.MaterialsAndDropTables
 {
 	public partial class WebToolkitData
 	{
+		public int Order { get; set; } = 0;
 		[JsonProperty(nameof(Rank))]
 		public string Rank { get; set; } = string.Empty;
 		[JsonProperty(nameof(Monster))]
@@ -23,6 +23,7 @@ namespace MediawikiTranslator.Models.MaterialsAndDropTables
 
 	public partial class Table
 	{
+		public int Order { get; set; } = 0;
 		[JsonProperty(nameof(Header))]
 		public string Header { get; set; } = string.Empty;
 

@@ -15,6 +15,8 @@ namespace MediawikiTranslator.Models.Data.MHWilds
 	using System.Globalization;
 	using System.Text.RegularExpressions;
 	using DocumentFormat.OpenXml.Drawing.Charts;
+	using MediawikiTranslator.Generators;
+	using MediawikiTranslator.Models.Data.MHRS;
 	using MediawikiTranslator.Models.MaterialsAndDropTables;
 	using MediawikiTranslator.Models.Monsters;
 	using Newtonsoft.Json;
@@ -70,13 +72,37 @@ namespace MediawikiTranslator.Models.Data.MHWilds
 		public List<ItemEquipment> Equipment { get; set; } = [];
 		private static Dictionary<string, Dictionary<string, double[]>> MapAreaPoints = JsonConvert.DeserializeObject<Dictionary<string, Dictionary<string, double[]>>>(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\map_area_points.json"));
 
+		public static string PoogieItemsFetch()
+		{
+			JArray poogieItems = JsonConvert.DeserializeObject<JArray>(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\dtlnor rips\MHWs-in-json-main\natives\STM\GameDesign\Facility\PugeeItemData.user.3.json")).First().Value<JObject>("app.user_data.PugeeItemData").Value<JArray>("_Values");
+			Items[] items = Fetch();
+			return JsonConvert.SerializeObject(poogieItems.Select(x =>
+			{
+				try
+				{
+					JObject poogObj = x.Value<JObject>("app.user_data.PugeeItemData.cData");
+					Items item = items.First(y => y.ItemID == poogObj.Value<string>("_ItemId"));
+					return new
+					{
+						ItemName = item.Name,
+						Rate = poogObj.Value<int>("_Rate")
+					};
+				}
+				catch (Exception e)
+				{
+					Debugger.Break();
+					return new { ItemName = "", Rate = 0 };
+				}
+			}).ToArray(), Newtonsoft.Json.Formatting.Indented);
+		}
+
 		public static Items[] FillSources(Items[] items)
 		{
 			Dictionary<string, List<WebToolkitData>> monsterDrops = Monster.WildsMonsterIds
 				.Where(x => !string.IsNullOrEmpty(x.Name) && x.MonsterType == "Large")
 				.Select(x => x.Name)
 				.Distinct()
-				.ToDictionary(x => x, x => Drops.Fetch(x));
+				.ToDictionary(x => x, x => Drops.Fetch(Games.MHWilds, x));
 			JArray gimmickData = JsonConvert.DeserializeObject<JArray>(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\gimmickdata.json"));
 			JArray missionRewardData = JsonConvert.DeserializeObject<JArray>(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\dtlnor rips\MHWs-in-json-main\natives\STM\GameDesign\Mission\_UserData\_Reward\MissionRewardData.user.3.json")).First().Value<JObject>("app.user_data.MissionRewardData").Value<JArray>("_Values");
 			JArray commonRewardData = JsonConvert.DeserializeObject<JArray>(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\dtlnor rips\MHWs-in-json-main\natives\STM\GameDesign\Mission\_UserData\_Reward\CommonRewardData.user.3.json")).First().Value<JObject>("app.user_data.QuestGeneralRewardData").Value<JArray>("_Values");
@@ -341,8 +367,33 @@ namespace MediawikiTranslator.Models.Data.MHWilds
 			return items;
 		}
 
+		public static Generators.Items[] FetchParsed()
+		{
+			int order = 0;
+			return [..FillSources(Fetch()).Select(item => new Generators.Items()
+			{
+				BuddyCarryLimit = (int)item.OtCarry,
+				BuyPrice = (int)item.BuyPrice,
+				CarryLimit = (int)item.Carry,
+				Category = item.Category,
+				Combinations = item.Combinations,
+				Description = item.Description,
+				Equipment = item.Equipment,
+				InternalID = item.ItemID,
+				InternalOrder = order++,
+				JPName = item.JPName,
+				Name = item.Name,
+				Rarity = (int)item.Rarity,
+				SellPrice = (int)item.SellPrice,
+				Sources = item.Sources,
+				WikiIconColor = item.IconColor,
+				WikiIconName = item.Icon
+			})];
+		}
+
 		public static Items[] Fetch()
 		{
+			string[] unreleasedItems = [];
 			List<Items> ret = [];
 			JArray rawItems = JsonConvert.DeserializeObject<JArray>(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\dtlnor rips\MHWs-in-json-main\natives\STM\GameDesign\Common\Item\itemData.user.3.json"))!.First().Value<JObject>("app.user_data.ItemData").Value<JArray>("_Values");
 			JArray rawItemCrafting = JsonConvert.DeserializeObject<JArray>(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\dtlnor rips\MHWs-in-json-main\natives\STM\GameDesign\Common\Item\ItemRecipe.user.3.json"))!.First().Value<JObject>("app.user_data.cItemRecipe").Value<JArray>("_Values");
@@ -357,27 +408,37 @@ namespace MediawikiTranslator.Models.Data.MHWilds
 				JObject rawItem = rawItem_Container.Value<JObject>("app.user_data.ItemData.cData");
 				JArray itemName = itemNames.First(x => x.Value<string>("guid") == rawItem.Value<string>("_RawName")).Value<JArray>("content");
 				string itemNameStr = itemName[1].Value<string>();
-				if (itemNameStr != "---" && !itemNameStr.StartsWith("<COLOR FF0000>#Rejected#</COLOR>"))
+				if (itemNameStr != "---" && !itemNameStr.StartsWith("<COLOR FF0000>#Rejected#</COLOR>") && !unreleasedItems.Contains(itemNameStr))
 				{
-					//REMOVE THIS ONCE WORN PICKAXE GETS USED
-					if (itemNameStr != "Worn Pickaxe")
+					if (iconDefs.ContainsKey(rawItem.Value<string>("_IconType")))
 					{
-						Items item = new Items()
+						try
 						{
-							ItemID = rawItem.Value<string>("_ItemId"),
-							BuyPrice = rawItem.Value<int>("_BuyPrice"),
-							SellPrice = rawItem.Value<int>("_SellPrice"),
-							Carry = rawItem.Value<int>("_MaxCount"),
-							OtCarry = rawItem.Value<int>("_OtomoMax"),
-							Rarity = Convert.ToInt32(rawItem.Value<string>("_Rare").Substring(rawItem.Value<string>("_Rare").IndexOf("RARE") + 4)) + 1,
-							Name = itemNameStr,
-							JPName = itemName[0].Value<string>(),
-							Description = itemNames.First(x => x.Value<string>("guid") == rawItem.Value<string>("_RawExplain")).Value<JArray>("content")[1].Value<string>().Replace("\r\n", " "),
-							Icon = iconDefs[rawItem.Value<string>("_IconType")],
-							IconColor = colorDefs[rawItem.Value<string>("_IconColor")],
-							Category = refItemMsgs[string.Join("", rawItem.Value<string>("_Type").Where(x => char.IsDigit(x)))]
-						};
-						ret.Add(item);
+							Items item = new Items()
+							{
+								ItemID = rawItem.Value<string>("_ItemId"),
+								BuyPrice = rawItem.Value<int>("_BuyPrice"),
+								SellPrice = rawItem.Value<int>("_SellPrice"),
+								Carry = rawItem.Value<int>("_MaxCount"),
+								OtCarry = rawItem.Value<int>("_OtomoMax"),
+								Rarity = Convert.ToInt32(rawItem.Value<string>("_Rare").Substring(rawItem.Value<string>("_Rare").IndexOf("RARE") + 4)) + 1,
+								Name = itemNameStr,
+								JPName = itemName[0].Value<string>(),
+								Description = itemNames.First(x => x.Value<string>("guid") == rawItem.Value<string>("_RawExplain")).Value<JArray>("content")[1].Value<string>().Replace("\r\n", " "),
+								Icon = iconDefs[rawItem.Value<string>("_IconType")],
+								IconColor = colorDefs[rawItem.Value<string>("_IconColor")],
+								Category = refItemMsgs[string.Join("", rawItem.Value<string>("_Type").Where(x => char.IsDigit(x)))]
+							};
+							ret.Add(item);
+						}
+						catch (Exception _)
+						{
+							Debugger.Break();
+						}
+					}
+					else
+					{
+						Debugger.Break();
 					}
 				}
 			}
@@ -388,34 +449,6 @@ namespace MediawikiTranslator.Models.Data.MHWilds
 		{
 			return Math.Sqrt(src.Zip(compare, (a, b) => (a - b) * (a - b)).Sum());
 		}
-	}
-
-	public class ItemCrafting
-	{
-		public int Number { get; set; }
-		public string Result { get; set; }
-		public string MaterialA { get; set; }
-		public string MaterialB { get; set; }
-	}
-
-	public class ItemEquipment
-	{
-		public string EquipmentName { get; set; }
-		public string EquipmentType { get; set; }
-	}
-
-	public class ItemSource
-	{
-		public string Stage { get; set; }
-		public int Zone { get; set; }
-		public string MonsterName { get; set; } = string.Empty;
-		public string QuestName { get; set; } = string.Empty;
-		public int Quantity { get; set; }
-		public int Probability { get; set; }
-		public int QuantityRare { get; set; }
-		public int ProbabilityRare { get; set; }
-		public string Rank { get; set; }
-		public string Circumstance { get; set; }
 	}
 
 	public partial class Items

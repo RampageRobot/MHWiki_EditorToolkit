@@ -158,119 +158,122 @@ namespace MediawikiTranslator.Models.Data.MHWI
 		[JsonIgnore]
 		public string SetName { get; set; }
 
-		public static WebToolkitData[] GetWebToolkitData()
+		public static ArmorSets.WebToolkitData[] GetWebToolkitData(string game, int? rarityUnder = null)
 		{
-			Armor[] allArmor = GetArmors();
+			Armor[] src = GetArmors();
 			SkillsExtraInfo[] extraInfo = SkillsExtraInfo.FromJson(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWI\mhwi skills extra info.json"));
-			List<WebToolkitData> ret = [];
+			List<ArmorSets.WebToolkitData> ret = [];
 			Dictionary<int, string> colors = MediawikiTranslator.Generators.Items.GetMHWIWikiColors();
 			//21 is layered armor, anything higher is a placeholder
-			foreach (Armor armor in allArmor.OrderBy(x => x.SetName).Where(x => x.SetName != "HARDUMMY" && x.EquipSlot != "Charm" && x.Type == "Regular" && (x.CraftingData == null || x.CraftingData.Unk4 < 153)))
+			foreach (Armor srcArmor in src.OrderBy(x => x.SetName).Where(x => x.SetName != "HARDUMMY" && x.EquipSlot != "Charm" && x.Type == "Regular" && (x.CraftingData == null || x.CraftingData.Unk4 < 153)))
 			{
-				WebToolkitData newArmor = new WebToolkitData()
+				ArmorSets.WebToolkitData toolkitArmor = new ArmorSets.WebToolkitData()
 				{
-					MaleFrontImg = $"MHWI-{armor.SetName.Replace("β", "Beta").Replace("α", "Alpha")} Armor Male Render.png",
-					FemaleFrontImg = $"MHWI-{armor.SetName} Armor Female Render.png",
-					Game = "MHWI",
-					SetName = armor.SetName,
-					Rarity = armor.Rarity,
-					Rank = armor.Variant.Replace("_", ""),
-					OnlyForGender = (armor.Gender != "Unisex" ? armor.Gender : null)
+					MaleFrontImg = $"MHWI-{srcArmor.SetName.Replace("β", "Beta").Replace("α", "Alpha")} Armor Male Render 001.webp",
+					FemaleFrontImg = $"MHWI-{srcArmor.SetName.Replace("β", "Beta").Replace("α", "Alpha")} Armor Female Render 001.webp",
+					Game = game,
+					SetName = srcArmor.SetName,
+					Rarity = srcArmor.Rarity,
+					Rank = srcArmor.Variant.Replace("_", ""),
+					OnlyForGender = (srcArmor.Gender != "Unisex" ? srcArmor.Gender : null)
 				};
-				if (ret.Any(x => x.SetName == newArmor.SetName && x.OnlyForGender == newArmor.OnlyForGender))
+				if (rarityUnder == null || toolkitArmor.Rarity < rarityUnder)
 				{
-					newArmor = ret.First(x => x.SetName == newArmor.SetName && x.OnlyForGender == newArmor.OnlyForGender);
-				}
-				if (armor.SetSkill != null)
-				{
-					newArmor.SetSkill1 = new Skill()
+					if (ret.Any(x => x.SetName == toolkitArmor.SetName && x.OnlyForGender == toolkitArmor.OnlyForGender))
 					{
-						Level = 1,
-						Name = armor.SetSkill.SetBonusName,
-						WikiIconColor = extraInfo.First(x => x.IsSetBonus!.Value == IsSetBonus.True && x.Name == armor.SetSkill.SetBonusName).WikiIconColor
+						toolkitArmor = ret.First(x => x.SetName == toolkitArmor.SetName && x.OnlyForGender == toolkitArmor.OnlyForGender);
+					}
+					if (srcArmor.SetSkill != null)
+					{
+						toolkitArmor.SetSkill1 = new Skill()
+						{
+							Level = 1,
+							Name = srcArmor.SetSkill.SetBonusName,
+							WikiIconColor = extraInfo.First(x => x.IsSetBonus!.Value == IsSetBonus.True && x.Name == srcArmor.SetSkill.SetBonusName).WikiIconColor
+						};
+					}
+					List<Piece> pieces = [];
+					if (toolkitArmor.Pieces != null)
+					{
+						pieces = [.. toolkitArmor.Pieces];
+					}
+					int maxLevel = GetMaxArmorLevel(srcArmor.Rarity!.Value);
+					Piece newPiece = new Piece()
+					{
+						Name = srcArmor.Name,
+						MaxLevel = maxLevel,
+						Defense = srcArmor.Defense,
+						MaxDefense = srcArmor.CraftingData == null ? null : srcArmor.Defense + ((maxLevel - 1) * 2),
+						Description = srcArmor.Description,
+						DragonRes = srcArmor.DragonRes,
+						FireRes = srcArmor.FireRes,
+						WaterRes = srcArmor.WaterRes,
+						IceRes = srcArmor.IceRes,
+						ThunderRes = srcArmor.ThunderRes,
+						ForgingCost = srcArmor.Cost,
+						Rarity = srcArmor.Rarity,
+						IconType = TranslateArmorTypeToIcon(srcArmor.EquipSlot),
+						FemaleImage = "MHWI-" + srcArmor.Name + " Female Render 001.webp",
+						MaleImage = "MHWI-" + srcArmor.Name + " Male Render 001.webp"
 					};
-				}
-				List<Piece> pieces = [];
-				if (newArmor.Pieces != null)
-				{
-					pieces = [..newArmor.Pieces];
-				}
-				int maxLevel = GetMaxArmorLevel(armor.Rarity!.Value);
-				Piece newPiece = new Piece()
-				{
-					Name = armor.Name,
-					MaxLevel = maxLevel,
-					Defense = armor.Defense, 
-					MaxDefense = armor.CraftingData == null ? null : armor.Defense + ((maxLevel - 1) * 2),
-					Description = armor.Description,
-					DragonRes = armor.DragonRes,
-					FireRes = armor.FireRes,
-					WaterRes = armor.WaterRes,
-					IceRes = armor.IceRes,
-					ThunderRes = armor.ThunderRes,
-					ForgingCost = armor.Cost,
-					Rarity = armor.Rarity,
-					IconType = TranslateArmorTypeToIcon(armor.EquipSlot),
-					FemaleImage = "MHWI-" + armor.Name + " Female Render.png",
-					MaleImage = "MHWI-" + armor.Name + " Male Render.png"
-				};
-				List<Material> mats = [];
-				if (armor.CraftingData != null && armor.CraftingData.Mat1 != null)
-				{
-					mats.Add(new Material()
+					List<Material> mats = [];
+					if (srcArmor.CraftingData != null && srcArmor.CraftingData.Mat1 != null)
 					{
-						Color = Generators.Weapon.GetColorString(armor.CraftingData.Mat1.WikiIconColor!.ToString()),
-						Icon = armor.CraftingData.Mat1.WikiIconName,
-						Name = armor.CraftingData.Mat1.Name,
-						Quantity = armor.CraftingData.Mat1Count
-					});
-				}
-				if (armor.CraftingData != null && armor.CraftingData.Mat2 != null)
-				{
-					mats.Add(new Material()
+						mats.Add(new Material()
+						{
+							Color = Generators.Weapon.GetColorString(srcArmor.CraftingData.Mat1.WikiIconColor!.ToString()),
+							Icon = srcArmor.CraftingData.Mat1.WikiIconName,
+							Name = srcArmor.CraftingData.Mat1.Name,
+							Quantity = srcArmor.CraftingData.Mat1Count
+						});
+					}
+					if (srcArmor.CraftingData != null && srcArmor.CraftingData.Mat2 != null)
 					{
-						Color = Generators.Weapon.GetColorString(armor.CraftingData.Mat2.WikiIconColor!.ToString()),
-						Icon = armor.CraftingData.Mat2.WikiIconName,
-						Name = armor.CraftingData.Mat2.Name,
-						Quantity = armor.CraftingData.Mat2Count
-					});
-				}
-				if (armor.CraftingData != null && armor.CraftingData.Mat3 != null)
-				{
-					mats.Add(new Material()
+						mats.Add(new Material()
+						{
+							Color = Generators.Weapon.GetColorString(srcArmor.CraftingData.Mat2.WikiIconColor!.ToString()),
+							Icon = srcArmor.CraftingData.Mat2.WikiIconName,
+							Name = srcArmor.CraftingData.Mat2.Name,
+							Quantity = srcArmor.CraftingData.Mat2Count
+						});
+					}
+					if (srcArmor.CraftingData != null && srcArmor.CraftingData.Mat3 != null)
 					{
-						Color = Generators.Weapon.GetColorString(armor.CraftingData.Mat3.WikiIconColor!.ToString()),
-						Icon = armor.CraftingData.Mat3.WikiIconName,
-						Name = armor.CraftingData.Mat3.Name,
-						Quantity = armor.CraftingData.Mat3Count
-					});
-				}
-				if (armor.CraftingData != null && armor.CraftingData.Mat4 != null)
-				{
-					mats.Add(new Material()
+						mats.Add(new Material()
+						{
+							Color = Generators.Weapon.GetColorString(srcArmor.CraftingData.Mat3.WikiIconColor!.ToString()),
+							Icon = srcArmor.CraftingData.Mat3.WikiIconName,
+							Name = srcArmor.CraftingData.Mat3.Name,
+							Quantity = srcArmor.CraftingData.Mat3Count
+						});
+					}
+					if (srcArmor.CraftingData != null && srcArmor.CraftingData.Mat4 != null)
 					{
-						Color = Generators.Weapon.GetColorString(armor.CraftingData.Mat4.WikiIconColor!.ToString()),
-						Icon = armor.CraftingData.Mat4.WikiIconName,
-						Name = armor.CraftingData.Mat4.Name,
-						Quantity = armor.CraftingData.Mat4Count
-					});
-				}
-				newPiece.Materials = [.. mats];
-				newPiece.Skills = [..armor.Skills.Select(x => new Skill()
-				{
-					Level = x.Level,
-					Name = x.SkillName,
-					WikiIconColor = colors[(int)x.WikiIconColor!.Value]
-				})];
-				newPiece.Decos1 = (armor.Slot1Size == 1 ? 1 : 0) + (armor.Slot2Size == 1 ? 1 : 0) + (armor.Slot3Size == 1 ? 1 : 0);
-				newPiece.Decos2 = (armor.Slot1Size == 2 ? 1 : 0) + (armor.Slot2Size == 2 ? 1 : 0) + (armor.Slot3Size == 2 ? 1 : 0);
-				newPiece.Decos3 = (armor.Slot1Size == 3 ? 1 : 0) + (armor.Slot2Size == 3 ? 1 : 0) + (armor.Slot3Size == 3 ? 1 : 0);
-				newPiece.Decos4 = (armor.Slot1Size == 4 ? 1 : 0) + (armor.Slot2Size == 4 ? 1 : 0) + (armor.Slot3Size == 4 ? 1 : 0);
-				pieces.Add(newPiece);
-				newArmor.Pieces = [.. pieces];
-				if (!ret.Any(x => x.SetName == newArmor.SetName && x.OnlyForGender == newArmor.OnlyForGender))
-				{
-					ret.Add(newArmor);
+						mats.Add(new Material()
+						{
+							Color = Generators.Weapon.GetColorString(srcArmor.CraftingData.Mat4.WikiIconColor!.ToString()),
+							Icon = srcArmor.CraftingData.Mat4.WikiIconName,
+							Name = srcArmor.CraftingData.Mat4.Name,
+							Quantity = srcArmor.CraftingData.Mat4Count
+						});
+					}
+					newPiece.Materials = [.. mats];
+					newPiece.Skills = [..srcArmor.Skills.Select(x => new Skill()
+					{
+						Level = x.Level,
+						Name = x.SkillName,
+						WikiIconColor = colors[(int)x.WikiIconColor]
+					})];
+					newPiece.Decos1 = (srcArmor.Slot1Size == 1 ? 1 : 0) + (srcArmor.Slot2Size == 1 ? 1 : 0) + (srcArmor.Slot3Size == 1 ? 1 : 0);
+					newPiece.Decos2 = (srcArmor.Slot1Size == 2 ? 1 : 0) + (srcArmor.Slot2Size == 2 ? 1 : 0) + (srcArmor.Slot3Size == 2 ? 1 : 0);
+					newPiece.Decos3 = (srcArmor.Slot1Size == 3 ? 1 : 0) + (srcArmor.Slot2Size == 3 ? 1 : 0) + (srcArmor.Slot3Size == 3 ? 1 : 0);
+					newPiece.Decos4 = (srcArmor.Slot1Size == 4 ? 1 : 0) + (srcArmor.Slot2Size == 4 ? 1 : 0) + (srcArmor.Slot3Size == 4 ? 1 : 0);
+					pieces.Add(newPiece);
+					toolkitArmor.Pieces = [.. pieces];
+					if (!ret.Any(x => x.SetName == toolkitArmor.SetName && x.OnlyForGender == toolkitArmor.OnlyForGender))
+					{
+						ret.Add(toolkitArmor);
+					}
 				}
 			}
 			return [.. ret];

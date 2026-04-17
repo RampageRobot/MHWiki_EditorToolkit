@@ -1,14 +1,6 @@
-﻿using MediawikiTranslator.Models.Data.MHRS;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Text.Json.Serialization;
-using System.Threading.Tasks;
 
 namespace MediawikiTranslator.Models.Data.MHWilds
 {

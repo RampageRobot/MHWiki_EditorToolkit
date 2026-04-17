@@ -1,9 +1,4 @@
 ﻿using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace MediawikiTranslator.Models.Monsters
 {
@@ -27,7 +22,7 @@ namespace MediawikiTranslator.Models.Monsters
 
         public Enrage(string monsterName)
         {
-            string fileName = $@"{System.Configuration.ConfigurationManager.AppSettings.Get("DesktopPath")}test monster stuff\MHWI\{monsterName}\Enrage.json";
+            string fileName = $@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWI\Monster Data\{monsterName}\Enrage.json";
             if (File.Exists(fileName))
             {
                 FileFound = true;

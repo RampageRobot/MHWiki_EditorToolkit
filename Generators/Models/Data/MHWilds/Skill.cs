@@ -45,7 +45,7 @@ namespace MediawikiTranslator.Models.Data.MHWilds
 			foreach (JObject valContainer in srcCommon)
 			{
 				JObject val = valContainer.Value<JObject>("app.user_data.SkillCommonData.cData");
-				if (val.Value<string>("_skillId") != "[0]NONE")
+				if (val.Value<string>("_skillId") != "[0]NONE" && skillCommonMsgs.Any(x => x.Value<string>("guid") == val.Value<string>("_skillName")))
 				{
 					string[] setOrGroup = ["[1]SERIES", "[2]GROUP"];
 					bool isSetOrGroup = setOrGroup.Contains(val.Value<string>("_skillCategory"));
@@ -91,67 +91,81 @@ namespace MediawikiTranslator.Models.Data.MHWilds
 				.ToDictionary(x => x, x => mealSkillRandomTable.Where(y => y.Value<string>("_RandomTable") == x).Select(y => y.Value<string>("_MealSkill")).ToArray());
 			foreach (JObject valContainer in mealSkills)
 			{
-				JObject val = valContainer.Value<JObject>("app.user_data.MealSkillData.cData"); Skill newSkill = new()
+				JObject val = valContainer.Value<JObject>("app.user_data.MealSkillData.cData");
+				if (mealSkillMsgs.Any(x => x.Value<string>("guid") == val.Value<string>("_Name")))
 				{
-					SkillId = val.Value<string>("_MealSkill"),
-					SkillType = null,
-					SkillCategory = "Meal",
-					SkillName = mealSkillMsgs.First(x => x.Value<string>("guid") == val.Value<string>("_Name")).Value<JArray>("content")[1].Value<string>().Replace("\r\n", " "),
-					SkillExplain = mealSkillMsgs.First(x => x.Value<string>("guid") == val.Value<string>("_Explain")).Value<JArray>("content")[1].Value<string>().Replace("\r\n", " "),
-					SortId = val.Value<int>("_SortId")
-				};
-				string[] tablesWithSkill = [.. mealRandTables.Where(x => x.Value.Contains(newSkill.SkillId)).Select(x => x.Key)];
-				newSkill.GrantedByIngredients = [..foodData.Where(x => x.Value<string>("_MealSkill") == newSkill.SkillId).Select(x => allItems.First(y => y.ItemID == x.Value<string>("_ItemId")).Name)];
-				newSkill.GrantedByIngredients_Daily = [..foodData
+					try
+					{
+						Skill newSkill = new()
+						{
+							SkillId = val.Value<string>("_MealSkill"),
+							SkillType = null,
+							SkillCategory = "Meal",
+							SkillName = mealSkillMsgs.First(x => x.Value<string>("guid") == val.Value<string>("_Name")).Value<JArray>("content")[1].Value<string>().Replace("\r\n", " "),
+							SkillExplain = mealSkillMsgs.First(x => x.Value<string>("guid") == val.Value<string>("_Explain")).Value<JArray>("content")[1].Value<string>().Replace("\r\n", " "),
+							SortId = val.Value<int>("_SortId")
+						};
+						string[] tablesWithSkill = [.. mealRandTables.Where(x => x.Value.Contains(newSkill.SkillId)).Select(x => x.Key)];
+						newSkill.GrantedByIngredients = [.. foodData.Where(x => x.Value<string>("_MealSkill") == newSkill.SkillId).Select(x => allItems.First(y => y.ItemID == x.Value<string>("_ItemId")).Name)];
+						newSkill.GrantedByIngredients_Daily = [..foodData
 					.Where(x => x.Value<JArray>("_RandomTable").Select(x => x.Value<string>()).Any(y => tablesWithSkill.Any(z => z == y)))
 					.Select(x => allItems.First(y => y.ItemID == x.Value<string>("_ItemId")).Name)];
-				newSkill.GrantedByIngredients_Chance = [..foodData
+						newSkill.GrantedByIngredients_Chance = [..foodData
 					.Where(x => x.Value<JArray>("_RandomTable").Select(x => x.Value<string>()).Any(y => tablesWithSkill.Any(z => z == y)))
 					.Select(x => new Tuple<string, double>(allItems.First(y => y.ItemID == x.Value<string>("_ItemId")).Name,
 						100d * (1d / mealSkillRandomTable.Count(y => y.Value<string>("_RandomTable") == x.Value<JArray>("_RandomTable").Select(z => z.Value<string>()).First()))))];
-				newSkill.GrantedByMeals = [..mealDataLobby
+						newSkill.GrantedByMeals = [..mealDataLobby
 					.Where(x => x.Value<JArray>("_MealSkill").Select(x => x.Value<string>())
 					.Contains(newSkill.SkillId))
 					.Select(x => mealLobbyMsgs.First(y => y.Value<string>("guid") == x.Value<string>("_Title")).Value<JArray>("content")[1].Value<string>().Replace("\r\n", " "))];
-				newSkill.GrantedByMeals_Daily = [..mealDataLobby
+						newSkill.GrantedByMeals_Daily = [..mealDataLobby
 					.Where(x => x.Value<JArray>("_RandomTable").Select(x => x.Value<string>()).Any(y => tablesWithSkill.Any(z => z == y)))
 					.Select(x => mealLobbyMsgs.First(y => y.Value<string>("guid") == x.Value<string>("_Title")).Value<JArray>("content")[1].Value<string>().Replace("\r\n", " "))];
-				newSkill.GrantedByMeals_Chance = [];
-				foreach (JObject meal in mealDataLobby.Where(x => x.Value<JArray>("_RandomTable").Select(x => x.Value<string>()).Any(y => tablesWithSkill.Any(z => z == y))))
-				{
-					string mealName = mealLobbyMsgs.First(y => y.Value<string>("guid") == meal.Value<string>("_Title")).Value<JArray>("content")[1].Value<string>().Replace("\r\n", " ");
-					foreach (string randomTable in meal.Value<JArray>("_RandomTable").Select(x => x.Value<string>()))
-					{
-						int? chance = mealSkillRandomTable.FirstOrDefault(x => x.Value<string>("_RandomTable") == randomTable && x.Value<string>("_MealSkill") == newSkill.SkillId)?.Value<int>("_RandomValue");
-						if (chance != null && !newSkill.GrantedByMeals_Chance.Any(x => x.Item1 == mealName && x.Item2 == chance.Value))
+						newSkill.GrantedByMeals_Chance = [];
+						foreach (JObject meal in mealDataLobby.Where(x => x.Value<JArray>("_RandomTable").Select(x => x.Value<string>()).Any(y => tablesWithSkill.Any(z => z == y))))
 						{
-							try
+							string mealName = mealLobbyMsgs.First(y => y.Value<string>("guid") == meal.Value<string>("_Title")).Value<JArray>("content")[1].Value<string>().Replace("\r\n", " ");
+							foreach (string randomTable in meal.Value<JArray>("_RandomTable").Select(x => x.Value<string>()))
 							{
-								newSkill.GrantedByMeals_Chance.Add(new(mealName, 100d * (1d / mealSkillRandomTable.Count(x => x.Value<string>("_RandomTable") == randomTable))));
-							}
-							catch (Exception)
-							{
-								Debugger.Break();
+								int? chance = mealSkillRandomTable.FirstOrDefault(x => x.Value<string>("_RandomTable") == randomTable && x.Value<string>("_MealSkill") == newSkill.SkillId)?.Value<int>("_RandomValue");
+								if (chance != null && !newSkill.GrantedByMeals_Chance.Any(x => x.Item1 == mealName && x.Item2 == chance.Value))
+								{
+									try
+									{
+										newSkill.GrantedByMeals_Chance.Add(new(mealName, 100d * (1d / mealSkillRandomTable.Count(x => x.Value<string>("_RandomTable") == randomTable))));
+									}
+									catch (Exception)
+									{
+										Debugger.Break();
+									}
+								}
 							}
 						}
+						string iconKey = val.Value<string>("_SkillIcon");
+						if (iconTypes.ContainsKey(iconKey))
+						{
+							newSkill.SkillIconType = iconTypes[iconKey];
+						}
+						else if (oldSkillDict.Any(x => x.name == newSkill.SkillName))
+						{
+							string iconType = oldSkillDict.First(x => x.name == newSkill.SkillName)._SkillIconType;
+							newSkill.SkillIconType = iconType;
+							iconTypes.Add(iconKey, iconType);
+						}
+						else
+						{
+							Debugger.Break();
+						}
+						if (newSkill.SkillName != "-")
+						{
+							ret.Add(newSkill);
+						}
+					}
+					catch (Exception e)
+					{
+						Debugger.Break();
 					}
 				}
-				string iconKey = val.Value<string>("_SkillIcon");
-				if (iconTypes.ContainsKey(iconKey))
-				{
-					newSkill.SkillIconType = iconTypes[iconKey];
-				}
-				else if (oldSkillDict.Any(x => x.name == newSkill.SkillName))
-				{
-					string iconType = oldSkillDict.First(x => x.name == newSkill.SkillName)._SkillIconType;
-					newSkill.SkillIconType = iconType;
-					iconTypes.Add(iconKey, iconType);
-				}
-				else
-				{
-					Debugger.Break();
-				}
-				ret.Add(newSkill);
 			}
 			return [..ret];
 		}

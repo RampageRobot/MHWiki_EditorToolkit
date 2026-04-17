@@ -1,13 +1,8 @@
-﻿
-using DocumentFormat.OpenXml.Drawing.Charts;
-using MediawikiTranslator.Models.Data.MHWI;
+﻿using MediawikiTranslator.Models.Data.MHWI;
 using MediawikiTranslator.Models.MaterialsAndDropTables;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.Diagnostics;
-using System.Reflection;
-using System.Runtime.Intrinsics.X86;
-using System.Threading;
 
 namespace MediawikiTranslator.Models.Monsters
 {
@@ -35,86 +30,404 @@ namespace MediawikiTranslator.Models.Monsters
 
 		public static string Format(string monsterName, int[] availableRanks, string[] partNames, string game = "MHWI")
 		{
-			if (game == "MHWI")
+			try
 			{
-				if (File.Exists($@"{System.Configuration.ConfigurationManager.AppSettings.Get("DesktopPath")}test monster stuff\MHWI\{monsterName}\Drops.json"))
+				if (game == "MHWI" || game == "MHWorld")
 				{
-					dynamic[] baseObj = [.. ((Newtonsoft.Json.Linq.JArray)JsonConvert.DeserializeObject<dynamic>(File.ReadAllText($@"{System.Configuration.ConfigurationManager.AppSettings.Get("DesktopPath")}test monster stuff\MHWI\{monsterName}\Drops.json"))!.data)];
-					dynamic[] dropsFile = [.. (Newtonsoft.Json.Linq.JArray)baseObj.First(x => x.GridName == "Entries").list];
-					BremInfo[] bremFile = JsonConvert.DeserializeObject<BremInfo[]>(File.ReadAllText($@"{System.Configuration.ConfigurationManager.AppSettings.Get("DesktopPath")}test monster stuff\MHWI\{monsterName}\BremRewards.json"))!;
-					Items[] allItems = Items.Fetch();
-					List<WebToolkitData> dropsFormatted = [];
-					foreach (BremRank rank in Enum.GetValues<BremRank>())
+					if (File.Exists($@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWI\Monster Data\{monsterName}\Drops.json"))
 					{
-						if (availableRanks.Contains((int)rank))
+						dynamic[] baseObj = [.. ((JArray)JsonConvert.DeserializeObject<dynamic>(File.ReadAllText($@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWI\Monster Data\{monsterName}\Drops.json"))!.data)];
+						dynamic[] dropsFile = [.. (JArray)baseObj.First(x => x.GridName == "Entries").list];
+						BremInfo[] bremFile = JsonConvert.DeserializeObject<BremInfo[]>(File.ReadAllText($@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWI\Monster Data\{monsterName}\BremRewards.json"))!;
+						Items[] allItems = Items.Fetch();
+						List<WebToolkitData> dropsFormatted = [];
+						foreach (BremRank rank in Enum.GetValues<BremRank>())
 						{
-							BremInfo[] bremsForRank = [.. bremFile.Where(x => x.Rank == rank)];
-							int[] rankIndices = GetRankIndices(rank);
-							dynamic[] dropsForRank = [.. dropsFile.Where(x => rankIndices.Contains((int)x.Index))];
-							WebToolkitData rankData = new()
+							if (availableRanks.Contains((int)rank))
 							{
-								Rank = new string[] { "Low", "High", "Master" }[(int)rank],
-								Monster = monsterName
-							};
-							foreach (dynamic dropTable in dropsForRank.OrderBy(x => x.Index))
-							{
-								dynamic[] items = [.. (Newtonsoft.Json.Linq.JArray)dropTable.Items_raw];
-								dynamic[] counts = [.. (Newtonsoft.Json.Linq.JArray)dropTable.Counts_raw];
-								dynamic[] weights = [.. (Newtonsoft.Json.Linq.JArray)dropTable.Percents_raw];
-								for (int i = 0; i < items.Length; i++)
+								BremInfo[] bremsForRank = [.. bremFile.Where(x => x.Rank == rank)];
+								int[] rankIndices = GetRankIndices(rank);
+								dynamic[] dropsForRank = [.. dropsFile.Where(x => rankIndices.Contains((int)x.Index))];
+								WebToolkitData rankData = new()
 								{
-									if (items[i].Item_Id > 0)
-									{
-										rankData = AddItemToRank((int)items[i].Item_Id, (int)counts[i].Item_Count, (int)weights[i].Item_Weight, allItems, rankData, "Gathered", GetDropName((int)dropTable.Index));
-									}
-								}
-							}
-							foreach (BremInfo brem in bremsForRank)
-							{
-								for (int i = 0; i < brem.ItemIds.Length; i++)
+									Rank = new string[] { "Low", "High", "Master" }[(int)rank],
+									Monster = monsterName
+								};
+								foreach (dynamic dropTable in dropsForRank.OrderBy(x => x.Index))
 								{
-									if (brem.ItemIds[i] > 0)
+									dynamic[] items = [.. (JArray)dropTable.Items_raw];
+									dynamic[] counts = [.. (JArray)dropTable.Counts_raw];
+									dynamic[] weights = [.. (JArray)dropTable.Percents_raw];
+									for (int i = 0; i < items.Length; i++)
 									{
-										bool cont = true;
-										string header = "";
-										switch (brem.Type)
+										if (items[i].Item_Id > 0)
 										{
-											case BremType.Capture:
-												header = "Capture Rewards";
-												break;
-											case BremType.PartBreak:
-												if (brem.PartBreakIndex!.Value < 10)
-												{
-													string partName = partNames[brem.PartBreakIndex!.Value];
-													header = "Break " + char.ToUpper(partName[0]) + partName[1..];
-												}
-												else
-												{
-													cont = false;
-												}
-												break;
-											case BremType.HuntNonTarget:
-												header = "Hunt Rewards";
-												break;
-										}
-										if (cont)
-										{
-											rankData = AddItemToRank(brem.ItemIds[i], brem.Counts[i], brem.Weights[i], allItems, rankData, "Quest Rewards", header);
+											rankData = AddItemToRank((int)items[i].Item_Id, (int)counts[i].Item_Count, (int)weights[i].Item_Weight, allItems, rankData, "Gathered", GetDropName((int)dropTable.Index));
 										}
 									}
 								}
+								foreach (BremInfo brem in bremsForRank)
+								{
+									for (int i = 0; i < brem.ItemIds.Length; i++)
+									{
+										if (brem.ItemIds[i] > 0)
+										{
+											bool cont = true;
+											string header = "";
+											switch (brem.Type)
+											{
+												case BremType.Capture:
+													header = "Capture Rewards";
+													break;
+												case BremType.PartBreak:
+													if (brem.PartBreakIndex!.Value < 10)
+													{
+														string partName = partNames[brem.PartBreakIndex!.Value];
+														header = "Break " + char.ToUpper(partName[0]) + partName[1..];
+													}
+													else
+													{
+														cont = false;
+													}
+													break;
+												case BremType.HuntNonTarget:
+													header = "Hunt Rewards";
+													break;
+											}
+											if (cont)
+											{
+												rankData = AddItemToRank(brem.ItemIds[i], brem.Counts[i], brem.Weights[i], allItems, rankData, "Quest Rewards", header);
+											}
+										}
+									}
+								}
+								int cntr = 1;
+								foreach (Table table in rankData.Tables)
+								{
+									table.Order = cntr;
+									cntr++;
+								}
+								dropsFormatted.Add(rankData);
 							}
-							dropsFormatted.Add(rankData);
 						}
+						return Generators.MaterialsAndDropTables.GenerateDataUnescape([.. dropsFormatted], "MHWI");
 					}
-					return Generators.MaterialsAndDropTables.GenerateDataUnescape([.. dropsFormatted], "MHWI");
+					else
+					{
+						return "";
+					}
 				}
 				else
 				{
-					return "";
+					MonsterId monsterId = Monster.WildsMonsterIds.First(x => x.Name == monsterName);
+					string monsterFolder = monsterId.Id.Substring(0, monsterId.Id.IndexOf("_"));
+					string subspeciesFolder = monsterId.Id.Substring(monsterId.Id.IndexOf("_") + 1, 2);
+					Dictionary<string, string> monsterParts = [];
+					foreach (KeyValuePair<string, dynamic> part in ((JObject)((JObject)WildsMonsterMasterlist[monsterId.Id]["part_datas"]).ToObject<Dictionary<string, object>>()!["parts"]).ToObject<Dictionary<string, dynamic>>()!.Where(x => x.Key != "legendary_scar_nums"))
+					{
+						string partId = part.Value._PartsType["app.EnemyDef.PARTS_TYPE_Serializable"]._Value.ToString();
+						string partName = GetWildsPartName(partId.Substring(partId.IndexOf("]") + 1));
+						if (string.IsNullOrEmpty(partName.Replace("'", "")))
+						{
+							partName = "???";
+						}
+						monsterParts.Add(part.Key, partName);
+					}
+					List<WebToolkitData> dropsFormatted = [];
+					DropFileValue[] dropFile = WildsDropFile.FromJson(File.ReadAllText($@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\dtlnor rips\MHWs-in-json-main\natives\STM\GameDesign\Common\Enemy\{monsterId.Id}.user.3.json")).First().AppUserDataEnemyRewardData.Values;
+					dynamic[] partsLostArray = [];
+					string partsLostFile = $@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\dtlnor rips\MHWs-in-json-main\natives\STM\GameDesign\Enemy\{monsterFolder}\{subspeciesFolder}\Data\{monsterFolder}_{subspeciesFolder}_Param_PartsLost.user.3.json";
+					if (File.Exists(partsLostFile))
+					{
+						partsLostArray = ((JArray)JsonConvert.DeserializeObject<dynamic>(File.ReadAllText(partsLostFile))![0]["app.user_data.EmParamPartsLost"]._PartsLostArray["ace.cInstanceGuidArray`1<app.user_data.EmParamPartsLost.cPartsLost>"]._DataArray).ToObject<dynamic[]>()!;
+					}
+					dynamic[] partsBreakArray = [];
+					string partsBreakFile = $@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\dtlnor rips\MHWs-in-json-main\natives\STM\GameDesign\Enemy\{monsterFolder}\{subspeciesFolder}\Data\{monsterFolder}_{subspeciesFolder}_Param_PartsBreakReward.user.3.json";
+					if (File.Exists(partsBreakFile))
+					{
+						partsBreakArray = ((JArray)JsonConvert.DeserializeObject<dynamic>(File.ReadAllText(partsBreakFile))![0]["app.user_data.EmParamPartsBreakReward"]._PartsBreakArray).ToObject<dynamic[]>()!; ;
+					}
+					string type = "[0]INVALID";
+					foreach (DropFileValue table in dropFile)
+					{
+						string header = "";
+						string category = "";
+						int order = 0;
+						if (!table.AppUserDataEnemyRewardDataCData.RewardType.AppEnemyRewardRewardTypeSerializable.Value.EndsWith("INVALID") && !table.AppUserDataEnemyRewardDataCData.RewardType.AppEnemyRewardRewardTypeSerializable.Value.EndsWith("INVARID"))
+						{
+							type = table.AppUserDataEnemyRewardDataCData.RewardType.AppEnemyRewardRewardTypeSerializable.Value;
+							type = type[(type.IndexOf(']') + 1)..];
+						}
+						switch (type)
+						{
+							case "RW000":
+								header = "Gathered";
+								category = "Carves";
+								break;
+							case "RW008":
+								header = "Gathered";
+								category = "Carves (Rotten)";
+								order = 1;
+								break;
+							case "RW001":
+								header = "Gathered";
+								category = "Carves (Severed Part)";
+								order = 2;
+								break;
+							case "RW012":
+								header = "Gathered";
+								category = "Carves (Rotten Severed Part)";
+								order = 3;
+								break;
+							case "RW005":
+								header = "Quest Rewards";
+								category = "Broken Part Rewards";
+								order = 1;
+								break;
+							case "RW006":
+								header = "Quest Rewards";
+								category = "Wound Destruction Rewards";
+								order = 2;
+								break;
+							case "RW004":
+								header = "Quest Rewards";
+								category = "Hunt Rewards";
+								break;
+							case "RW015":
+								header = "Quest Rewards";
+								category = "Tempered Wound Destruction Rewards";
+								order = 3;
+								break;
+							case "RW016":
+								header = "Gathered";
+								category = "Carves (Crystalized)";
+								order = 1;
+								break;
+							default:
+								Debugger.Break();
+								break;
+						}
+						if (table.AppUserDataEnemyRewardDataCData.IdStory.AppItemDefIdSerializable.Value != "[0]INVALID" && table.AppUserDataEnemyRewardDataCData.IdStory.AppItemDefIdSerializable.Value != "[0]INVARID")
+						{
+							Data.MHWilds.Items item = MhwildsItems.First(x => x.ItemID == table.AppUserDataEnemyRewardDataCData.IdStory.AppItemDefIdSerializable.Value);
+							int quantity = (int)table.AppUserDataEnemyRewardDataCData.RewardNumStory!;
+							int probability = (int)table.AppUserDataEnemyRewardDataCData.ProbabilityStory!;
+							Item newItem = new()
+							{
+								Category = category,
+								Chance = probability.ToString(),
+								Quantity = quantity,
+								Description = item.Description,
+								Icon = item.Icon,
+								IconColor = item.IconColor,
+								Include = false,
+								ItemId = table.AppUserDataEnemyRewardDataCData.IdStory.AppItemDefIdSerializable.Value,
+								ItemName = item.Name,
+								Price = item.BuyPrice.ToString()!,
+								Rarity = item.Rarity,
+								Order = order
+							};
+							if (category.Contains("Broken Part Rewards"))
+							{
+								string name = "";
+								if (monsterName == "Guardian Arkveld")
+								{
+									switch (table.AppUserDataEnemyRewardDataCData.PartsIndex)
+									{
+										case 0:
+											name = "Head";
+											break;
+										case 1:
+											name = "Left Chainblade";
+											break;
+										case 2:
+											name = "Right Chainblade";
+											break;
+									}
+								}
+								else
+								{
+									name = partsBreakArray.First(x => x["app.user_data.EmParamPartsBreakReward.cPartsBreakRewardSettingData"].RewardTableIndex == table.AppUserDataEnemyRewardDataCData.PartsIndex)["app.user_data.EmParamPartsBreakReward.cPartsBreakRewardSettingData"].PartsType["app.EnemyDef.PARTS_TYPE_Serializable"]._Value;
+									name = GetWildsPartName(name.Substring(name.IndexOf(']') + 1));
+								}
+								int breakAmt = 0;
+								if (monsterName == "Guardian Arkveld")
+								{
+									breakAmt = 1;
+								}
+								else
+								{
+									breakAmt = (int)((JArray)partsBreakArray.First(x => x["app.user_data.EmParamPartsBreakReward.cPartsBreakRewardSettingData"].RewardTableIndex == table.AppUserDataEnemyRewardDataCData.PartsIndex)["app.user_data.EmParamPartsBreakReward.cPartsBreakRewardSettingData"].PartsBreakData).ToObject<dynamic[]>()![0]["app.user_data.EmParamPartsBreakReward.cPartsBreakData"]._PartsBreakLevel;
+								}
+								newItem.Category = "Break " + name + (breakAmt == 1 ? "" : " (" + breakAmt + "x)");
+								dropsFormatted = AddItemToDrops(newItem, header, "Low", monsterName, dropsFormatted);
+							}
+							else if (category.Contains("Severed Part"))
+							{
+								foreach (dynamic part in partsLostArray)
+								{
+									newItem.Category = "Carve " + GetWildsPartName(part["app.user_data.EmParamPartsLost.cPartsLost"]._PartsType["app.EnemyDef.PARTS_TYPE_Serializable"]._Value.ToString().Substring(part["app.user_data.EmParamPartsLost.cPartsLost"]._PartsType["app.EnemyDef.PARTS_TYPE_Serializable"]._Value.ToString().IndexOf("]") + 1)) + (category.Contains("Rotten") ? " (Rotten)" : "");
+									dropsFormatted = AddItemToDrops(newItem, header, "Low", monsterName, dropsFormatted);
+								}
+							}
+							else
+							{
+								dropsFormatted = AddItemToDrops(newItem, header, "Low", monsterName, dropsFormatted);
+							}
+						}
+						if (table.AppUserDataEnemyRewardDataCData.IdEx.Any(x => x.AppItemDefIdSerializable.Value != "[0]INVALID" && x.AppItemDefIdSerializable.Value != "[0]INVARID"))
+						{
+							for (int i = 0; i < table.AppUserDataEnemyRewardDataCData.IdEx.Length; i++)
+							{
+								if (table.AppUserDataEnemyRewardDataCData.IdEx[i].AppItemDefIdSerializable.Value != "[0]INVALID" && table.AppUserDataEnemyRewardDataCData.IdEx[i].AppItemDefIdSerializable.Value != "[0]INVARID")
+								{
+									Data.MHWilds.Items item = MhwildsItems.First(x => x.ItemID == table.AppUserDataEnemyRewardDataCData.IdEx[i].AppItemDefIdSerializable.Value);
+									int quantity = (int)table.AppUserDataEnemyRewardDataCData.RewardNumEx[i]!;
+									int probability = (int)table.AppUserDataEnemyRewardDataCData.ProbabilityEx[i]!;
+									Item newItem = new()
+									{
+										Category = category,
+										Chance = probability.ToString(),
+										Quantity = quantity,
+										Description = item.Description,
+										Icon = item.Icon,
+										IconColor = item.IconColor,
+										Include = false,
+										ItemId = table.AppUserDataEnemyRewardDataCData.IdEx[i].AppItemDefIdSerializable.Value,
+										ItemName = item.Name,
+										Price = item.BuyPrice.ToString()!,
+										Rarity = item.Rarity,
+										Order = order
+									};
+									if (category == "Hunt Rewards")
+									{
+										switch (i)
+										{
+											case 0:
+												newItem.Category = "Hunt Rewards";
+												dropsFormatted = AddItemToDrops(newItem, header, "High", monsterName, dropsFormatted);
+												break;
+											case 1:
+												newItem.Order = 1;
+												newItem.Category = "Investigations (Basic)";
+												dropsFormatted = AddItemToDrops(newItem, "Investigation", "High", monsterName, dropsFormatted);
+												break;
+											case 2:
+												newItem.Order = 2;
+												newItem.Category = "Investigation (Valuable)";
+												dropsFormatted = AddItemToDrops(newItem, "Investigation", "High", monsterName, dropsFormatted);
+												break;
+											case 3:
+												newItem.Order = 3;
+												newItem.Category = "Investigation (Rare)";
+												dropsFormatted = AddItemToDrops(newItem, "Investigation", "High", monsterName, dropsFormatted);
+												break;
+										}
+									}
+									else if (category.Contains("Broken Part Rewards"))
+									{
+										string name = "";
+										if (monsterName == "Guardian Arkveld")
+										{
+											switch (table.AppUserDataEnemyRewardDataCData.PartsIndex)
+											{
+												case 0:
+													name = "Head";
+													break;
+												case 1:
+													name = "Left Chainblade";
+													break;
+												case 2:
+													name = "Right Chainblade";
+													break;
+											}
+										}
+										else
+										{
+											name = partsBreakArray.First(x => x["app.user_data.EmParamPartsBreakReward.cPartsBreakRewardSettingData"].RewardTableIndex == table.AppUserDataEnemyRewardDataCData.PartsIndex)["app.user_data.EmParamPartsBreakReward.cPartsBreakRewardSettingData"].PartsType["app.EnemyDef.PARTS_TYPE_Serializable"]._Value;
+											name = GetWildsPartName(name.Substring(name.IndexOf(']') + 1));
+										}
+										int breakAmt = 0;
+										if (monsterName == "Guardian Arkveld")
+										{
+											breakAmt = 1;
+										}
+										else
+										{
+											breakAmt = (int)((JArray)partsBreakArray.First(x => x["app.user_data.EmParamPartsBreakReward.cPartsBreakRewardSettingData"].RewardTableIndex == table.AppUserDataEnemyRewardDataCData.PartsIndex)["app.user_data.EmParamPartsBreakReward.cPartsBreakRewardSettingData"].PartsBreakData).ToObject<dynamic[]>()![0]["app.user_data.EmParamPartsBreakReward.cPartsBreakData"]._PartsBreakLevel;
+										}
+										newItem.Category = "Break " + name + (breakAmt == 1 ? "" : " (" + breakAmt + "x)");
+										dropsFormatted = AddItemToDrops(newItem, header, "High", monsterName, dropsFormatted);
+									}
+									else if (category.Contains("Severed Part"))
+									{
+										foreach (dynamic part in partsLostArray)
+										{
+											newItem.Category = "Carve " + GetWildsPartName(part["app.user_data.EmParamPartsLost.cPartsLost"]._PartsType["app.EnemyDef.PARTS_TYPE_Serializable"]._Value.ToString().Substring(part["app.user_data.EmParamPartsLost.cPartsLost"]._PartsType["app.EnemyDef.PARTS_TYPE_Serializable"]._Value.ToString().IndexOf("]") + 1)) + (category.Contains("Rotten") ? " (Rotten)" : "");
+											dropsFormatted = AddItemToDrops(newItem, header, "High", monsterName, dropsFormatted);
+										}
+									}
+									else
+									{
+										dropsFormatted = AddItemToDrops(newItem, header, "High", monsterName, dropsFormatted);
+									}
+								}
+							}
+						}
+					}
+					foreach (WebToolkitData data in dropsFormatted)
+					{
+						string[] orderedHeaders = ["Gathered", "Quest Rewards", "Investigation"];
+						data.Tables = [.. data.Tables.OrderBy(x => Array.IndexOf(orderedHeaders, x.Header))];
+						foreach (Table table in data.Tables)
+						{
+							table.Items = [.. table.Items.OrderBy(x => x.Order).ThenBy(x => x.Category).ThenByDescending(x => Convert.ToInt32(x.Chance)).ThenBy(x => x.ItemName)];
+						}
+					}
+					return Generators.MaterialsAndDropTables.GenerateDataUnescape([.. dropsFormatted], "MHWilds");
+				}
+			}
+			catch { return ""; }
+		}
+
+		private static List<WebToolkitData> AddItemToDrops(Item newItem, string header, string rank, string monsterName, List<WebToolkitData> dropsFormatted)
+		{
+			if (dropsFormatted.Any(x => x.Monster == monsterName && x.Rank == rank))
+			{
+				if (dropsFormatted.First(x => x.Monster == monsterName && x.Rank == rank).Tables.Any(x => x.Header == header))
+				{
+					dropsFormatted.First(x => x.Monster == monsterName && x.Rank == rank).Tables.First(x => x.Header == header).Items = [.. dropsFormatted.First(x => x.Monster == monsterName && x.Rank == rank).Tables.First(x => x.Header == header).Items.Append(newItem)];
+				}
+				else
+				{
+					dropsFormatted.First(x => x.Monster == monsterName && x.Rank == rank).Tables = [..dropsFormatted.First(x => x.Monster == monsterName && x.Rank == rank).Tables.Append(new Table()
+					{
+						Header = header,
+						Items = [newItem]
+					})];
 				}
 			}
 			else
+			{
+				dropsFormatted.Add(new WebToolkitData()
+				{
+					Monster = monsterName,
+					Rank = rank,
+					Tables = [new Table() {
+						Header = header,
+						Items = [
+							newItem
+						]
+					}]
+				});
+			}
+			return dropsFormatted;
+		}
+
+		public static List<WebToolkitData> Fetch(Games game, string monsterName, int[]? availableRanks = null, string[]? partNames = null)
+		{
+			List<WebToolkitData> dropsFormatted = [];
+			if (game == Games.MHWilds)
 			{
 				MonsterId monsterId = Monster.WildsMonsterIds.First(x => x.Name == monsterName);
 				string monsterFolder = monsterId.Id.Substring(0, monsterId.Id.IndexOf("_"));
@@ -122,14 +435,14 @@ namespace MediawikiTranslator.Models.Monsters
 				Dictionary<string, string> monsterParts = [];
 				foreach (KeyValuePair<string, dynamic> part in ((JObject)((JObject)WildsMonsterMasterlist[monsterId.Id]["part_datas"]).ToObject<Dictionary<string, object>>()!["parts"]).ToObject<Dictionary<string, dynamic>>()!.Where(x => x.Key != "legendary_scar_nums"))
 				{
-					string partName = GetWildsPartName(part.Value.part_type.ToString());
+					string partId = part.Value._PartsType["app.EnemyDef.PARTS_TYPE_Serializable"]._Value.ToString();
+					string partName = GetWildsPartName(partId.Substring(partId.IndexOf(']') + 1));
 					if (string.IsNullOrEmpty(partName.Replace("'", "")))
 					{
 						partName = "???";
 					}
 					monsterParts.Add(part.Key, partName);
 				}
-				List<WebToolkitData> dropsFormatted = [];
 				DropFileValue[] dropFile = WildsDropFile.FromJson(File.ReadAllText($@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\dtlnor rips\MHWs-in-json-main\natives\STM\GameDesign\Common\Enemy\{monsterId.Id}.user.3.json")).First().AppUserDataEnemyRewardData.Values;
 				dynamic[] partsLostArray = [];
 				string partsLostFile = $@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\dtlnor rips\MHWs-in-json-main\natives\STM\GameDesign\Enemy\{monsterFolder}\{subspeciesFolder}\Data\{monsterFolder}_{subspeciesFolder}_Param_PartsLost.user.3.json";
@@ -142,6 +455,40 @@ namespace MediawikiTranslator.Models.Monsters
 				if (File.Exists(partsBreakFile))
 				{
 					partsBreakArray = ((JArray)JsonConvert.DeserializeObject<dynamic>(File.ReadAllText(partsBreakFile))![0]["app.user_data.EmParamPartsBreakReward"]._PartsBreakArray).ToObject<dynamic[]>()!; ;
+				}
+				JArray commonRewardData = JsonConvert.DeserializeObject<JArray>(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\dtlnor rips\MHWs-in-json-main\natives\STM\GameDesign\Mission\_UserData\_Reward\CommonRewardData.user.3.json"))!.First().Value<JObject>("app.user_data.QuestGeneralRewardData")!.Value<JArray>("_Values")!;
+				JArray exEnemies = JsonConvert.DeserializeObject<JArray>(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\dtlnor rips\MHWs-in-json-main\natives\STM\GameDesign\Environment\UserData\ExFieldPattern\ExFieldPattern_Default\ExFieldParam_EnemyData.user.3.json"))!.First().Value<JObject>("app.user_data.ExFieldParam_EnemyData")!.Value<JArray>("_ExEnemies")!;
+				foreach (JObject exEnemyObj in exEnemies)
+				{
+					JObject exEnemy = exEnemyObj.Value<JObject>("app.user_data.ExFieldParam_EnemyData.cExEmGlobalParam")!;
+					if (exEnemy.Value<string>("_EmID")!.Substring(exEnemy.Value<string>("_EmID")!.IndexOf("]") + 1) == monsterId.Id)
+					{
+						foreach (JObject commonReward in commonRewardData)
+						{
+							JObject reward = commonReward.Value<JObject>("app.user_data.QuestGeneralRewardData.cData")!;
+							string itemId = reward.Value<JObject>("_itemId")!.Value<JObject>("app.ItemDef.ID_Serializable")!.Value<string>("_Value")!;
+							if (reward.Value<int>("_tableId") == exEnemy.Value<int>("_GeneralRewardTblID") && itemId != "[0]INVALID" && itemId != "[1]NONE")
+							{
+								Data.MHWilds.Items item = MhwildsItems.First(x => x.ItemID == itemId);
+								string legendaryMode = reward.Value<string>("_LegendaryID")!;
+								dropsFormatted = AddItemToDrops(new()
+								{
+									Category = "Extra Rewards" + (legendaryMode != "[0]NONE" ? " (Tempered)" : ""),
+									Chance = reward.Value<int>("_probability").ToString(),
+									Quantity = reward.Value<int>("_num"),
+									Description = item.Description,
+									Icon = item.Icon,
+									IconColor = item.IconColor,
+									Include = false,
+									ItemId = item.ItemID,
+									ItemName = item.Name,
+									Price = item.BuyPrice.ToString()!,
+									Rarity = item.Rarity,
+									Order = legendaryMode != "[0]NONE" ? 5 : 4
+								}, "Quest Rewards", "High", monsterName, dropsFormatted);
+							}
+						}
+					}
 				}
 				string type = "[0]INVALID";
 				foreach (DropFileValue table in dropFile)
@@ -305,7 +652,7 @@ namespace MediawikiTranslator.Models.Monsters
 											break;
 										case 1:
 											newItem.Order = 1;
-											newItem.Category = "Investigations (Basic)";
+											newItem.Category = "Investigation (Basic)";
 											dropsFormatted = AddItemToDrops(newItem, "Investigation", "High", monsterName, dropsFormatted);
 											break;
 										case 2:
@@ -374,349 +721,101 @@ namespace MediawikiTranslator.Models.Monsters
 				foreach (WebToolkitData data in dropsFormatted)
 				{
 					string[] orderedHeaders = ["Gathered", "Quest Rewards", "Investigation"];
-					data.Tables = [..data.Tables.OrderBy(x => Array.IndexOf(orderedHeaders, x.Header))];
+					data.Tables = [.. data.Tables.OrderBy(x => Array.IndexOf(orderedHeaders, x.Header))];
 					foreach (Table table in data.Tables)
 					{
-						table.Items = [..table.Items.OrderBy(x => x.Order).ThenBy(x => x.Category).ThenByDescending(x => Convert.ToInt32(x.Chance)).ThenBy(x => x.ItemName)];
+						table.Items = [.. table.Items.OrderBy(x => x.Order).ThenBy(x => x.Category).ThenByDescending(x => Convert.ToInt32(x.Chance)).ThenBy(x => x.ItemName)];
 					}
 				}
-				return Generators.MaterialsAndDropTables.GenerateDataUnescape([.. dropsFormatted], "MHWilds");
 			}
-		}
-
-		private static List<WebToolkitData> AddItemToDrops(Item newItem, string header, string rank, string monsterName, List<WebToolkitData> dropsFormatted)
-		{
-			if (dropsFormatted.Any(x => x.Monster == monsterName && x.Rank == rank))
+			else if (game == Games.MHWI || game == Games.MHWorld)
 			{
-				if (dropsFormatted.First(x => x.Monster == monsterName && x.Rank == rank).Tables.Any(x => x.Header == header))
+				if (File.Exists($@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWI\Monster Data\{monsterName}\Drops.json"))
 				{
-					dropsFormatted.First(x => x.Monster == monsterName && x.Rank == rank).Tables.First(x => x.Header == header).Items = [.. dropsFormatted.First(x => x.Monster == monsterName && x.Rank == rank).Tables.First(x => x.Header == header).Items.Append(newItem)];
-				}
-				else
-				{
-					dropsFormatted.First(x => x.Monster == monsterName && x.Rank == rank).Tables = [..dropsFormatted.First(x => x.Monster == monsterName && x.Rank == rank).Tables.Append(new Table()
+					dynamic[] baseObj = [.. ((JArray)JsonConvert.DeserializeObject<dynamic>(File.ReadAllText($@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWI\Monster Data\{monsterName}\Drops.json"))!.data)];
+					dynamic[] dropsFile = [.. (JArray)baseObj.First(x => x.GridName == "Entries").list];
+					BremInfo[] bremFile = JsonConvert.DeserializeObject<BremInfo[]>(File.ReadAllText($@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWI\Monster Data\{monsterName}\BremRewards.json"))!;
+					Items[] allItems = Items.Fetch();
+					foreach (BremRank rank in Enum.GetValues<BremRank>())
 					{
-						Header = header,
-						Items = [newItem]
-					})];
-				}
-			}
-			else
-			{
-				dropsFormatted.Add(new WebToolkitData()
-				{
-					Monster = monsterName,
-					Rank = rank,
-					Tables = [new Table() {
-						Header = header,
-						Items = [
-							newItem
-						]
-					}]
-				});
-			}
-			return dropsFormatted;
-		}
-
-		public static List<WebToolkitData> Fetch(string monsterName)
-		{
-			MonsterId monsterId = Monster.WildsMonsterIds.First(x => x.Name == monsterName);
-			string monsterFolder = monsterId.Id.Substring(0, monsterId.Id.IndexOf("_"));
-			string subspeciesFolder = monsterId.Id.Substring(monsterId.Id.IndexOf("_") + 1, 2);
-			Dictionary<string, string> monsterParts = [];
-			foreach (KeyValuePair<string, dynamic> part in ((JObject)((JObject)WildsMonsterMasterlist[monsterId.Id]["part_datas"]).ToObject<Dictionary<string, object>>()!["parts"]).ToObject<Dictionary<string, dynamic>>()!.Where(x => x.Key != "legendary_scar_nums"))
-			{
-				string partName = GetWildsPartName(part.Value.part_type.ToString());
-				if (string.IsNullOrEmpty(partName.Replace("'", "")))
-				{
-					partName = "???";
-				}
-				monsterParts.Add(part.Key, partName);
-			}
-			List<WebToolkitData> dropsFormatted = [];
-			DropFileValue[] dropFile = WildsDropFile.FromJson(File.ReadAllText($@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\dtlnor rips\MHWs-in-json-main\natives\STM\GameDesign\Common\Enemy\{monsterId.Id}.user.3.json")).First().AppUserDataEnemyRewardData.Values;
-			dynamic[] partsLostArray = [];
-			string partsLostFile = $@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\dtlnor rips\MHWs-in-json-main\natives\STM\GameDesign\Enemy\{monsterFolder}\{subspeciesFolder}\Data\{monsterFolder}_{subspeciesFolder}_Param_PartsLost.user.3.json";
-			if (File.Exists(partsLostFile))
-			{
-				partsLostArray = ((JArray)JsonConvert.DeserializeObject<dynamic>(File.ReadAllText(partsLostFile))![0]["app.user_data.EmParamPartsLost"]._PartsLostArray["ace.cInstanceGuidArray`1<app.user_data.EmParamPartsLost.cPartsLost>"]._DataArray).ToObject<dynamic[]>()!;
-			}
-			dynamic[] partsBreakArray = [];
-			string partsBreakFile = $@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\dtlnor rips\MHWs-in-json-main\natives\STM\GameDesign\Enemy\{monsterFolder}\{subspeciesFolder}\Data\{monsterFolder}_{subspeciesFolder}_Param_PartsBreakReward.user.3.json";
-			if (File.Exists(partsBreakFile))
-			{
-				partsBreakArray = ((JArray)JsonConvert.DeserializeObject<dynamic>(File.ReadAllText(partsBreakFile))![0]["app.user_data.EmParamPartsBreakReward"]._PartsBreakArray).ToObject<dynamic[]>()!; ;
-			}
-			JArray commonRewardData = JsonConvert.DeserializeObject<JArray>(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\dtlnor rips\MHWs-in-json-main\natives\STM\GameDesign\Mission\_UserData\_Reward\CommonRewardData.user.3.json"))!.First().Value<JObject>("app.user_data.QuestGeneralRewardData")!.Value<JArray>("_Values")!;
-			JArray exEnemies = JsonConvert.DeserializeObject<JArray>(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\dtlnor rips\MHWs-in-json-main\natives\STM\GameDesign\Environment\UserData\ExFieldPattern\ExFieldPattern_Default\ExFieldParam_EnemyData.user.3.json"))!.First().Value<JObject>("app.user_data.ExFieldParam_EnemyData")!.Value<JArray>("_ExEnemies")!;
-			foreach (JObject exEnemyObj in exEnemies)
-			{
-				JObject exEnemy = exEnemyObj.Value<JObject>("app.user_data.ExFieldParam_EnemyData.cExEmGlobalParam")!;
-				if (exEnemy.Value<string>("_EmID")!.Substring(exEnemy.Value<string>("_EmID")!.IndexOf("]") + 1) == monsterId.Id)
-				{
-					foreach (JObject commonReward in commonRewardData)
-					{
-						JObject reward = commonReward.Value<JObject>("app.user_data.QuestGeneralRewardData.cData")!;
-						string itemId = reward.Value<JObject>("_itemId")!.Value<JObject>("app.ItemDef.ID_Serializable")!.Value<string>("_Value")!;
-						if (reward.Value<int>("_tableId") == exEnemy.Value<int>("_GeneralRewardTblID") && itemId != "[0]INVALID" && itemId != "[1]NONE")
+						if (availableRanks.Contains((int)rank))
 						{
-							Data.MHWilds.Items item = MhwildsItems.First(x => x.ItemID == itemId);
-							string legendaryMode = reward.Value<string>("_LegendaryID")!;
-							dropsFormatted = AddItemToDrops(new()
+							BremInfo[] bremsForRank = [.. bremFile.Where(x => x.Rank == rank)];
+							int[] rankIndices = GetRankIndices(rank);
+							dynamic[] dropsForRank = [.. dropsFile.Where(x => rankIndices.Contains((int)x.Index))];
+							WebToolkitData rankData = new()
 							{
-								Category = "Extra Rewards" + (legendaryMode != "[0]NONE" ? " (Tempered)" : ""),
-								Chance = reward.Value<int>("_probability").ToString(),
-								Quantity = reward.Value<int>("_num"),
-								Description = item.Description,
-								Icon = item.Icon,
-								IconColor = item.IconColor,
-								Include = false,
-								ItemId = item.ItemID,
-								ItemName = item.Name,
-								Price = item.BuyPrice.ToString()!,
-								Rarity = item.Rarity,
-								Order = legendaryMode != "[0]NONE" ? 5 : 4
-							}, "Quest Rewards", "High", monsterName, dropsFormatted);
-						}
-					}
-				}
-			}
-			string type = "[0]INVALID";
-			foreach (DropFileValue table in dropFile)
-			{
-				string header = "";
-				string category = "";
-				int order = 0;
-				if (!table.AppUserDataEnemyRewardDataCData.RewardType.AppEnemyRewardRewardTypeSerializable.Value.EndsWith("INVALID") && !table.AppUserDataEnemyRewardDataCData.RewardType.AppEnemyRewardRewardTypeSerializable.Value.EndsWith("INVARID"))
-				{
-					type = table.AppUserDataEnemyRewardDataCData.RewardType.AppEnemyRewardRewardTypeSerializable.Value;
-					type = type[(type.IndexOf(']') + 1)..];
-				}
-				switch (type)
-				{
-					case "RW000":
-						header = "Gathered";
-						category = "Carves";
-						break;
-					case "RW008":
-						header = "Gathered";
-						category = "Carves (Rotten)";
-						order = 1;
-						break;
-					case "RW001":
-						header = "Gathered";
-						category = "Carves (Severed Part)";
-						order = 2;
-						break;
-					case "RW012":
-						header = "Gathered";
-						category = "Carves (Rotten Severed Part)";
-						order = 3;
-						break;
-					case "RW005":
-						header = "Quest Rewards";
-						category = "Broken Part Rewards";
-						order = 1;
-						break;
-					case "RW006":
-						header = "Quest Rewards";
-						category = "Wound Destruction Rewards";
-						order = 2;
-						break;
-					case "RW004":
-						header = "Quest Rewards";
-						category = "Hunt Rewards";
-						break;
-					case "RW015":
-						header = "Quest Rewards";
-						category = "Tempered Wound Destruction Rewards";
-						order = 3;
-						break;
-					case "RW016":
-						header = "Gathered";
-						category = "Carves (Crystalized)";
-						order = 1;
-						break;
-					default:
-						Debugger.Break();
-						break;
-				}
-				if (table.AppUserDataEnemyRewardDataCData.IdStory.AppItemDefIdSerializable.Value != "[0]INVALID" && table.AppUserDataEnemyRewardDataCData.IdStory.AppItemDefIdSerializable.Value != "[0]INVARID")
-				{
-					Data.MHWilds.Items item = MhwildsItems.First(x => x.ItemID == table.AppUserDataEnemyRewardDataCData.IdStory.AppItemDefIdSerializable.Value);
-					int quantity = (int)table.AppUserDataEnemyRewardDataCData.RewardNumStory!;
-					int probability = (int)table.AppUserDataEnemyRewardDataCData.ProbabilityStory!;
-					Item newItem = new()
-					{
-						Category = category,
-						Chance = probability.ToString(),
-						Quantity = quantity,
-						Description = item.Description,
-						Icon = item.Icon,
-						IconColor = item.IconColor,
-						Include = false,
-						ItemId = table.AppUserDataEnemyRewardDataCData.IdStory.AppItemDefIdSerializable.Value,
-						ItemName = item.Name,
-						Price = item.BuyPrice.ToString()!,
-						Rarity = item.Rarity,
-						Order = order
-					};
-					if (category.Contains("Broken Part Rewards"))
-					{
-						string name = "";
-						if (monsterName == "Guardian Arkveld")
-						{
-							switch (table.AppUserDataEnemyRewardDataCData.PartsIndex)
-							{
-								case 0:
-									name = "Head";
-									break;
-								case 1:
-									name = "Left Chainblade";
-									break;
-								case 2:
-									name = "Right Chainblade";
-									break;
-							}
-						}
-						else
-						{
-							name = partsBreakArray.First(x => x["app.user_data.EmParamPartsBreakReward.cPartsBreakRewardSettingData"].RewardTableIndex == table.AppUserDataEnemyRewardDataCData.PartsIndex)["app.user_data.EmParamPartsBreakReward.cPartsBreakRewardSettingData"].PartsType["app.EnemyDef.PARTS_TYPE_Serializable"]._Value;
-							name = GetWildsPartName(name.Substring(name.IndexOf(']') + 1));
-						}
-						int breakAmt = 0;
-						if (monsterName == "Guardian Arkveld")
-						{
-							breakAmt = 1;
-						}
-						else
-						{
-							breakAmt = (int)((JArray)partsBreakArray.First(x => x["app.user_data.EmParamPartsBreakReward.cPartsBreakRewardSettingData"].RewardTableIndex == table.AppUserDataEnemyRewardDataCData.PartsIndex)["app.user_data.EmParamPartsBreakReward.cPartsBreakRewardSettingData"].PartsBreakData).ToObject<dynamic[]>()![0]["app.user_data.EmParamPartsBreakReward.cPartsBreakData"]._PartsBreakLevel;
-						}
-						newItem.Category = "Break " + name + (breakAmt == 1 ? "" : " (" + breakAmt + "x)");
-						dropsFormatted = AddItemToDrops(newItem, header, "Low", monsterName, dropsFormatted);
-					}
-					else if (category.Contains("Severed Part"))
-					{
-						foreach (dynamic part in partsLostArray)
-						{
-							newItem.Category = "Carve " + GetWildsPartName(part["app.user_data.EmParamPartsLost.cPartsLost"]._PartsType["app.EnemyDef.PARTS_TYPE_Serializable"]._Value.ToString().Substring(part["app.user_data.EmParamPartsLost.cPartsLost"]._PartsType["app.EnemyDef.PARTS_TYPE_Serializable"]._Value.ToString().IndexOf("]") + 1)) + (category.Contains("Rotten") ? " (Rotten)" : "");
-							dropsFormatted = AddItemToDrops(newItem, header, "Low", monsterName, dropsFormatted);
-						}
-					}
-					else
-					{
-						dropsFormatted = AddItemToDrops(newItem, header, "Low", monsterName, dropsFormatted);
-					}
-				}
-				if (table.AppUserDataEnemyRewardDataCData.IdEx.Any(x => x.AppItemDefIdSerializable.Value != "[0]INVALID" && x.AppItemDefIdSerializable.Value != "[0]INVARID"))
-				{
-					for (int i = 0; i < table.AppUserDataEnemyRewardDataCData.IdEx.Length; i++)
-					{
-						if (table.AppUserDataEnemyRewardDataCData.IdEx[i].AppItemDefIdSerializable.Value != "[0]INVALID" && table.AppUserDataEnemyRewardDataCData.IdEx[i].AppItemDefIdSerializable.Value != "[0]INVARID")
-						{
-							Data.MHWilds.Items item = MhwildsItems.First(x => x.ItemID == table.AppUserDataEnemyRewardDataCData.IdEx[i].AppItemDefIdSerializable.Value);
-							int quantity = (int)table.AppUserDataEnemyRewardDataCData.RewardNumEx[i]!;
-							int probability = (int)table.AppUserDataEnemyRewardDataCData.ProbabilityEx[i]!;
-							Item newItem = new()
-							{
-								Category = category,
-								Chance = probability.ToString(),
-								Quantity = quantity,
-								Description = item.Description,
-								Icon = item.Icon,
-								IconColor = item.IconColor,
-								Include = false,
-								ItemId = table.AppUserDataEnemyRewardDataCData.IdEx[i].AppItemDefIdSerializable.Value,
-								ItemName = item.Name,
-								Price = item.BuyPrice.ToString()!,
-								Rarity = item.Rarity,
-								Order = order
+								Rank = new string[] { "Low", "High", "Master" }[(int)rank],
+								Monster = monsterName
 							};
-							if (category == "Hunt Rewards")
+							foreach (dynamic dropTable in dropsForRank.OrderBy(x => x.Index))
 							{
-								switch (i)
+								dynamic[] items = [.. (JArray)dropTable.Items_raw];
+								dynamic[] counts = [.. (JArray)dropTable.Counts_raw];
+								dynamic[] weights = [.. (JArray)dropTable.Percents_raw];
+								for (int i = 0; i < items.Length; i++)
 								{
-									case 0:
-										newItem.Category = "Hunt Rewards";
-										dropsFormatted = AddItemToDrops(newItem, header, "High", monsterName, dropsFormatted);
-										break;
-									case 1:
-										newItem.Order = 1;
-										newItem.Category = "Investigations (Basic)";
-										dropsFormatted = AddItemToDrops(newItem, "Investigation", "High", monsterName, dropsFormatted);
-										break;
-									case 2:
-										newItem.Order = 2;
-										newItem.Category = "Investigation (Valuable)";
-										dropsFormatted = AddItemToDrops(newItem, "Investigation", "High", monsterName, dropsFormatted);
-										break;
-									case 3:
-										newItem.Order = 3;
-										newItem.Category = "Investigation (Rare)";
-										dropsFormatted = AddItemToDrops(newItem, "Investigation", "High", monsterName, dropsFormatted);
-										break;
-								}
-							}
-							else if (category.Contains("Broken Part Rewards"))
-							{
-								string name = "";
-								if (monsterName == "Guardian Arkveld")
-								{
-									switch (table.AppUserDataEnemyRewardDataCData.PartsIndex)
+									if (items[i].Item_Id > 0)
 									{
-										case 0:
-											name = "Head";
-											break;
-										case 1:
-											name = "Left Chainblade";
-											break;
-										case 2:
-											name = "Right Chainblade";
-											break;
+										rankData = AddItemToRank((int)items[i].Item_Id, (int)counts[i].Item_Count, (int)weights[i].Item_Weight, allItems, rankData, "Gathered", GetDropName((int)dropTable.Index));
 									}
 								}
-								else
-								{
-									name = partsBreakArray.First(x => x["app.user_data.EmParamPartsBreakReward.cPartsBreakRewardSettingData"].RewardTableIndex == table.AppUserDataEnemyRewardDataCData.PartsIndex)["app.user_data.EmParamPartsBreakReward.cPartsBreakRewardSettingData"].PartsType["app.EnemyDef.PARTS_TYPE_Serializable"]._Value;
-									name = GetWildsPartName(name.Substring(name.IndexOf(']') + 1));
-								}
-								int breakAmt = 0;
-								if (monsterName == "Guardian Arkveld")
-								{
-									breakAmt = 1;
-								}
-								else
-								{
-									breakAmt = (int)((JArray)partsBreakArray.First(x => x["app.user_data.EmParamPartsBreakReward.cPartsBreakRewardSettingData"].RewardTableIndex == table.AppUserDataEnemyRewardDataCData.PartsIndex)["app.user_data.EmParamPartsBreakReward.cPartsBreakRewardSettingData"].PartsBreakData).ToObject<dynamic[]>()![0]["app.user_data.EmParamPartsBreakReward.cPartsBreakData"]._PartsBreakLevel;
-								}
-								newItem.Category = "Break " + name + (breakAmt == 1 ? "" : " (" + breakAmt + "x)");
-								dropsFormatted = AddItemToDrops(newItem, header, "High", monsterName, dropsFormatted);
 							}
-							else if (category.Contains("Severed Part"))
+							foreach (BremInfo brem in bremsForRank)
 							{
-								foreach (dynamic part in partsLostArray)
+								for (int i = 0; i < brem.ItemIds.Length; i++)
 								{
-									newItem.Category = "Carve " + GetWildsPartName(part["app.user_data.EmParamPartsLost.cPartsLost"]._PartsType["app.EnemyDef.PARTS_TYPE_Serializable"]._Value.ToString().Substring(part["app.user_data.EmParamPartsLost.cPartsLost"]._PartsType["app.EnemyDef.PARTS_TYPE_Serializable"]._Value.ToString().IndexOf("]") + 1)) + (category.Contains("Rotten") ? " (Rotten)" : "");
-									dropsFormatted = AddItemToDrops(newItem, header, "High", monsterName, dropsFormatted);
+									if (brem.ItemIds[i] > 0)
+									{
+										bool cont = true;
+										string header = "";
+										switch (brem.Type)
+										{
+											case BremType.Capture:
+												header = "Capture Rewards";
+												break;
+											case BremType.PartBreak:
+												if (brem.PartBreakIndex!.Value < 10)
+												{
+													string partName = partNames[brem.PartBreakIndex!.Value];
+													header = "Break " + char.ToUpper(partName[0]) + partName[1..];
+												}
+												else
+												{
+													cont = false;
+												}
+												break;
+											case BremType.HuntNonTarget:
+												header = "Hunt Rewards";
+												break;
+										}
+										if (cont)
+										{
+											rankData = AddItemToRank(brem.ItemIds[i], brem.Counts[i], brem.Weights[i], allItems, rankData, "Quest Rewards", header);
+										}
+									}
 								}
 							}
-							else
-							{
-								dropsFormatted = AddItemToDrops(newItem, header, "High", monsterName, dropsFormatted);
-							}
+							dropsFormatted.Add(rankData);
 						}
 					}
 				}
 			}
-			foreach (WebToolkitData data in dropsFormatted)
+			else if (game == Games.MHRS || game == Games.MHRise)
 			{
-				string[] orderedHeaders = ["Gathered", "Quest Rewards", "Investigation"];
-				data.Tables = [.. data.Tables.OrderBy(x => Array.IndexOf(orderedHeaders, x.Header))];
-				foreach (Table table in data.Tables)
+				dropsFormatted = [..Data.MHRS.MonsterDrops.GetWebToolkitData().Where(x => x.Monster == monsterName)];
+			}
+			int cntr = 0;
+			foreach (WebToolkitData drop in dropsFormatted)
+			{
+				drop.Order = cntr;
+				int cntr2 = 1;
+				foreach (Table table in drop.Tables)
 				{
-					table.Items = [.. table.Items.OrderBy(x => x.Order).ThenBy(x => x.Category).ThenByDescending(x => Convert.ToInt32(x.Chance)).ThenBy(x => x.ItemName)];
+					table.Order = cntr2;
+					cntr2++;
 				}
+				cntr++;
 			}
 			return dropsFormatted;
 		}
@@ -730,7 +829,7 @@ namespace MediawikiTranslator.Models.Monsters
 				Chance = weight.ToString(),
 				Description = baseItem.Description,
 				Icon = baseItem.WikiIconName,
-				IconColor = GetIconColorName(baseItem.WikiIconColor!.Value),
+				IconColor = baseItem.WikiIconColor,
 				Include = true,
 				ItemId = baseItem.Id!.Value!.ToString(),
 				ItemName = baseItem.Name,
@@ -751,71 +850,6 @@ namespace MediawikiTranslator.Models.Monsters
 				})];
 			}
 			return rankData;
-		}
-
-		private static string GetIconColorName(WikiIconColor color)
-		{
-			switch (color)
-			{
-				case WikiIconColor.NA:
-					return "N/A";
-				case WikiIconColor.Blue:
-					return "Blue";
-				case WikiIconColor.Brown:
-					return "Brown";
-				case WikiIconColor.DarkPurple:
-					return "Dark Purple";
-				case WikiIconColor.Emerald:
-					return "Emerald";
-				case WikiIconColor.Gray:
-					return "Gray";
-				case WikiIconColor.Green:
-					return "Green";
-				case WikiIconColor.Lemon:
-					return "Lemon";
-				case WikiIconColor.LightBlue:
-					return "Light Blue";
-				case WikiIconColor.Moss:
-					return "Moss";
-				case WikiIconColor.NotAvailable:
-					return "NOT AVAILABLE";
-				case WikiIconColor.Orange:
-					return "Orange";
-				case WikiIconColor.Pink:
-					return "Pink";
-				case WikiIconColor.Purple:
-					return "Purple";
-				case WikiIconColor.Red:
-					return "Red";
-				case WikiIconColor.Rose:
-					return "Rose";
-				case WikiIconColor.Tan:
-					return "Tan";
-				case WikiIconColor.Violet:
-					return "Violet";
-				case WikiIconColor.White:
-					return "White";
-				case WikiIconColor.Yellow:
-					return "Yellow";
-				case WikiIconColor.Vermilion:
-					return "Vermilion";
-				case WikiIconColor.LightGreen:
-					return "Light Green";
-				default: return "N/A";
-			}
-		}
-
-		private static string GetCategoryName(TypeEnum cat)
-		{
-			return new Dictionary<TypeEnum, string>()
-			{
-				{ TypeEnum.AccountItem, "Account Item" },
-				{ TypeEnum.AmmoOrCoating, "Ammo/Coating" },
-				{ TypeEnum.Item, "Item" },
-				{ TypeEnum.Jewel, "Jewel" },
-				{ TypeEnum.Material, "Material" },
-				{ TypeEnum.RoomDecoration, "Room Decoration" }
-			}[cat];
 		}
 
 		private static string GetDropName(int index)

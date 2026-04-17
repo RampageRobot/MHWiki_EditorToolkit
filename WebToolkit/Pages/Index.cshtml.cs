@@ -1,19 +1,11 @@
-using MHWilds = MediawikiTranslator.Models.Data.MHWilds;
-using MHRS = MediawikiTranslator.Models.Data.MHRS;
-using MHWI = MediawikiTranslator.Models.Data.MHWI;
-using Microsoft.AspNetCore.Mvc.RazorPages;
-using System.Diagnostics;
-using MediawikiTranslator.Generators;
-using MediawikiTranslator.Models.Data.MHRS;
-using MediawikiTranslator.Models.Weapon;
-using System.IO;
-using Newtonsoft.Json;
-using MediawikiTranslator;
-using MediawikiTranslator.Models.Data.MHWI;
-using System.Text;
 using DocumentFormat.OpenXml.Wordprocessing;
+using MediawikiTranslator;
+using MediawikiTranslator.Generators;
 using MediawikiTranslator.Models.Monsters;
-
+using Microsoft.AspNetCore.Mvc.RazorPages;
+using Newtonsoft.Json;
+using System.Diagnostics;
+using System.Text;
 namespace WebToolkit.Pages
 {
     public class IndexModel : PageModel
@@ -27,12 +19,11 @@ namespace WebToolkit.Pages
 
 		public async Task OnGet()
 		{
-			//await Utilities.MigrateMonsterPages(Utilities.MonsterType.Small);
-			await Utilities.OudatedUpdate();
+			//var temp = MediawikiTranslator.Models.Data.MHRS.FlinchBreakThresholds.GetWebToolkitData("em092_00");
+			//Debugger.Break();
+			await Utilities.UploadDBs();
+			//await Utilities.UploadWeaponsWithAPI("MHWI", false, true, true);
 			//await Utilities.UploadMH3Quests(@"D:\MH_Data Repo\MH_Data\Parsed Files\MH3\mh3 quests");
-			//Task list:
-			//2) Follow up on Talk Page extension
-			//3) Work on getting files extracted for old games, then getting any appropriate tools to view files
 			//await Utilities.RenderGenerator(new RenderGeneratorOptions() { UpdatePages = false, GenerateMissingRendersReport = true, RefreshProgressLists = true });
 		}
 	}

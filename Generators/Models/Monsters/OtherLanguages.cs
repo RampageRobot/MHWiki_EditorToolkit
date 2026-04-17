@@ -1,9 +1,4 @@
 ﻿using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace MediawikiTranslator.Models.Monsters
 {
@@ -13,9 +8,9 @@ namespace MediawikiTranslator.Models.Monsters
 
         public OtherLanguages(string monsterName)
         {
-            if (File.Exists($@"{System.Configuration.ConfigurationManager.AppSettings.Get("DesktopPath")}test monster stuff\MHWI\{monsterName}\OtherLanguages.json"))
+            if (File.Exists($@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWI\Monster Data\{monsterName}\OtherLanguages.json"))
             {
-                Languages = JsonConvert.DeserializeObject<Dictionary<string, string>>(File.ReadAllText($@"{System.Configuration.ConfigurationManager.AppSettings.Get("DesktopPath")}test monster stuff\MHWI\{monsterName}\OtherLanguages.json"))!;
+                Languages = JsonConvert.DeserializeObject<Dictionary<string, string>>(File.ReadAllText($@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWI\Monster Data\{monsterName}\OtherLanguages.json"))!;
             }
         }
 

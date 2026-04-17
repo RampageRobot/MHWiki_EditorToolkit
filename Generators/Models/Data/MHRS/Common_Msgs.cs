@@ -25,7 +25,7 @@ namespace MediawikiTranslator.Models.Data.MHRS
 			return _msgs;
 		}
 
-		public static string GetMsg(string key)
+		public static string GetMsg(string key, int index = 1)
 		{
 			if (_msgs == null)
 			{
@@ -35,7 +35,7 @@ namespace MediawikiTranslator.Models.Data.MHRS
 			{
 				if (_msgs.ContainsKey(_nameToUUID[key].ToString()))
 				{
-					return _msgs[_nameToUUID[key].ToString()].Content[1] ?? "";
+					return _msgs[_nameToUUID[key].ToString()].Content[index] ?? "";
 				}
 			}
 			return "";

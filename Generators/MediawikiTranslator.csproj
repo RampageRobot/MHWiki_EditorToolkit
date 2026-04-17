@@ -27,10 +27,12 @@
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Site|AnyCPU'">
     <NoWarn>1701;1702;1591</NoWarn>
+    <Optimize>True</Optimize>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Site|x86'">
     <NoWarn>1701;1702;1591</NoWarn>
+    <Optimize>True</Optimize>
   </PropertyGroup>
 
   <ItemGroup>

@@ -1,16 +1,13 @@
-﻿using DocumentFormat.OpenXml.Bibliography;
+﻿using MediawikiTranslator.Models.Data.MH3;
 using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Newtonsoft.Json.Linq;
 
 namespace MediawikiTranslator.Models.Monsters
 {
 	public class TrapEffectiveness
-    {
-        public TrapType Type { get; set; }
+	{
+		public int Order { get; set; } = 0;
+		public TrapType Type { get; set; }
         public Rank Rank { get; set; } = Rank.All;
         public float? Duration { get; set; }
         public float? DurationExhaust { get; set; }
@@ -19,85 +16,135 @@ namespace MediawikiTranslator.Models.Monsters
         public float? Effectiveness { get; set; }
         private static dynamic[] BookInfo { get; set; } = [];
 
-        public static TrapEffectiveness[] GetTraps(string monsterName)
-        {
-            Stamina stam = new(monsterName);
-            List<TrapEffectiveness> ret = [];
-            string fileName = $@"{System.Configuration.ConfigurationManager.AppSettings.Get("DesktopPath")}test monster stuff\MHWI\{monsterName}\Damage Attributes.json";
-            if (File.Exists(fileName))
+        public static TrapEffectiveness[] GetTraps(string monsterName, Games game)
+		{
+			List<TrapEffectiveness> ret = [];
+            try
             {
-				Dictionary<string, dynamic[]> trapData = JsonConvert.DeserializeObject<Dictionary<string, dynamic[]>>(File.ReadAllText(fileName))!;
-				string[] trapTypeNames = ["Pitfall Trap", "Shock Trap", "Ivy Trap Unk", "Flash Pod", "Meat", "Dung Pod", "Sonic Pod"];
-                dynamic dungObjs = JsonConvert.DeserializeObject<dynamic>(File.ReadAllText($@"{System.Configuration.ConfigurationManager.AppSettings.Get("DesktopPath")}test monster stuff\MHWI\dungpod.json"))!;
-                dynamic[] traps = trapData["Status Buildup: Shock Trap/Pitfall Trap/Ivy Trap/Unk"];
-                for (int i = 0; i < trapTypeNames.Length; i++)
+                if (game == Games.MHWI || game == Games.MHWorld)
                 {
-                    TrapType thisType = (TrapType)i;
-                    string thisTypeName = trapTypeNames[i];
-                    if (i <= 2)
-					{
-						dynamic thisTrapObj = traps.First(x => x.Name == thisTypeName);
-						ret.Add(new()
-                        {
-                            Type = thisType,
-                            Duration = (float?)Math.Round((float)thisTrapObj.Duration, 2),
-                            ToleranceReduction = (float?)Math.Round((float)thisTrapObj.Duration_Decrease_Per_Use, 2),
-                            MinDuration = (float?)Math.Round((float)thisTrapObj.Duration_Minimum, 2),
-                            DurationExhaust = (float?)Math.Round((float)thisTrapObj.Duration * (1 + (1 - (float)(stam.Speed == null ? 1 : stam.Speed))), 2),
-                            Effectiveness = 100
-                        });
-                    }
-                    else
+                    Stamina stam = new(monsterName);
+                    string fileName = $@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWI\Monster Data\{monsterName}\Damage Attributes.json";
+                    if (File.Exists(fileName))
                     {
-                        TrapEffectiveness retObj = new()
+                        Dictionary<string, dynamic[]> trapData = JsonConvert.DeserializeObject<Dictionary<string, dynamic[]>>(File.ReadAllText(fileName))!;
+                        string[] trapTypeNames = ["Pitfall Trap", "Shock Trap", "Ivy Trap Unk", "Flash Pod", "Meat", "Dung Pod", "Sonic Pod"];
+                        dynamic dungObjs = JsonConvert.DeserializeObject<dynamic>(File.ReadAllText($@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWI\Monster Data\dungpod.json"))!;
+                        dynamic[] traps = trapData["Status Buildup: Shock Trap/Pitfall Trap/Ivy Trap/Unk"];
+                        for (int i = 0; i < trapTypeNames.Length; i++)
                         {
-                            Type = thisType
-                        };
-                        switch (thisType)
-                        {
-                            case TrapType.FlashPod:
+                            TrapType thisType = (TrapType)i;
+                            string thisTypeName = trapTypeNames[i];
+                            if (i <= 2)
+                            {
+                                dynamic thisTrapObj = traps.First(x => x.Name == thisTypeName);
+                                ret.Add(new()
                                 {
-                                    retObj.Rank = Rank.LowHigh;
-                                    dynamic thisTrapObj = trapData["Status Buildup: Dizziness LR/HR"].First();
-                                    retObj.Duration = (float?)Math.Round((float)thisTrapObj.Duration, 2);
-                                    retObj.ToleranceReduction = (float?)Math.Round((float)thisTrapObj.Duration_Decrease_Per_Use, 2);
-                                    retObj.MinDuration = (float?)Math.Round((float)thisTrapObj.Duration_Minimum, 2);
-                                    retObj.DurationExhaust = (float?)Math.Round((float)thisTrapObj.Duration * (1 + (1 - (float)(stam.Speed == null ? 1 : stam.Speed))), 2);
-                                    retObj.Effectiveness = 100;
-									ret.Add(retObj);
-									dynamic thisMRObj = trapData["Status Buildup: Dizziness MR"].First();
-									TrapEffectiveness mrObj = new()
-                                    {
-                                        Type = thisType,
-                                        Rank = Rank.Master,
-										Duration = (float?)Math.Round((float)thisMRObj.Duration, 2),
-										ToleranceReduction = (float?)Math.Round((float)thisMRObj.Duration_Decrease_Per_Use, 2),
-										MinDuration = (float?)Math.Round((float)thisMRObj.Duration_Minimum, 2),
-										DurationExhaust = (float?)Math.Round((float)thisMRObj.Duration * (1 + (1 - (float)(stam.Speed == null ? 1 : stam.Speed))), 2),
-										Effectiveness = 100
-									};
-									ret.Add(retObj);
-									ret.Add(mrObj);
-								}
-                                break;
-                            case TrapType.Meat:
-								ret.Add(retObj);
-								break;
-                            case TrapType.DungPod:
+                                    Type = thisType,
+                                    Duration = (float?)Math.Round((float)thisTrapObj.Duration, 2),
+                                    ToleranceReduction = (float?)Math.Round((float)thisTrapObj.Duration_Decrease_Per_Use, 2),
+                                    MinDuration = (float?)Math.Round((float)thisTrapObj.Duration_Minimum, 2),
+                                    DurationExhaust = (float?)Math.Round((float)thisTrapObj.Duration * (1 + (1 - (float)(stam.Speed == null ? 1 : stam.Speed))), 2),
+                                    Effectiveness = 100
+                                });
+                            }
+                            else
+                            {
+                                TrapEffectiveness retObj = new()
                                 {
-                                    dynamic thisTrapObj = trapData["Status Buildup: Dung"].First();
-                                    dynamic thisDungObj = dungObjs[monsterName];
-                                    ret.Add(retObj);
-								}
-								break;
-                            case TrapType.SonicPod:
-								ret.Add(retObj);
-								break;
+                                    Type = thisType
+                                };
+                                switch (thisType)
+                                {
+                                    case TrapType.FlashPod:
+                                        {
+                                            retObj.Rank = Rank.LowHigh;
+                                            dynamic thisTrapObj = trapData["Status Buildup: Dizziness LR/HR"].First();
+                                            retObj.Duration = (float?)Math.Round((float)thisTrapObj.Duration, 2);
+                                            retObj.ToleranceReduction = (float?)Math.Round((float)thisTrapObj.Duration_Decrease_Per_Use, 2);
+                                            retObj.MinDuration = (float?)Math.Round((float)thisTrapObj.Duration_Minimum, 2);
+                                            retObj.DurationExhaust = (float?)Math.Round((float)thisTrapObj.Duration * (1 + (1 - (float)(stam.Speed == null ? 1 : stam.Speed))), 2);
+                                            retObj.Effectiveness = 100;
+                                            ret.Add(retObj);
+                                            dynamic thisMRObj = trapData["Status Buildup: Dizziness MR"].First();
+                                            TrapEffectiveness mrObj = new()
+                                            {
+                                                Type = thisType,
+                                                Rank = Rank.Master,
+                                                Duration = (float?)Math.Round((float)thisMRObj.Duration, 2),
+                                                ToleranceReduction = (float?)Math.Round((float)thisMRObj.Duration_Decrease_Per_Use, 2),
+                                                MinDuration = (float?)Math.Round((float)thisMRObj.Duration_Minimum, 2),
+                                                DurationExhaust = (float?)Math.Round((float)thisMRObj.Duration * (1 + (1 - (float)(stam.Speed == null ? 1 : stam.Speed))), 2),
+                                                Effectiveness = 100
+                                            };
+                                            ret.Add(retObj);
+                                            ret.Add(mrObj);
+                                        }
+                                        break;
+                                    case TrapType.Meat:
+                                        ret.Add(retObj);
+                                        break;
+                                    case TrapType.DungPod:
+                                        {
+                                            dynamic thisTrapObj = trapData["Status Buildup: Dung"].First();
+                                            dynamic thisDungObj = dungObjs[monsterName];
+                                            ret.Add(retObj);
+                                        }
+                                        break;
+                                    case TrapType.SonicPod:
+                                        ret.Add(retObj);
+                                        break;
+                                }
+                            }
                         }
                     }
-				}
+                }
+                else if (game == Games.MHWilds)
+                {
+                    MonsterId monster = Monster.WildsMonsterIds.First(x => x.Name == monsterName);
+                    JObject item = (JObject)Attacks.MonsterMasterlist[monster.Id]["itemEffectiveness"];
+                    Dictionary<TrapType, string> traps = new()
+                {
+                    { TrapType.Pitfall, "Pitfall" },
+                    { TrapType.Shock, "Shock" },
+                    { TrapType.Vine, "Vine" },
+                    { TrapType.FlashPod, "FlashPod" },
+                    { TrapType.Meat, "Meat" },
+                    { TrapType.DungPod, "DungPod" },
+                    { TrapType.SonicPod, "SonicPod" }
+                };
+                    foreach (KeyValuePair<TrapType, string> kvp in traps.Where(x => x.Key != TrapType.DungPod && x.Key != TrapType.Meat))
+                    {
+                        ret.Add(new()
+                        {
+                            Duration = item.Value<int>(kvp.Value + "Duration"),
+                            MinDuration = item.Value<int>(kvp.Value + "MinDuration"),
+                            DurationExhaust = item.Value<int>(kvp.Value + "DurationExh"),
+                            ToleranceReduction = item.Value<int>(kvp.Value + "ToleranceReduction"),
+                            Rank = Rank.LowHigh,
+                            Type = kvp.Key
+                        });
+                    }
+                    ret.Add(new TrapEffectiveness()
+                    {
+                        Type = TrapType.Meat,
+                        Effectiveness = item.Value<bool>("CanMeat") ? 100 : 0
+                    });
+                    ret.Add(new TrapEffectiveness()
+                    {
+                        Type = TrapType.DungPod,
+                        Effectiveness = item.Value<int>("DungPodEffectiveness")
+                    });
+                }
+                int cntr = 0;
+                foreach (TrapEffectiveness eff in ret)
+                {
+                    eff.Order = cntr;
+                    cntr++;
+                }
             }
-            return [.. ret];
+            catch { }
+			return [.. ret];
         }
 
         public static string Format(string game, TrapEffectiveness[] traps, string monsterName)
@@ -112,7 +159,7 @@ namespace MediawikiTranslator.Models.Monsters
                 TrapEffectiveness scream = traps.First(x => x.Type == TrapType.SonicPod);
                 if (BookInfo.Length == 0)
                 {
-                    BookInfo = JsonConvert.DeserializeObject<dynamic[]>(File.ReadAllText($@"{System.Configuration.ConfigurationManager.AppSettings.Get("DesktopPath")}test monster stuff\MHWI\bookData.json"))!;
+                    BookInfo = JsonConvert.DeserializeObject<dynamic[]>(File.ReadAllText($@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWI\Monster Data\bookData.json"))!;
                 }
                 dynamic thisBookInfo = BookInfo.First(x => x.Name == monsterName);
                 Dictionary<string, List<int>> sourceDict = [];
