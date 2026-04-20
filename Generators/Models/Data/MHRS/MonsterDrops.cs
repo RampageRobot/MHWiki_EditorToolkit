@@ -47,9 +47,9 @@ namespace MediawikiTranslator.Models.Data.MHRS
 			Generators.Items[] srcItems = Items.FetchParsed();
 			List<MonsterDrops> drops = [];
 			int order = 0;
-			foreach (string file in Directory.EnumerateFiles(@"D:\MH_Data Repo\MH_Data\Raw Data\MHRS\Transcribed Drop Tables"))
+			foreach (string file in Directory.EnumerateFiles(@"C:\Users\mkast\Downloads\temp"))
 			{
-				JObject list = JsonConvert.DeserializeObject<JObject>(File.ReadAllText(file))!;
+				JObject list = JsonConvert.DeserializeObject<JObject>(Utilities.ReadAllText(file))!;
 				foreach (string monsterRaw in list.Properties().Select(x => x.Name))
 				{
 					string monster = string.Join(" ", monsterRaw.Split(" ").Select(x => char.ToUpper(x[0]) + x[1..]));
@@ -86,8 +86,8 @@ namespace MediawikiTranslator.Models.Data.MHRS
 										Rarity = itemToAdd.Rarity
 									});
 								}
-								catch (Exception ex)
-								{
+								catch (Exception)
+                                {
 									Debugger.Break();
 								}
 							}

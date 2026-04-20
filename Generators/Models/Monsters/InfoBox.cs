@@ -5,7 +5,7 @@ namespace MediawikiTranslator.Models.Monsters
 {
 	public class InfoBox
 	{
-		private static JObject _monsterData = JsonConvert.DeserializeObject<JObject>(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\monsterData.json"))!;
+		private static JObject _monsterData = JsonConvert.DeserializeObject<JObject>(Utilities.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\monsterData.json"))!;
 		public InfoBox(string name, Games game) 
 		{
 			EnglishName = name;
@@ -20,7 +20,7 @@ namespace MediawikiTranslator.Models.Monsters
 			Class = monsterDataObj.Value<string>("Classification")!;
 			if (game == Games.MHWI || game == Games.MHWorld)
 			{
-				dynamic[] bookInfo = JsonConvert.DeserializeObject<dynamic[]>(File.ReadAllText($@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWI\Monster Data\bookData.json"))!;
+				dynamic[] bookInfo = JsonConvert.DeserializeObject<dynamic[]>(Utilities.ReadAllText($@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWI\Monster Data\bookData.json"))!;
 				dynamic thisBookInfo = bookInfo.First(x => x.Name == name);
 				if (game == Games.MHWorld)
 				{

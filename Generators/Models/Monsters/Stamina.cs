@@ -24,7 +24,7 @@ namespace MediawikiTranslator.Models.Monsters
 			if (File.Exists(fileName))
 			{
 				FileFound = true;
-				Dictionary<string, dynamic[]> stamData = JsonConvert.DeserializeObject<Dictionary<string, dynamic[]>>(File.ReadAllText(fileName))!;
+				Dictionary<string, dynamic[]> stamData = JsonConvert.DeserializeObject<Dictionary<string, dynamic[]>>(Utilities.ReadAllText(fileName))!;
 				foreach (KeyValuePair<string, dynamic[]> kvp in stamData.Where(x => x.Key.StartsWith("Fatigue (") && x.Value.First().Duration != null && x.Value.First().Duration > -1))
 				{
 					dynamic stamObj = kvp.Value.First();

@@ -33,7 +33,7 @@ namespace MediawikiTranslator.Models.Monsters
 		public bool IsPhase { get; set; }
 		public int StunEffect { get; set; }
 
-		private static Dictionary<string, object> _partNames = JsonConvert.DeserializeObject<Dictionary<string, object>>(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\dtlnor rips\MHWs-in-json-main\natives\STM\GameDesign\Text\Excel_Data\EnemyPartsTypeName.msg.23.json"))!;
+		private static Dictionary<string, object> _partNames = JsonConvert.DeserializeObject<Dictionary<string, object>>(Utilities.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\dtlnor rips\MHWs-in-json-main\natives\STM\GameDesign\Text\Excel_Data\EnemyPartsTypeName.msg.23.json"))!;
 
 		public static DamageEffectiveness[] Generate(string name, Games game)
 		{

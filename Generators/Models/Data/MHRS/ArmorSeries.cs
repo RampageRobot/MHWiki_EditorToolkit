@@ -12,7 +12,7 @@ namespace MediawikiTranslator.Models.Data.MHRS
 
 		public static ArmorSeriesParam[] GetArmorSeries()
 		{
-			ArmorSeriesParam[] allArmor = FromJson(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHRS\natives\stm\data\define\player\armor\armorseriesdata.user.2.json")).SnowDataArmorSeriesUserData.Params;
+			ArmorSeriesParam[] allArmor = FromJson(Utilities.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHRS\natives\stm\data\define\player\armor\armorseriesdata.user.2.json")).SnowDataArmorSeriesUserData.Params;
 			foreach (ArmorSeriesParam armor in allArmor)
 			{
 				string thisKey = GetArmorId(armor.ArmorSeries!).ToString();

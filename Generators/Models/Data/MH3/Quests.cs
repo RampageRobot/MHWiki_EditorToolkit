@@ -39,7 +39,7 @@
 
 		public static Quests FromFile(string file)
 		{
-			return JsonConvert.DeserializeObject<Quests>(File.ReadAllText(file))!;
+			return JsonConvert.DeserializeObject<Quests>(Utilities.ReadAllText(file))!;
 		}
 	}
 

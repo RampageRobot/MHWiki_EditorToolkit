@@ -99,7 +99,7 @@ namespace MediawikiTranslator.Models.Data.MHWI
 		public long? Unk5 { get; set; }
 		public static WeaponForgingData[] GetForgingData()
 		{
-			return FromJson(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Raw Data\MHWI\chunk\common\equip\weaponforging.json"));
+			return FromJson(Utilities.ReadAllText(@"D:\MH_Data Repo\MH_Data\Raw Data\MHWI\chunk\common\equip\weaponforging.json"));
 		}
 	}
 

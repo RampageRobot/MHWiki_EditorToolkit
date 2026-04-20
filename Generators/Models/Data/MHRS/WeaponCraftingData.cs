@@ -13,7 +13,7 @@ namespace MediawikiTranslator.Models.Data.MHRS
 		public static WeaponCraftingDataParam[] GetCraftingData()
 		{
 			Items[] allItems = Items.Fetch();
-			WeaponCraftingDataParam[] allData = FromJson(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHRS\natives\stm\data\define\player\weapon\weaponcrafting.json")).SnowDataWeaponProductUserData.Param;
+			WeaponCraftingDataParam[] allData = FromJson(Utilities.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHRS\natives\stm\data\define\player\weapon\weaponcrafting.json")).SnowDataWeaponProductUserData.Param;
 			foreach (WeaponCraftingDataParam data in allData)
 			{
 				data.Items = new Items[data.Item.Count(x => x != "I_Unclassified_None")];

@@ -13,7 +13,7 @@ namespace MediawikiTranslator.Models.Data.MHRS
 
 		public static WeaponTreeDataParam[] GetWeaponTreeData()
 		{
-			WeaponTreeDataParam[] allData = FromJson(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHRS\natives\stm\data\define\player\weapon\weapontree.json")).SnowDataWeaponUpdateTreeUserData.Param;
+			WeaponTreeDataParam[] allData = FromJson(Utilities.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHRS\natives\stm\data\define\player\weapon\weapontree.json")).SnowDataWeaponUpdateTreeUserData.Param;
 			foreach (WeaponTreeDataParam data in allData)
 			{
 				data.Name = CommonMsgs.GetMsg($"WeaponSeries_Hunter_{GetTreeId(data.TreeType):D3}");

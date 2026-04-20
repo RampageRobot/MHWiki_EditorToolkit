@@ -6,6 +6,8 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Configurations>Debug;Release;Site</Configurations>
     <Platforms>AnyCPU;x86</Platforms>
+    <StartupObject>WebToolkit.Program</StartupObject>
+    <UserSecretsId>f4bb5456-27b7-421d-a78c-5712e2a61ab4</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
@@ -14,11 +16,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.TypeScript.MSBuild" Version="5.7.1">
+    <PackageReference Include="Microsoft.TypeScript.MSBuild" Version="6.0.3">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="System.Configuration.ConfigurationManager" Version="9.0.7" />
+    <PackageReference Include="System.Configuration.ConfigurationManager" Version="10.0.6" />
   </ItemGroup>
 
   <ItemGroup>

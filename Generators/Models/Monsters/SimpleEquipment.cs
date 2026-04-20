@@ -45,7 +45,7 @@ namespace MediawikiTranslator.Models.Monsters
 			{
 				if (BookInfo.Length == 0)
 				{
-					BookInfo = JsonConvert.DeserializeObject<dynamic[]>(File.ReadAllText($@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWI\Monster Data\bookData.json"))!;
+					BookInfo = JsonConvert.DeserializeObject<dynamic[]>(Utilities.ReadAllText($@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWI\Monster Data\bookData.json"))!;
 				}
 				dynamic? thisBookInfo = BookInfo.FirstOrDefault(x => x.Name == monsterName);
 				if (thisBookInfo != null)
@@ -162,8 +162,8 @@ namespace MediawikiTranslator.Models.Monsters
 				}[monsterName];
 				}
 			}
-			catch (Exception e)
-			{
+			catch (Exception)
+            {
 				return "ERROR";
 			}
 		}

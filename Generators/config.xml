@@ -3,6 +3,8 @@
 	<appSettings>
 		<add key="WikiUsername" value=""></add>
 		<add key="WikiPassword" value=""></add>
+		<add key="FTPUsername" value=""></add>
+		<add key="FTPPassword" value=""></add>
 		<add key="DesktopPath" value=""></add>
 	</appSettings>
 </configuration>

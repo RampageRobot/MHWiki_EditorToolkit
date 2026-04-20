@@ -12,7 +12,7 @@ namespace MediawikiTranslator.Models.Data.MHRS
 
 		public static Weapon[] Fetch()
 		{
-			return FromJson(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHRS\natives\stm\data\define\player\weapon\shortsword\shortswordbasedata.user.2.json")).SnowEquipShortSwordBaseUserData.Param;
+			return FromJson(Utilities.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHRS\natives\stm\data\define\player\weapon\shortsword\shortswordbasedata.user.2.json")).SnowEquipShortSwordBaseUserData.Param;
 		}
 	}
 

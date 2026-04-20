@@ -6,7 +6,7 @@ namespace MediawikiTranslator.Models.Data.MHWI
 	{
 		public static Models.Quests.WebToolkitData[] FetchQuests()
 		{
-			return JsonConvert.DeserializeObject<Models.Quests.WebToolkitData[]>(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWI\quest data\questDict.json"))!;
+			return JsonConvert.DeserializeObject<Models.Quests.WebToolkitData[]>(Utilities.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWI\quest data\questDict.json"))!;
 		}
 	}
 }

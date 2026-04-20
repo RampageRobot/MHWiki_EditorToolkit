@@ -128,7 +128,7 @@ namespace MediawikiTranslator.Models.Data.MHWI
 		public static ArmorCraftingData[] GetArmorCraftingData()
 		{
 			Items[] items = MHWI.Items.Fetch();
-			ArmorCraftingData[] ret = FromJson(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Raw Data\MHWI\chunk\common\equip\armorcrafting.json"));
+			ArmorCraftingData[] ret = FromJson(Utilities.ReadAllText(@"D:\MH_Data Repo\MH_Data\Raw Data\MHWI\chunk\common\equip\armorcrafting.json"));
 			foreach (ArmorCraftingData data in ret)
 			{
 				if (data.Mat1Id!.Value > 0)

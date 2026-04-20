@@ -37,7 +37,7 @@ namespace MediawikiTranslator.Models.Data.MHWI
 
 		public static SetSkills[] GetSetBonusDescriptions()
 		{
-			return FromJson(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Raw Data\MHWI\chunk\common\equip\setskills.json"));
+			return FromJson(Utilities.ReadAllText(@"D:\MH_Data Repo\MH_Data\Raw Data\MHWI\chunk\common\equip\setskills.json"));
 		}
 	}
 

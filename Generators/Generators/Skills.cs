@@ -8,7 +8,7 @@ namespace MediawikiTranslator.Generators
 		public static SimplifiedSkill[] GetSimplifiedSkillsMHRS()
 		{
 			Dictionary<string, int> skillEnum = GetMHRISkillEnum();
-			Models.Data.MHRS.Skills skillDict = Models.Data.MHRS.Skills.FromJson(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHRS\natives\stm\data\define\player\skill\plequipskill\plequipskillbasedata.user.2.json"));
+			Models.Data.MHRS.Skills skillDict = Models.Data.MHRS.Skills.FromJson(Utilities.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHRS\natives\stm\data\define\player\skill\plequipskill\plequipskillbasedata.user.2.json"));
 			Dictionary<int, string> mhrsColors = Items.GetMHRSWikiColors();
 			List<SimplifiedSkill> simplifiedSkills = [];
 			foreach (SkillsParam data in skillDict.SnowDataPlEquipSkillBaseUserData.Param.Where(x => skillEnum.ContainsKey(x.Id!)))
@@ -46,15 +46,15 @@ namespace MediawikiTranslator.Generators
 
 		public static void ParseSkills()
 		{
-			Models.Data.MHWI.Skills[] mhwiSkills = Models.Data.MHWI.Skills.FromJson(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWI\mhwi skills.json"));
-			SkillsExtraInfo[] mhwiSkillsExtraInfo = SkillsExtraInfo.FromJson(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWI\mhwi skills extra info.json"));
+			Models.Data.MHWI.Skills[] mhwiSkills = Models.Data.MHWI.Skills.FromJson(Utilities.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWI\mhwi skills.json"));
+			SkillsExtraInfo[] mhwiSkillsExtraInfo = SkillsExtraInfo.FromJson(Utilities.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWI\mhwi skills extra info.json"));
 			Dictionary<int, string> mhwiColors = Items.GetMHWIWikiColors();
 			File.WriteAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWI\mhwi_skills_simplified.json", Newtonsoft.Json.JsonConvert.SerializeObject(SkillDescriptions.GetSimplifiedSkills().OrderBy(x => x.Name), Newtonsoft.Json.Formatting.Indented));
 			Dictionary<string, int> skillEnum = GetMHRISkillEnum();
-			Models.Data.MHRS.Skills skillDict = Models.Data.MHRS.Skills.FromJson(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHRS\plequipskillbasedata.user.2.json"));
-			SkillsNames skillNameDict = SkillsNames.FromJson(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHRS\skillnames.json"));
-			SkillsExplain skillExplainDict = SkillsExplain.FromJson(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHRS\skillexplain.json"));
-			SkillsDetails skillDetailsDict = SkillsDetails.FromJson(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHRS\skilldetails.json"));
+			Models.Data.MHRS.Skills skillDict = Models.Data.MHRS.Skills.FromJson(Utilities.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHRS\plequipskillbasedata.user.2.json"));
+			SkillsNames skillNameDict = SkillsNames.FromJson(Utilities.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHRS\skillnames.json"));
+			SkillsExplain skillExplainDict = SkillsExplain.FromJson(Utilities.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHRS\skillexplain.json"));
+			SkillsDetails skillDetailsDict = SkillsDetails.FromJson(Utilities.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHRS\skilldetails.json"));
 			Dictionary<int, string> mhrsColors = Items.GetMHRSWikiColors();
 			List<SimplifiedSkill> simplifiedSkills = [];
 			foreach (SkillsParam data in skillDict.SnowDataPlEquipSkillBaseUserData.Param.Where(x => skillEnum.ContainsKey(x.Id!)))

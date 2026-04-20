@@ -17,7 +17,7 @@ namespace MediawikiTranslator.Models.Monsters
         public int StaminaCost { get; set; }
         public int GuardKnockback { get; set; }
 		public bool MTL { get; set; } = true;
-        public static readonly Dictionary<string, Dictionary<string, object>> MonsterMasterlist = JsonConvert.DeserializeObject<Dictionary<string, Dictionary<string, object>>>(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\enemies.json"))!;
+        public static readonly Dictionary<string, Dictionary<string, object>> MonsterMasterlist = JsonConvert.DeserializeObject<Dictionary<string, Dictionary<string, object>>>(Utilities.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\enemies.json"))!;
 		private static readonly Dictionary<string, string> _translations = [];
 
 		public static Attacks[] FetchAttacks(string monsterName, Games game = Games.MHWI)
@@ -44,7 +44,7 @@ namespace MediawikiTranslator.Models.Monsters
 						{ "Def_Down_Double", "Defense Down L" },
 						{ "Def_Down", "Defense Down" }
 					};
-					JArray movesArr = JsonConvert.DeserializeObject<JObject>(File.ReadAllText(fileName))!.Value<JArray>("Moves")!.First().Value<JArray>("Atks")!;
+					JArray movesArr = JsonConvert.DeserializeObject<JObject>(Utilities.ReadAllText(fileName))!.Value<JArray>("Moves")!.First().Value<JArray>("Atks")!;
                     foreach (JObject attackSrc in movesArr)
 					{
 						string jpName = attackSrc.Value<string>("TranslatedName")!;

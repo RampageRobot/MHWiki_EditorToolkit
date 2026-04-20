@@ -43,14 +43,16 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="ClosedXML" Version="0.104.2" />
+    <PackageReference Include="ClosedXML" Version="0.105.0" />
     <PackageReference Include="CXuesong.MW.WikiClientLibrary" Version="0.8.0" />
-    <PackageReference Include="Google.Apis" Version="1.69.0" />
-    <PackageReference Include="Google.Apis.Auth" Version="1.69.0" />
-    <PackageReference Include="Google.Apis.Core" Version="1.69.0" />
+    <PackageReference Include="FluentFTP" Version="54.1.1" />
+    <PackageReference Include="FluentFTP.GnuTLS" Version="1.0.38" />
+    <PackageReference Include="Google.Apis" Version="1.73.0" />
+    <PackageReference Include="Google.Apis.Auth" Version="1.73.0" />
+    <PackageReference Include="Google.Apis.Core" Version="1.73.0" />
     <PackageReference Include="Google.Apis.Translate.v2" Version="1.68.0.875" />
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
-    <PackageReference Include="System.Configuration.ConfigurationManager" Version="9.0.7" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
+    <PackageReference Include="System.Configuration.ConfigurationManager" Version="10.0.6" />
   </ItemGroup>
 
   <ItemGroup>

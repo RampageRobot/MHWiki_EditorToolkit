@@ -29,18 +29,18 @@ namespace MediawikiTranslator.Models.Data.MHWilds
 		public static Skill[] GetSkills()
 		{
 			List<Skill> ret = [];
-			dynamic[] oldSkillDict = JsonConvert.DeserializeObject<dynamic[]>(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\skillDict.json"));
+			dynamic[] oldSkillDict = JsonConvert.DeserializeObject<dynamic[]>(Utilities.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\skillDict.json"));
 			Items[] allItems = Items.Fetch();
-			JArray skillMsgs = JsonConvert.DeserializeObject<JObject>(File.ReadAllText("D:\\MH_Data Repo\\MH_Data\\Parsed Files\\MHWilds\\dtlnor rips\\MHWs-in-json-main\\natives\\STM\\GameDesign\\Text\\Excel_Equip\\Skill.msg.23.json"))!.Value<JArray>("entries")!;
-			JArray skillCommonMsgs = JsonConvert.DeserializeObject<JObject>(File.ReadAllText("D:\\MH_Data Repo\\MH_Data\\Parsed Files\\MHWilds\\dtlnor rips\\MHWs-in-json-main\\natives\\STM\\GameDesign\\Text\\Excel_Equip\\SkillCommon.msg.23.json"))!.Value<JArray>("entries")!;
-			JArray mealSkillMsgs = JsonConvert.DeserializeObject<JObject>(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\dtlnor rips\MHWs-in-json-main\natives\STM\GameDesign\Text\Excel_Equip\MealSkill.msg.23.json"))!.Value<JArray>("entries")!;
-			JArray mealLobbyMsgs = JsonConvert.DeserializeObject<JObject>(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\dtlnor rips\MHWs-in-json-main\natives\STM\GameDesign\Text\Excel_Data\MealLobby.msg.23.json"))!.Value<JArray>("entries")!;
-			JArray src = JsonConvert.DeserializeObject<JArray>(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\dtlnor rips\MHWs-in-json-main\natives\STM\GameDesign\Common\Equip\SkillData.user.3.json"))!.First().Value<JObject>("app.user_data.SkillData").Value<JArray>("_Values");
-			JArray srcCommon = JsonConvert.DeserializeObject<JArray>(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\dtlnor rips\MHWs-in-json-main\natives\STM\GameDesign\Common\Equip\SkillCommonData.user.3.json"))!.First().Value<JObject>("app.user_data.SkillCommonData").Value<JArray>("_Values");
-			JArray mealSkills = JsonConvert.DeserializeObject<JArray>(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\dtlnor rips\MHWs-in-json-main\natives\STM\GameDesign\Common\Facility\MealSkillData.user.3.json"))!.First().Value<JObject>("app.user_data.MealSkillData").Value<JArray>("_Values");
-			JArray foodData = [.. JsonConvert.DeserializeObject<JArray>(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\dtlnor rips\MHWs-in-json-main\natives\STM\GameDesign\Facility\FoodData.user.3.json"))!.First().Value<JObject>("app.user_data.FoodData").Value<JArray>("_Values").Select(x => x.Value<JObject>("app.user_data.FoodData.cData"))];
-			JArray mealDataLobby = [.. JsonConvert.DeserializeObject<JArray>(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\dtlnor rips\MHWs-in-json-main\natives\STM\GameDesign\Facility\MealDataLobby.user.3.json"))!.First().Value<JObject>("app.user_data.MealDataLobby").Value<JArray>("_Values").Select(x => x.Value<JObject>("app.user_data.MealDataLobby.cData"))];
-			JObject[] mealSkillRandomTable = [..JsonConvert.DeserializeObject<JArray>(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\dtlnor rips\MHWs-in-json-main\natives\STM\GameDesign\Facility\MealSkillRandomTable.user.3.json"))!.First().Value<JObject>("app.user_data.MealSkillRandomTable").Value<JArray>("_Values").Select(x => x.Value<JObject>("app.user_data.MealSkillRandomTable.cData"))];
+			JArray skillMsgs = JsonConvert.DeserializeObject<JObject>(Utilities.ReadAllText("D:\\MH_Data Repo\\MH_Data\\Parsed Files\\MHWilds\\dtlnor rips\\MHWs-in-json-main\\natives\\STM\\GameDesign\\Text\\Excel_Equip\\Skill.msg.23.json"))!.Value<JArray>("entries")!;
+			JArray skillCommonMsgs = JsonConvert.DeserializeObject<JObject>(Utilities.ReadAllText("D:\\MH_Data Repo\\MH_Data\\Parsed Files\\MHWilds\\dtlnor rips\\MHWs-in-json-main\\natives\\STM\\GameDesign\\Text\\Excel_Equip\\SkillCommon.msg.23.json"))!.Value<JArray>("entries")!;
+			JArray mealSkillMsgs = JsonConvert.DeserializeObject<JObject>(Utilities.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\dtlnor rips\MHWs-in-json-main\natives\STM\GameDesign\Text\Excel_Equip\MealSkill.msg.23.json"))!.Value<JArray>("entries")!;
+			JArray mealLobbyMsgs = JsonConvert.DeserializeObject<JObject>(Utilities.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\dtlnor rips\MHWs-in-json-main\natives\STM\GameDesign\Text\Excel_Data\MealLobby.msg.23.json"))!.Value<JArray>("entries")!;
+			JArray src = JsonConvert.DeserializeObject<JArray>(Utilities.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\dtlnor rips\MHWs-in-json-main\natives\STM\GameDesign\Common\Equip\SkillData.user.3.json"))!.First().Value<JObject>("app.user_data.SkillData").Value<JArray>("_Values");
+			JArray srcCommon = JsonConvert.DeserializeObject<JArray>(Utilities.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\dtlnor rips\MHWs-in-json-main\natives\STM\GameDesign\Common\Equip\SkillCommonData.user.3.json"))!.First().Value<JObject>("app.user_data.SkillCommonData").Value<JArray>("_Values");
+			JArray mealSkills = JsonConvert.DeserializeObject<JArray>(Utilities.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\dtlnor rips\MHWs-in-json-main\natives\STM\GameDesign\Common\Facility\MealSkillData.user.3.json"))!.First().Value<JObject>("app.user_data.MealSkillData").Value<JArray>("_Values");
+			JArray foodData = [.. JsonConvert.DeserializeObject<JArray>(Utilities.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\dtlnor rips\MHWs-in-json-main\natives\STM\GameDesign\Facility\FoodData.user.3.json"))!.First().Value<JObject>("app.user_data.FoodData").Value<JArray>("_Values").Select(x => x.Value<JObject>("app.user_data.FoodData.cData"))];
+			JArray mealDataLobby = [.. JsonConvert.DeserializeObject<JArray>(Utilities.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\dtlnor rips\MHWs-in-json-main\natives\STM\GameDesign\Facility\MealDataLobby.user.3.json"))!.First().Value<JObject>("app.user_data.MealDataLobby").Value<JArray>("_Values").Select(x => x.Value<JObject>("app.user_data.MealDataLobby.cData"))];
+			JObject[] mealSkillRandomTable = [..JsonConvert.DeserializeObject<JArray>(Utilities.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\dtlnor rips\MHWs-in-json-main\natives\STM\GameDesign\Facility\MealSkillRandomTable.user.3.json"))!.First().Value<JObject>("app.user_data.MealSkillRandomTable").Value<JArray>("_Values").Select(x => x.Value<JObject>("app.user_data.MealSkillRandomTable.cData"))];
 			Dictionary<string, string> iconTypes = [];
 			foreach (JObject valContainer in srcCommon)
 			{
@@ -161,7 +161,7 @@ namespace MediawikiTranslator.Models.Data.MHWilds
 							ret.Add(newSkill);
 						}
 					}
-					catch (Exception e)
+					catch (Exception)
 					{
 						Debugger.Break();
 					}

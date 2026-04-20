@@ -177,7 +177,7 @@ namespace MediawikiTranslator.Models.Data.MHWI
 
 		public static GunnerData[] GetGunnerData()
 		{
-			return FromJson(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Raw Data\MHWI\chunk\common\equip\gunnerdata.json"));
+			return FromJson(Utilities.ReadAllText(@"D:\MH_Data Repo\MH_Data\Raw Data\MHWI\chunk\common\equip\gunnerdata.json"));
 		}
 
 

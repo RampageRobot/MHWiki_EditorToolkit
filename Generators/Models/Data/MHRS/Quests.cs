@@ -16,9 +16,9 @@ namespace MediawikiTranslator.Models.Data.MHRS
 
 		public static Quests[] Fetch()
 		{
-			JArray monsterIds = Newtonsoft.Json.JsonConvert.DeserializeObject<JArray>(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHRS\fexty monster ids.json"))!;
+			JArray monsterIds = Newtonsoft.Json.JsonConvert.DeserializeObject<JArray>(Utilities.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHRS\fexty monster ids.json"))!;
 			Quests[] src = [..Directory.EnumerateFiles(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHRS\Quests", "q*.json")
-				.Select(x => Newtonsoft.Json.JsonConvert.DeserializeObject<Quests>(File.ReadAllText(x))!)];
+				.Select(x => Newtonsoft.Json.JsonConvert.DeserializeObject<Quests>(Utilities.ReadAllText(x))!)];
 			foreach (Quests q in src)
 			{
 				foreach (QuestDataMonster monster in q.QuestData!.Monsters!)
@@ -32,7 +32,7 @@ namespace MediawikiTranslator.Models.Data.MHRS
 		public static Models.Quests.WebToolkitData[] GetWebToolkitData()
 		{
 			Items[] allItems = Utilities.GetMHRSItems();
-			JArray itemIds = Newtonsoft.Json.JsonConvert.DeserializeObject<JArray>(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHRS\fexty item ids.json"))!;
+			JArray itemIds = Newtonsoft.Json.JsonConvert.DeserializeObject<JArray>(Utilities.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHRS\fexty item ids.json"))!;
 			List<Models.Quests.WebToolkitData> ret = [];
 			Quests[] src = Fetch();
 			Dictionary<long, string> locales = new()

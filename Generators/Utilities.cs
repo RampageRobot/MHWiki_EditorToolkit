@@ -1,4 +1,8 @@
 ﻿using ClosedXML.Excel;
+using DocumentFormat.OpenXml.Spreadsheet;
+using DocumentFormat.OpenXml.Wordprocessing;
+using FluentFTP;
+using FluentFTP.GnuTLS;
 using Google.Apis.Translate.v2.Data;
 using MediawikiTranslator.Generators;
 using MediawikiTranslator.Models;
@@ -8,9 +12,12 @@ using MediawikiTranslator.Models.Monsters;
 using MediawikiTranslator.Models.Weapon;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using System;
 using System.Data;
 using System.Diagnostics;
 using System.IO.Compression;
+using System.Net;
+using System.Net.Security;
 using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -46,6 +53,66 @@ namespace MediawikiTranslator
 						Console.WriteLine($"({cnt}/{totalCount}) {page.Title} edited.");
 						cnt++;
 					}
+					Console.WriteLine("======================================================");
+					Console.WriteLine("Finished!");
+					TimeSpan elapsed = DateTime.Now - start;
+					Console.WriteLine("Elapsed: " + elapsed.ToString());
+				}
+				catch (WikiClientException ex)
+				{
+					Console.WriteLine(ex.Message);
+				}
+				await site.LogoutAsync();
+			}
+		}
+
+		public static void SetCredentials()
+		{
+			if (File.Exists(@"../credentials.json"))
+			{
+				JObject creds = JsonConvert.DeserializeObject<JObject>(Utilities.ReadAllText(@"../credentials.json"))!;
+				System.Configuration.ConfigurationManager.AppSettings.Set("WikiUsername", creds.Value<string>("WikiUsername"));
+				System.Configuration.ConfigurationManager.AppSettings.Set("WikiPassword", creds.Value<string>("WikiPassword"));
+				System.Configuration.ConfigurationManager.AppSettings.Set("FTPUsername", creds.Value<string>("FTPUsername"));
+				System.Configuration.ConfigurationManager.AppSettings.Set("FTPPassword", creds.Value<string>("FTPPassword"));
+				System.Configuration.ConfigurationManager.AppSettings.Set("DesktopPath", creds.Value<string>("DesktopPath"));
+			}
+			else
+			{
+				throw new Exception("You must set up a file called credentials.json on the root of the project to continue use of the toolkit! Please see the blank template (credentials.template.json) provided on the github repo.");
+			}
+		}
+
+		public static async Task UploadRenderDB()
+		{
+			DateTime start = DateTime.Now;
+			using (WikiClient client = new()
+			{
+				ClientUserAgent = "MHWikiToolkit/" + Assembly.GetEntryAssembly()!.GetName().Version + " " + System.Configuration.ConfigurationManager.AppSettings.Get("WikiUsername")!,
+			})
+			{
+				WikiSite site = new(client, "https://monsterhunterwiki.org/api.php");
+				await site.Initialization;
+				try
+				{
+					await site.Login();
+					Dictionary<string, MonsterData> monsterAppearances = JsonConvert.DeserializeObject<Dictionary<string, MonsterData>>(Utilities.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\monsterData.json"))!;
+					int totalCnt = monsterAppearances.Count;
+					Dictionary<string, Dictionary<string, string>> allRenders = [];
+					string[] migratedGames = ["MHWilds", "MHRS", "MHRise", "MHWI", "MHWorld", "MHGU", "MHGen", "MH4U", "MH4", "MH3U", "MHP3", "MH3", "MHFU", "MHF2", "MH2", "MHF1", "MHG", "MH1", "MHNow", "MHPuzzles", "MHST1", "MHST2", "MHFrontier", "MHi", "MHRiders"];
+					foreach (KeyValuePair<string, MonsterData> monsterData in monsterAppearances.Where(x => x.Key != "Ahtal-Neset" && x.Value.GameAppearances.Any(y => migratedGames.Contains(y.GameAcronym))))
+					{
+						Console.WriteLine($"Building render list for monster {monsterData.Key}.");
+						allRenders[monsterData.Key] = await GetMonsterRenders(monsterAppearances[monsterData.Key], site, null);
+					}
+					await new WikiPage(site, "Module:Utilities/data/MonsterRenders.json").EditAsync(new WikiPageEditOptions()
+					{
+						Bot = true,
+						Content = JsonConvert.SerializeObject(allRenders),
+						Minor = false,
+						Summary = $"Created initial .json DB pages for Lua module use",
+						Watch = AutoWatchBehavior.None
+					});
 					Console.WriteLine("======================================================");
 					Console.WriteLine("Finished!");
 					TimeSpan elapsed = DateTime.Now - start;
@@ -161,7 +228,7 @@ namespace MediawikiTranslator
 							Bot = true,
 							Content = kvp.Value,
 							Minor = false,
-							Summary = $"{action} inital .json DB pages for Lua module use",
+							Summary = $"{action} initial .json DB pages for Lua module use",
 							Watch = AutoWatchBehavior.None
 						});
 						Console.WriteLine($"({cnt}/{totalCount}) {page.Title} added.");
@@ -248,7 +315,7 @@ namespace MediawikiTranslator
 		private readonly static string[] SmallMonsterNames = ["Altaroth", "Anteka", "Apceros", "Aptonoth", "Aptonoth EX", "Apypos", "Baggi", "Barnos", "Baunos", "Blango", "Bnahabra", "Boaboa", "Boggi", "Bombadgy", "Bulaqchi", "Bullfango", "Burukku", "Canyne", "Ceanataur", "Cephalos", "Ceratonoth", "Comaqchi", "Conga", "Cortos", "Dalthydon", "Delex", "Egyurasu", "Epioth", "Erupe", "Felyne", "Fish", "Gajalaka", "Gajau", "Gajios", "Gargwa", "Gastodon", "Gelidron", "Genprey", "Giaprey", "Giggi", "Girros", "Goocoo", "Gowngoat", "Great Dracophage Bug", "Great Poogie", "Great Thunderbug", "Grimalkyne", "Guardian Seikret", "Halk", "Harpios", "Hermitaur", "Hornetaur", "Ioprey", "Izuchi", "Jaggi", "Jaggia", "Jagras", "Kelbi", "Kestodon", "Konchu", "Kranodath", "Kumashira", "Kusubami", "Larinoth", "Ludroth", "Maccao", "Melynx", "Mernos", "Moofah", "Moofy", "Mosswine", "Nerscylla Hatchling", "Noios", "Piragill", "Pokara", "Poogie", "Popo", "Porkeplume", "Pyrantula", "Qurio", "Rachnoid", "Rafma", "Raphinos", "Remobra", "Rhenoplos", "Seikret", "Shakalaka", "Shamos", "Slagtoth", "Talioth", "Thanksalot Bnahabra", "Uroktor", "Uroktor EX", "Uruki", "Velociprey", "Vespoid", "Wroggi", "Wudwud", "Wulg", "Zamite"];
 		private readonly static string[] MonsterNameAdjs = ["Afflicted", "Barrel", "Blood Orange", "Boltreaver", "Copper", "Emerald", "Explosive Peak", "Flaming", "Frenzied", "Frostfang", "Frozen", "Fulgur", "Glacial", "Goldbeard", "HC", "Hellblade", "Jade", "Lolo", "Magma", "Nightcloak", "Oroshi", "Pale", "Pearl", "Plum", "Primordial", "Purple", "Raging", "Ravenous", "Ray", "Razing", "Red", "Redhelm", "Risen", "Ruby", "Ruiner", "Rust", "Rusted", "Sand", "Savage", "Scorching Heat", "Scorned", "Seething", "Shah", "Shrieking", "Shrouded", "Silver", "Silverwind", "Snowbaron", "Soulseer", "Terra", "Thunder Emperor", "Tidal", "Violent", "Violet", "Viper", "Virulent", "Vivid", "White", "Zenith", "helm", "wind", "Hatchling", "(Black Flying Wyvern)", "Blue", "Brown", "Green", "Yellow", "Queen"];
 		public static Dictionary<string, dynamic> MHWIQuestInfo = [];
-		public static Dictionary<string, string> Translations = JsonConvert.DeserializeObject<Dictionary<string, string>>(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\Translations\translations.json"))!;
+		public static Dictionary<string, string> Translations = JsonConvert.DeserializeObject<Dictionary<string, string>>(Utilities.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\Translations\translations.json"))!;
 
 		public static void GeneratePebbleFiles()
 		{
@@ -275,7 +342,7 @@ namespace MediawikiTranslator
 		{
 			if (MHWIQuestInfo.Count == 0)
 			{
-				MHWIQuestInfo = JsonConvert.DeserializeObject<Dictionary<string, dynamic>>(File.ReadAllText($@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWI\questInfo.json"))!;
+				MHWIQuestInfo = JsonConvert.DeserializeObject<Dictionary<string, dynamic>>(Utilities.ReadAllText($@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWI\questInfo.json"))!;
 			}
 			return MHWIQuestInfo;
 		}
@@ -407,10 +474,7 @@ The following is a list of all {cat.ToLower()} items that appear in [[{GetGameFu
 		{
 			gamePatterns ??= [];
 			string patternFile = @"D:\MH_Data Repo\MH_Data\Parsed Files\renderPatterns.json";
-			if (File.Exists(patternFile))
-			{
-				gamePatterns = JsonConvert.DeserializeObject<Dictionary<string, string[]>>(File.ReadAllText(patternFile))!;
-			}
+			gamePatterns = JsonConvert.DeserializeObject<Dictionary<string, string[]>>(Utilities.ReadAllText(patternFile))!;
 			Dictionary<string, string> gameRenders = [];
 			Console.WriteLine($"Building render list for monster {monsterData.Name}.");
 			foreach (GameAppearance appearance in monsterData.GameAppearances.Where(x => !string.IsNullOrEmpty(x.GameAcronym)))
@@ -453,7 +517,7 @@ The following is a list of all {cat.ToLower()} items that appear in [[{GetGameFu
 				try
 				{
 					await site.Login();
-					Dictionary<string, MonsterData> srcDict = JsonConvert.DeserializeObject<Dictionary<string, MonsterData>>(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\monsterData.json"))!;
+					Dictionary<string, MonsterData> srcDict = JsonConvert.DeserializeObject<Dictionary<string, MonsterData>>(Utilities.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\monsterData.json"))!;
 					Dictionary<string, MonsterData> monsterAppearances = srcDict
 						.Where(x => (options.WhitelistMonsters != null ? options.WhitelistMonsters.Contains(x.Key) : true) && (options.BlacklistMonsters != null ? options.BlacklistMonsters.Contains(x.Key) : true))
 						.ToDictionary(x => x.Key, x => new MonsterData()
@@ -479,7 +543,7 @@ The following is a list of all {cat.ToLower()} items that appear in [[{GetGameFu
 					string patternFile = @"D:\MH_Data Repo\MH_Data\Parsed Files\renderPatterns.json";
 					if (File.Exists(patternFile))
 					{
-						gamePatterns = JsonConvert.DeserializeObject<Dictionary<string, string[]>>(File.ReadAllText(patternFile))!;
+						gamePatterns = JsonConvert.DeserializeObject<Dictionary<string, string[]>>(Utilities.ReadAllText(patternFile))!;
 					}
 					List<string> finishedOverviews = [];
 					List<string> finishedGames = [];
@@ -489,11 +553,11 @@ The following is a list of all {cat.ToLower()} items that appear in [[{GetGameFu
 					{
 						if (File.Exists(overviewsFile))
 						{
-							finishedOverviews = JsonConvert.DeserializeObject<List<string>>(File.ReadAllText(overviewsFile))!;
+							finishedOverviews = JsonConvert.DeserializeObject<List<string>>(Utilities.ReadAllText(overviewsFile))!;
 						}
 						if (File.Exists(gamesFile))
 						{
-							finishedGames = JsonConvert.DeserializeObject<List<string>>(File.ReadAllText(gamesFile))!;
+							finishedGames = JsonConvert.DeserializeObject<List<string>>(Utilities.ReadAllText(gamesFile))!;
 						}
 					}
 					else
@@ -710,7 +774,7 @@ The following is a list of all {cat.ToLower()} items that appear in [[{GetGameFu
 				try
 				{
 					await site.Login();
-					Dictionary<string, MonsterData> srcDict = JsonConvert.DeserializeObject<Dictionary<string, MonsterData>>(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\monsterData.json"))!;
+					Dictionary<string, MonsterData> srcDict = JsonConvert.DeserializeObject<Dictionary<string, MonsterData>>(Utilities.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\monsterData.json"))!;
 					Dictionary<string, MonsterData> monsterAppearances = srcDict
 						.Where(x => (options.WhitelistMonsters != null ? options.WhitelistMonsters.Contains(x.Key) : true) && (options.BlacklistMonsters != null ? options.BlacklistMonsters.Contains(x.Key) : true))
 						.ToDictionary(x => x.Key, x => new MonsterData()
@@ -740,11 +804,11 @@ The following is a list of all {cat.ToLower()} items that appear in [[{GetGameFu
 					{
 						if (File.Exists(overviewsFile))
 						{
-							finishedOverviews = JsonConvert.DeserializeObject<List<string>>(File.ReadAllText(overviewsFile))!;
+							finishedOverviews = JsonConvert.DeserializeObject<List<string>>(Utilities.ReadAllText(overviewsFile))!;
 						}
 						if (File.Exists(gamesFile))
 						{
-							finishedGames = JsonConvert.DeserializeObject<List<string>>(File.ReadAllText(gamesFile))!;
+							finishedGames = JsonConvert.DeserializeObject<List<string>>(Utilities.ReadAllText(gamesFile))!;
 						}
 					}
 					else
@@ -1363,7 +1427,7 @@ __TOC__
 				try
 				{
 					await site.Login();
-					Dictionary<string, MonsterData> monsterAppearances = JsonConvert.DeserializeObject<Dictionary<string, MonsterData>>(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\monsterData.json"))!;
+					Dictionary<string, MonsterData> monsterAppearances = JsonConvert.DeserializeObject<Dictionary<string, MonsterData>>(Utilities.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\monsterData.json"))!;
 					WikiPage[] monsters = [.. monsterAppearances.Where(x => !x.Key.StartsWith("Hardcore ") && x.Value.GameAppearances.Any(y => y.GameAcronym == "MHFrontier")).Select(x => new WikiPage(site, $"{x.Key}/MHFrontier"))];
 					monsters = [.. monsters.Where(x => !x.Title!.Contains("Sandbox"))];
 					int cnt = 1;
@@ -1407,7 +1471,7 @@ __TOC__
 				try
 				{
 					await site.Login();
-					Dictionary<string, MonsterData> monsterAppearances = JsonConvert.DeserializeObject<Dictionary<string, MonsterData>>(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\monsterData.json"))!;
+					Dictionary<string, MonsterData> monsterAppearances = JsonConvert.DeserializeObject<Dictionary<string, MonsterData>>(Utilities.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\monsterData.json"))!;
 					string[] allGameAcros = [.. new string[] { "MHWilds", "MHRS", "MHRise", "MHWI", "MHWorld", "MHGU", "MHGen", "MH4U", "MH4", "MH3U", "MHP3", "MH3", "MHFU", "MHF2", "MH2", "MHF1", "MHG", "MH1", "MHNow", "MHOutlanders", "MHPuzzles", "MHST1", "MHST2", "MHFrontier", "MHOnline", "MHExplore", "MHi", "MHRiders", "MHDiary", "MHDG", "MHDDX", "MHBGHQ", "MHDH", "MHMH", "MHPIV", "MHSpirits", "MHGii", "MHP1", "MHP2", "MHP2G", "MH3G", "MH4G", "MHX", "MHXX" }.Where(x => monsterAppearances.Any(y => y.Value.GameAppearances.Any(z => z.GameAcronym == x)))];
 					WikiPage[] monsters = [.. monsterAppearances.SelectMany(x => x.Value.GameAppearances.Select(y => new WikiPage(site, $"{x.Key}/{y.GameAcronym}")))];
 					monsters = [.. monsters.Where(x => !x.Title!.Contains("Sandbox"))];
@@ -1471,10 +1535,10 @@ __TOC__
 					string progressFile = @"D:\MH_Data Repo\MH_Data\Large Monster Progress\outdated_delete.json";
 					if (File.Exists(progressFile))
 					{
-						progress = JsonConvert.DeserializeObject<List<string>>(File.ReadAllText(progressFile))!;
+						progress = JsonConvert.DeserializeObject<List<string>>(Utilities.ReadAllText(progressFile))!;
 					}
 					await site.Login(); 
-					Dictionary<string, MonsterData> monsterAppearances = JsonConvert.DeserializeObject<Dictionary<string, MonsterData>>(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\monsterData.json"))!;
+					Dictionary<string, MonsterData> monsterAppearances = JsonConvert.DeserializeObject<Dictionary<string, MonsterData>>(Utilities.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\monsterData.json"))!;
 					string[] allGameAcros = [.. new string[] { "MHWilds", "MHRS", "MHRise", "MHWI", "MHWorld", "MHGU", "MHGen", "MH4U", "MH4", "MH3U", "MHP3", "MH3", "MHFU", "MHF2", "MH2", "MHF1", "MHG", "MH1", "MHNow", "MHOutlanders", "MHPuzzles", "MHST1", "MHST2", "MHFrontier", "MHOnline", "MHExplore", "MHi", "MHRiders", "MHDiary", "MHDG", "MHDDX", "MHBGHQ", "MHDH", "MHMH", "MHPIV", "MHSpirits", "MHGii", "MHP1", "MHP2", "MHP2G", "MH3G", "MH4G", "MHX", "MHXX" }.Where(x => monsterAppearances.Any(y => y.Value.GameAppearances.Any(z => z.GameAcronym == x)))];
 					WikiPage[] monsters = [.. monsterAppearances.Select(x => new WikiPage(site, $"{x.Key}/Appearances")).Where(x => !progress.Contains(x.Title!))];
 					monsters = [.. monsters.Where(x => !x.Title!.Contains("Sandbox"))];
@@ -1526,9 +1590,9 @@ __TOC__
 					string progressFile = @"D:\MH_Data Repo\MH_Data\Large Monster Progress\phase3.json";
 					if (File.Exists(progressFile))
 					{
-						progress = JsonConvert.DeserializeObject<List<string>>(File.ReadAllText(progressFile))!;
+						progress = JsonConvert.DeserializeObject<List<string>>(Utilities.ReadAllText(progressFile))!;
 					}
-					Dictionary<string, MonsterData> monsterAppearances = JsonConvert.DeserializeObject<Dictionary<string, MonsterData>>(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\monsterData.json"))!;
+					Dictionary<string, MonsterData> monsterAppearances = JsonConvert.DeserializeObject<Dictionary<string, MonsterData>>(Utilities.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\monsterData.json"))!;
 					string[] allGameAcros = [.. new string[] { "MHWilds", "MHRS", "MHRise", "MHWI", "MHWorld", "MHGU", "MHGen", "MH4U", "MH4", "MH3U", "MHP3", "MH3", "MHFU", "MHF2", "MH2", "MHF1", "MHG", "MH1", "MHNow", "MHOutlanders", "MHPuzzles", "MHST1", "MHST2", "MHFrontier", "MHOnline", "MHExplore", "MHi", "MHRiders", "MHDiary", "MHDG", "MHDDX", "MHBGHQ", "MHDH", "MHMH", "MHPIV", "MHSpirits", "MHGii", "MHP1", "MHP2", "MHP2G", "MH3G", "MH4G", "MHX", "MHXX" }.Where(x => monsterAppearances.Any(y => y.Value.GameAppearances.Any(z => z.GameAcronym == x)))];
 					WikiPage[] monsters = [.. monsterAppearances.SelectMany(x => x.Value.GameAppearances.Select(y => new WikiPage(site, $"{x.Key}/{y.GameAcronym}")))];
 					monsters = [.. monsters.Where(x => !progress.Any(y => y == x.Title!) && !x.Title!.Contains("Sandbox"))];
@@ -1629,7 +1693,7 @@ __TOC__
 				try
 				{
 					await site.Login();
-					Dictionary<string, MonsterData> monsterAppearances = JsonConvert.DeserializeObject<Dictionary<string, MonsterData>>(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\monsterData.json"))!;
+					Dictionary<string, MonsterData> monsterAppearances = JsonConvert.DeserializeObject<Dictionary<string, MonsterData>>(Utilities.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\monsterData.json"))!;
 					int totalCount = monsterAppearances.Count;
 					int cnt = 1;
 					foreach (KeyValuePair<string, MonsterData> kvp in monsterAppearances)
@@ -1707,9 +1771,9 @@ __TOC__
 					string progressFile = @"D:\MH_Data Repo\MH_Data\Large Monster Progress\phase2.json";
 					if (File.Exists(progressFile))
 					{
-						progress = JsonConvert.DeserializeObject<List<string>>(File.ReadAllText(progressFile))!;
+						progress = JsonConvert.DeserializeObject<List<string>>(Utilities.ReadAllText(progressFile))!;
 					}
-					Dictionary<string, MonsterData> monsterAppearances = JsonConvert.DeserializeObject<Dictionary<string, MonsterData>>(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\monsterData.json"))!;
+					Dictionary<string, MonsterData> monsterAppearances = JsonConvert.DeserializeObject<Dictionary<string, MonsterData>>(Utilities.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\monsterData.json"))!;
 					WikiPage[] monsters = [.. monsterAppearances.Where(x => !x.Key.StartsWith("Hardcore ") && x.Value.GameAppearances.Any(y => y.GameAcronym == "MHFrontier")).Select(x => new WikiPage(site, $"{x.Key}/MHFrontier"))];
 					monsters = [.. monsters.Where(x => !progress.Any(y => y == x.Title!) && !x.Title!.Contains("Sandbox"))];
 					int cnt = 1;
@@ -1785,9 +1849,9 @@ __TOC__
 					string progressFile = @"D:\MH_Data Repo\MH_Data\Large Monster Progress\phase1.json";
 					if (File.Exists(progressFile))
 					{
-						progress = JsonConvert.DeserializeObject<List<string>>(File.ReadAllText(progressFile))!;
+						progress = JsonConvert.DeserializeObject<List<string>>(Utilities.ReadAllText(progressFile))!;
 					}
-					Dictionary<string, MonsterData> monsterAppearances = JsonConvert.DeserializeObject<Dictionary<string, MonsterData>>(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\monsterData.json"))!;
+					Dictionary<string, MonsterData> monsterAppearances = JsonConvert.DeserializeObject<Dictionary<string, MonsterData>>(Utilities.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\monsterData.json"))!;
 					CategoryMembersGenerator generator = new(site, $"Category:Monsters To Remove Redirect")
 					{
 						MemberTypes = CategoryMemberTypes.Page
@@ -1884,9 +1948,9 @@ __TOC__
 				{
 					int cnt = 1;
 					await site.Login();
-					Dictionary<string, string> riseMonsterIds = JsonConvert.DeserializeObject<Dictionary<string, string>>(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHRS\monsterIds.json"))!;
-					JArray sizeList = JsonConvert.DeserializeObject<JObject>(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHRS\natives\stm\enemy\user_data\system_enemy_sizelist_data.user.2.json"))!.Value<JObject>("snow.enemy.SystemEnemySizeListData")!.Value<JArray>("_SizeInfoList")!;
-					Dictionary<string, string[]> monsterAppearances = JsonConvert.DeserializeObject<Dictionary<string, string[]>>(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\allMonsterAppearances.json"))!;
+					Dictionary<string, string> riseMonsterIds = JsonConvert.DeserializeObject<Dictionary<string, string>>(Utilities.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHRS\monsterIds.json"))!;
+					JArray sizeList = JsonConvert.DeserializeObject<JObject>(Utilities.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHRS\natives\stm\enemy\user_data\system_enemy_sizelist_data.user.2.json"))!.Value<JObject>("snow.enemy.SystemEnemySizeListData")!.Value<JArray>("_SizeInfoList")!;
+					Dictionary<string, string[]> monsterAppearances = JsonConvert.DeserializeObject<Dictionary<string, string[]>>(Utilities.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\allMonsterAppearances.json"))!;
 					int totalCnt = monsterAppearances.Count(x => x.Value.Contains("MHRS") || x.Value.Contains("MHRise"));
 					string[] sizeParams = ["|Gold Crown Small = ", "|Average = ", "|Silver Crown = ", "|Gold Crown Large = "];
 					foreach (string monster in monsterAppearances.Where(x => x.Value.Contains("MHRS") || x.Value.Contains("MHRise")).Select(x => x.Key))
@@ -1980,11 +2044,11 @@ __TOC__
 
 		public static async Task GetMonstersFiles()
 		{
-			List<MonsterId> ids = JsonConvert.DeserializeObject<List<MonsterId>>(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\monsterIds.json"))!;
-			JArray frontierRecon = JsonConvert.DeserializeObject<JArray>(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\frontierNameRecon.json"))!;
-			JObject spinoffRecon = JsonConvert.DeserializeObject<JObject>(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\spinoffRecon.json"))!;
+			List<MonsterId> ids = JsonConvert.DeserializeObject<List<MonsterId>>(Utilities.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\monsterIds.json"))!;
+			JArray frontierRecon = JsonConvert.DeserializeObject<JArray>(Utilities.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\frontierNameRecon.json"))!;
+			JObject spinoffRecon = JsonConvert.DeserializeObject<JObject>(Utilities.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\spinoffRecon.json"))!;
 			string[] supportedSpinoffs = ["MHNow", "MHPuzzles", "MHST1", "MHST2", "MHST3", "MHi", "MHRiders", "MHFrontier"];
-			Dictionary<string, string[]> monsterAppearances = JsonConvert.DeserializeObject<Dictionary<string, string[]>>(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\allMonsterAppearances.json"))!;
+			Dictionary<string, string[]> monsterAppearances = JsonConvert.DeserializeObject<Dictionary<string, string[]>>(Utilities.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\allMonsterAppearances.json"))!;
 			Dictionary<string, string> ultGames = new()
 			{
 				{ "MH4", "MH4U" },
@@ -2001,7 +2065,7 @@ __TOC__
 					GameFull = GetGameFullName(y)
 				})]
 			}).ToDictionary(x => x.Name, x => x);
-			JArray tempMonsters = JsonConvert.DeserializeObject<JArray>(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\tempMonsters.json"))!;
+			JArray tempMonsters = JsonConvert.DeserializeObject<JArray>(Utilities.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\tempMonsters.json"))!;
 			Dictionary<string, JToken> tempMonstersDict = [];
 			foreach (JToken mon in tempMonsters.Where(x => !x.Value<string>("Index")!.StartsWith("ems") && !x.Value<string>("Monster Name")!.Contains("(Apex4)")))
 			{
@@ -2277,7 +2341,7 @@ __TOC__
 							}
 						}
 					}
-					Dictionary<string, string[]> smallMonsterArchive = JsonConvert.DeserializeObject<Dictionary<string, string[]>>(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\smallMonsterDict.json"))!;
+					Dictionary<string, string[]> smallMonsterArchive = JsonConvert.DeserializeObject<Dictionary<string, string[]>>(Utilities.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\smallMonsterDict.json"))!;
 					foreach (KeyValuePair<string, string[]> kvp in smallMonsterArchive)
 					{
 						foreach (string monster in kvp.Value)
@@ -2321,13 +2385,13 @@ __TOC__
 
 		public static void CreateSpreadsheets(MonsterType types)
 		{
-			Dictionary<string, MonsterData> monsterAppearances = JsonConvert.DeserializeObject<Dictionary<string, MonsterData>>(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\monsterData.json"))!
+			Dictionary<string, MonsterData> monsterAppearances = JsonConvert.DeserializeObject<Dictionary<string, MonsterData>>(Utilities.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\monsterData.json"))!
 				.Where(x => types == MonsterType.Large ? x.Value.LargeMonster : !x.Value.LargeMonster)
 				.ToDictionary(x => x.Key, x => x.Value);
 			List<string> finishedOverviews = [];
 			if (File.Exists(@"D:\MH_Data Repo\MH_Data\Large Monster Progress\overviews.json"))
 			{
-				finishedOverviews = JsonConvert.DeserializeObject<List<string>>(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Large Monster Progress\overviews.json"))!;
+				finishedOverviews = JsonConvert.DeserializeObject<List<string>>(Utilities.ReadAllText(@"D:\MH_Data Repo\MH_Data\Large Monster Progress\overviews.json"))!;
 			}
 			string[] releaseOrder = ["MHWilds", "MHRS", "MHRise", "MHWI", "MHWorld", "MHGU", "MHGen", "MH4U", "MH4", "MH3U", "MHP3", "MH3", "MHFU", "MHF2", "MHFrontier", "MH2", "MHF1", "MHG", "MH1", "MHNow", "MHST2", "MHST1", "MHPuzzles", "MHi", "MHRiders"];
 			XLWorkbook workbook = new();
@@ -2511,14 +2575,8 @@ __TOC__
 		public static async Task MigrateMonsterPages(MonsterType types)
 		{
 			DateTime start = DateTime.Now;
-			string username = "";
-			string password = "";
-			if (File.Exists(@"D:\Wiki Files\wikicredentials.txt"))
-			{
-				string[] creds = File.ReadAllLines(@"D:\Wiki Files\wikicredentials.txt");
-				username = creds[0];
-				password = creds[1];
-			}
+			string? username = System.Configuration.ConfigurationManager.AppSettings.Get("WikiUsername")!;
+			string? password = System.Configuration.ConfigurationManager.AppSettings.Get("WikiPassword")!;
 			if (username == null)
 			{
 				Console.WriteLine("Please enter your username.");
@@ -2530,16 +2588,16 @@ __TOC__
 			string overviewsFile = @"D:\MH_Data Repo\MH_Data\Large Monster Progress\overviews.json";
 			if (File.Exists(overviewsFile))
 			{
-				finishedOverviews = JsonConvert.DeserializeObject<List<string>>(File.ReadAllText(overviewsFile))!;
+				finishedOverviews = JsonConvert.DeserializeObject<List<string>>(Utilities.ReadAllText(overviewsFile))!;
 			}
 			Dictionary<string, MonsterNames> monsterNameDict = FetchMonsterNames();
-			MonsterId[] monsterIds = JsonConvert.DeserializeObject<MonsterId[]>(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\monsterIds.json"))!;
-			Dictionary<string, string[]> crosscheck = JsonConvert.DeserializeObject<Dictionary<string, string[]>>(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\crosscheck.json"))!;
+			MonsterId[] monsterIds = JsonConvert.DeserializeObject<MonsterId[]>(Utilities.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\monsterIds.json"))!;
+			Dictionary<string, string[]> crosscheck = JsonConvert.DeserializeObject<Dictionary<string, string[]>>(Utilities.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\crosscheck.json"))!;
 			List<string> finishedGameSpecs = [];
 			string gameSpecsFile = @"D:\MH_Data Repo\MH_Data\Large Monster Progress\gameSpecs.json";
 			if (File.Exists(gameSpecsFile))
 			{
-				finishedGameSpecs = JsonConvert.DeserializeObject<List<string>>(File.ReadAllText(gameSpecsFile))!;
+				finishedGameSpecs = JsonConvert.DeserializeObject<List<string>>(Utilities.ReadAllText(gameSpecsFile))!;
 			}
 			using (WikiClient client = new()
 			{
@@ -2551,7 +2609,7 @@ __TOC__
 				try
 				{
 					await site.Login();
-					Dictionary<string, MonsterData> monsterAppearances = JsonConvert.DeserializeObject<Dictionary<string, MonsterData>>(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\monsterData.json"))!
+					Dictionary<string, MonsterData> monsterAppearances = JsonConvert.DeserializeObject<Dictionary<string, MonsterData>>(Utilities.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\monsterData.json"))!
 						.Where(x => types == MonsterType.Large ? x.Value.LargeMonster : !x.Value.LargeMonster)
 						.ToDictionary(x => x.Key, x => x.Value);
 					foreach (string pageGameAcronym in new string[] { "MHP3", "MH3", "MHFU", "MHF2", "MHFrontier", "MH2", "MHF1", "MHG", "MH1", "MHNow", "MHST2", "MHST1", "MHPuzzles", "MHi", "MHRiders" })
@@ -2866,7 +2924,7 @@ __TOC__
 									{
 										if (pageGameAcronym == "MHWilds")
 										{
-											if (JsonConvert.DeserializeObject<JArray>(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\dtlnor rips\MHWs-in-json-main\natives\STM\GameDesign\Enemy\Em0002\00\Data\Em0002_00_Param_Feel.user.3.json"))!
+											if (JsonConvert.DeserializeObject<JArray>(Utilities.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\dtlnor rips\MHWs-in-json-main\natives\STM\GameDesign\Enemy\Em0002\00\Data\Em0002_00_Param_Feel.user.3.json"))!
 												.First()
 												.Value<JObject>("app.user_data.EmParamFeel")!
 												.Value<JObject>("_ReactableSettingData")!
@@ -3209,7 +3267,7 @@ __TOC__
 				try
 				{
 					await site.Login();
-					Dictionary<string, MonsterData> monsterAppearances = JsonConvert.DeserializeObject<Dictionary<string, MonsterData>>(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\monsterData.json"))!;
+					Dictionary<string, MonsterData> monsterAppearances = JsonConvert.DeserializeObject<Dictionary<string, MonsterData>>(Utilities.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\monsterData.json"))!;
 					WikiPage[] res = [.. monsterAppearances.Where(x => x.Value.GameAppearances.Any(y => y.GameAcronym == "MH2")).Select(x => new WikiPage(site, $"{x.Key} (MH2)"))];
 					int cnt = 1;
 					foreach (WikiPage page in res)
@@ -3731,7 +3789,7 @@ __TOC__
 				{
 					await site.Login();
 					int cntr = 1;
-					Dictionary<string, string>[] objInfo = JsonConvert.DeserializeObject<Dictionary<string, string>[]>(File.ReadAllText($@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWI\Monster Data\questObjectiveTypes.json"))!;
+					Dictionary<string, string>[] objInfo = JsonConvert.DeserializeObject<Dictionary<string, string>[]>(Utilities.ReadAllText($@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWI\Monster Data\questObjectiveTypes.json"))!;
 					CategoryMembersGenerator subpageGen = new(site, "Large_Monster_MHWI_Subpages")
 					{
 						MemberTypes = CategoryMemberTypes.Page
@@ -4378,12 +4436,12 @@ __TOC__
 			Dictionary<string, MonsterNames> finishedMonsterNames = [];
 			if (File.Exists(@"D:\MH_Data Repo\MH_Data\Parsed Files\monsterNames.json"))
 			{
-				finishedMonsterNames = JsonConvert.DeserializeObject<Dictionary<string, MonsterNames>>(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\monsterNames.json"))!;
+				finishedMonsterNames = JsonConvert.DeserializeObject<Dictionary<string, MonsterNames>>(Utilities.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\monsterNames.json"))!;
 			}
 			else
 			{
-				Dictionary<string, Dictionary<string, string>> guFiles = JsonConvert.DeserializeObject<Dictionary<string, Dictionary<string, string>>>(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHGU\monsterNameDict.json"))!;
-				Dictionary<string, Dictionary<string, string>> worldFiles = JsonConvert.DeserializeObject<Dictionary<string, Dictionary<string, string>>>(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWI\monsterNameDict.json"))!;
+				Dictionary<string, Dictionary<string, string>> guFiles = JsonConvert.DeserializeObject<Dictionary<string, Dictionary<string, string>>>(Utilities.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHGU\monsterNameDict.json"))!;
+				Dictionary<string, Dictionary<string, string>> worldFiles = JsonConvert.DeserializeObject<Dictionary<string, Dictionary<string, string>>>(Utilities.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWI\monsterNameDict.json"))!;
 				Dictionary<string, string[]> finalWorldFiles = worldFiles.ToDictionary(x => x.Key, x => x.Value.Values.ToArray());
 				for (int i = 0; i < finalWorldFiles.Max(x => x.Value.Length); i++)
 				{
@@ -4410,8 +4468,8 @@ __TOC__
 						finishedMonsterNames[worldMonsterName.English] = worldMonsterName;
 					}
 				}
-				List<JObject> riseFiles = [.. JsonConvert.DeserializeObject<JObject>(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHRS\natives\stm\message\tag\tag_em_name.msg.539100710.json"))!.Value<JObject>("msgs")!.Values().Select(x => x.Value<JObject>("content")!)];
-				riseFiles.AddRange([.. JsonConvert.DeserializeObject<JObject>(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHRS\natives\stm\message\tag_mr\tag_em_name_mr.msg.539100710.json"))!.Value<JObject>("msgs")!.Values().Select(x => x.Value<JObject>("content")!)]);
+				List<JObject> riseFiles = [.. JsonConvert.DeserializeObject<JObject>(Utilities.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHRS\natives\stm\message\tag\tag_em_name.msg.539100710.json"))!.Value<JObject>("msgs")!.Values().Select(x => x.Value<JObject>("content")!)];
+				riseFiles.AddRange([.. JsonConvert.DeserializeObject<JObject>(Utilities.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHRS\natives\stm\message\tag_mr\tag_em_name_mr.msg.539100710.json"))!.Value<JObject>("msgs")!.Values().Select(x => x.Value<JObject>("content")!)]);
 				foreach (JObject file in riseFiles)
 				{
 					MonsterNames riseMonsterName = new()
@@ -4455,7 +4513,7 @@ __TOC__
 						finishedMonsterNames[riseMonsterName.English] = riseMonsterName;
 					}
 				}
-				JArray[] wildsFiles = [.. JsonConvert.DeserializeObject<JObject>(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\dtlnor rips\MHWs-in-json-main\natives\STM\GameDesign\Text\Excel_Data\EnemyText.msg.23.json"))!
+				JArray[] wildsFiles = [.. JsonConvert.DeserializeObject<JObject>(Utilities.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\dtlnor rips\MHWs-in-json-main\natives\STM\GameDesign\Text\Excel_Data\EnemyText.msg.23.json"))!
 					.Value<JArray>("entries")!
 					.Where(x => x.Value<string>("name")!.StartsWith("EnemyText_NAME_"))
 					.Select(x => x.Value<JArray>("content")!)];
@@ -4796,8 +4854,8 @@ __TOC__
 
 		public static string Translate(string src)
 		{
-			Dictionary<string, string> engNames = JsonConvert.DeserializeObject<Dictionary<string, string>>(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWI\itemNames.json"))!;
-			Dictionary<string, string> jpnNames = JsonConvert.DeserializeObject<Dictionary<string, string>>(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWI\itemNames_JP.json"))!;
+			Dictionary<string, string> engNames = JsonConvert.DeserializeObject<Dictionary<string, string>>(Utilities.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWI\itemNames.json"))!;
+			Dictionary<string, string> jpnNames = JsonConvert.DeserializeObject<Dictionary<string, string>>(Utilities.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWI\itemNames_JP.json"))!;
 			return jpnNames[engNames.First(x => x.Value == src).Key];
 		}
 
@@ -6533,18 +6591,12 @@ __TOC__");
 			TimeSpan elapsed = DateTime.Now - start;
 			Console.WriteLine("Elapsed: " + elapsed.ToString());
 		}
-
+#nullable enable
 		public static async Task UploadWeaponsWithAPI(string game, bool onlyNewPages = false, bool noNewPages = false, bool onlyNames = false)
 		{
 			Models.Data.MHWI.Skills[] allSkills = Models.Data.MHWI.Skills.GetSkills();
-			string username = "";
-			string password = "";
-			if (File.Exists(@"D:\Wiki Files\wikicredentials.txt"))
-			{
-				string[] creds = File.ReadAllLines(@"D:\Wiki Files\wikicredentials.txt");
-				username = creds[0];
-				password = creds[1];
-			}
+			string? username = System.Configuration.ConfigurationManager.AppSettings.Get("WikiUsername");
+			string? password = System.Configuration.ConfigurationManager.AppSettings.Get("WikiPassword");
 			if (username == null)
 			{
 				Console.WriteLine("Please enter your username.");
@@ -6704,18 +6756,71 @@ __TOC__");
 
 		public static JArray GetWildsMessages(string file)
 		{
-			return JsonConvert.DeserializeObject<JObject>(File.ReadAllText(file))!.Value<JArray>("entries")!;
+			return JsonConvert.DeserializeObject<JObject>(Utilities.ReadAllText(file))!.Value<JArray>("entries")!;
 		}
 
 		public static void GenerateNeededTranslations()
 		{
 			GetMonstersFiles().Wait();
 			List<string[]> neededTranslations = [];
-			JObject monsterData = JsonConvert.DeserializeObject<JObject>(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\monsterData.json"))!;
+			JObject monsterData = JsonConvert.DeserializeObject<JObject>(Utilities.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\monsterData.json"))!;
 			neededTranslations.AddRange(monsterData.Values().Select(x => new string[] { x.Value<string>("Name"), x.Value<string>("Title") }));
 			File.WriteAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\neededTranslations.txt", string.Join("\r\n", neededTranslations.Select(x => string.Join("\t", x))));
 		}
 
+		public static string ReadAllText(string file)
+		{
+			try
+			{
+				return File.ReadAllText(file);
+			}
+			catch (Exception e) when (e is DirectoryNotFoundException || e is FileNotFoundException)
+			{
+				using (FtpClient client = new("mhwiki.ddns.net",
+					System.Configuration.ConfigurationManager.AppSettings.Get("FTPUsername")!,
+					System.Configuration.ConfigurationManager.AppSettings.Get("FTPPassword")!, 1096))
+				{
+					client.Config.EncryptionMode = FtpEncryptionMode.Explicit;
+					client.Config.DataConnectionType = FtpDataConnectionType.AutoPassive;
+					client.Config.CustomStream = typeof(GnuTlsStream);
+					client.ValidateCertificate += Client_ValidateCertificate;
+					client.Config.ConnectTimeout = 30000;
+					client.Config.DataConnectionConnectTimeout = 30000;
+					client.Config.DataConnectionReadTimeout = 30000;
+					client.Config.ReadTimeout = 30000;
+					client.Config.CustomStreamConfig = new GnuConfig()
+					{
+						SetALPNControlConnection = string.Empty,
+						SetALPNDataConnection = string.Empty,
+					};
+					client.Connect();
+					if (!client.IsConnected)
+					{
+						Debugger.Break();
+					}
+					string path = Path.Combine(Path.GetTempPath(), new FileInfo(file).Name);
+					client.DownloadFile(path, file.Replace(@"D:\MH_Data Repo\MH_Data", ""));
+					client.Disconnect();
+					string val = File.ReadAllText(path);
+					File.Delete(path);
+					return val;
+				}
+            }
+        }
+
+		private static void Client_ValidateCertificate(FluentFTP.Client.BaseClient.BaseFtpClient control, FtpSslValidationEventArgs e)
+		{
+			if (e.Certificate.GetRawCertDataString() == "3082017D30820124A0030201020214A3A61A5E0553603363F0707471CD9A2C6EB12D6E300A06082A8648CE3D040302301431123010060355040313096D6877696B69667470301E170D3236303232353233343635345A170D3237303232363233353135345A301431123010060355040313096D6877696B696674703059301306072A8648CE3D020106082A8648CE3D0301070342000478CE37D9941DC2CA763533F2773130FBA16A6E12D6F79C09B71D8D9C795F99A51222D58DBB2AE282748936743543BA81F7F8836C22811047FFC21A28083CD2B0A3543052300E0603551D0F0101FF0404030205A030320603551D11042B302982167777772E6B6173746C736F6674776F726B732E636F6D820F6D6877696B692E64646E732E6E6574300C0603551D130101FF04023000300A06082A8648CE3D0403020347003044022048028164C44E1681B56866E7552D56406C04A5A18F4AFA0D7BEB76ADF2CF7B4D02200814915416A43A9C65D5841473FD6AF5D07040B0FE704B75D66337CDCC7879D6")
+			{
+				e.Accept = true;
+			}
+			else
+			{
+				throw new Exception($"{e.PolicyErrors}{Environment.NewLine}{e.Certificate}");
+			}
+		}
+
+#nullable enable
 		private static void Client_ClientLog(object? sender, WikiClientLogEventArgs e)
 		{
 			if (e.LogType == WikiClientLogTypes.ERROR)

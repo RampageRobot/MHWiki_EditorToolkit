@@ -16,10 +16,10 @@ namespace MediawikiTranslator.Models.Data.MHWilds
 
 		public static Armor[] GetArmors()
 		{
-			JArray seriesMsgs = JsonConvert.DeserializeObject<JObject>(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\dtlnor rips\MHWs-in-json-main\natives\STM\GameDesign\Text\Excel_Equip\ArmorSeries.msg.23.json")).Value<JArray>("entries");
-			JArray armorMsgs = JsonConvert.DeserializeObject<JObject>(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\dtlnor rips\MHWs-in-json-main\natives\STM\GameDesign\Text\Excel_Equip\Armor.msg.23.json")).Value<JArray>("entries");
-			Armor[] src = FromJson(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\dtlnor rips\MHWs-in-json-main\natives\STM\GameDesign\Common\Equip\ArmorData.user.3.json"));
-			ArmorSeries srcSeries = ArmorSeries.FromJson(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\dtlnor rips\MHWs-in-json-main\natives\STM\GameDesign\Common\Equip\ArmorSeriesData.user.3.json"))[0];
+			JArray seriesMsgs = JsonConvert.DeserializeObject<JObject>(Utilities.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\dtlnor rips\MHWs-in-json-main\natives\STM\GameDesign\Text\Excel_Equip\ArmorSeries.msg.23.json")).Value<JArray>("entries");
+			JArray armorMsgs = JsonConvert.DeserializeObject<JObject>(Utilities.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\dtlnor rips\MHWs-in-json-main\natives\STM\GameDesign\Text\Excel_Equip\Armor.msg.23.json")).Value<JArray>("entries");
+			Armor[] src = FromJson(Utilities.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\dtlnor rips\MHWs-in-json-main\natives\STM\GameDesign\Common\Equip\ArmorData.user.3.json"));
+			ArmorSeries srcSeries = ArmorSeries.FromJson(Utilities.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\dtlnor rips\MHWs-in-json-main\natives\STM\GameDesign\Common\Equip\ArmorSeriesData.user.3.json"))[0];
 			foreach (AppUserDataArmorDataCData val in src[0].AppUserDataArmorData.Values.Select(x => x.AppUserDataArmorDataCData))
 			{
 				if (val.Series.AppArmorDefSeriesSerializable.Value != "[1]ID_000")
@@ -41,7 +41,7 @@ namespace MediawikiTranslator.Models.Data.MHWilds
 		public static WebToolkitData[] GetWebToolkitData(int? rarityUnder = null)
 		{
 			Armor[] src = GetArmors();
-			SkillsExtraInfo[] extraInfo = SkillsExtraInfo.FromJson(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWI\mhwi skills extra info.json"));
+			SkillsExtraInfo[] extraInfo = SkillsExtraInfo.FromJson(Utilities.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWI\mhwi skills extra info.json"));
 			List<WebToolkitData> ret = [];
 			AppUserDataArmorDataCData[] srcFix = [..src.First().AppUserDataArmorData.Values.Select(x => x.AppUserDataArmorDataCData)];
 			foreach (AppUserDataArmorDataCData srcArmor in srcFix.OrderBy(x => x.ArmorSeries.Name))

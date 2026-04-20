@@ -26,7 +26,7 @@ namespace MediawikiTranslator.Models.Monsters
             if (File.Exists(fileName))
             {
                 FileFound = true;
-                List<dynamic[]> enrageData = JsonConvert.DeserializeObject<List<dynamic[]>>(File.ReadAllText(fileName))!;
+                List<dynamic[]> enrageData = JsonConvert.DeserializeObject<List<dynamic[]>>(Utilities.ReadAllText(fileName))!;
                 foreach (dynamic[] objList in enrageData)
                 {
                     foreach (dynamic obj in objList)

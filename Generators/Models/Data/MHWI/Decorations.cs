@@ -67,7 +67,7 @@ namespace MediawikiTranslator.Models.Data.MHWI
 			Dictionary<int, string> wikiIconColors = Generators.Items.GetMHWIWikiColors();
 			SkillDescriptions[] allSkills = SkillDescriptions.GetSkillDescriptions();
 			SetSkills[] setSkills = SetSkills.GetSetBonusDescriptions();
-			Decorations[] decos = FromJson(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Raw Data\MHWI\chunk\common\equip\decorations.json"));
+			Decorations[] decos = FromJson(Utilities.ReadAllText(@"D:\MH_Data Repo\MH_Data\Raw Data\MHWI\chunk\common\equip\decorations.json"));
 			Items[] items = Items.Fetch();
 			foreach (Decorations deco in decos)
 			{

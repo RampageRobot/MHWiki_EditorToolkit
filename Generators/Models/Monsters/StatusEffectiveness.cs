@@ -25,7 +25,7 @@ namespace MediawikiTranslator.Models.Monsters
 					string fileName = $@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWI\Monster Data\{monsterName}\Damage Attributes.json";
 					if (File.Exists(fileName))
 					{
-						Dictionary<string, dynamic[]> effectData = JsonConvert.DeserializeObject<Dictionary<string, dynamic[]>>(File.ReadAllText(fileName))!;
+						Dictionary<string, dynamic[]> effectData = JsonConvert.DeserializeObject<Dictionary<string, dynamic[]>>(Utilities.ReadAllText(fileName))!;
 						string[] typeNames = ["Poison", "Paralysis", "Sleep", "Blastblight", "Stun", "Exhaustion", "Mount", "Elderseal"];
 						StatusType[] types = Enum.GetValues<StatusType>();
 						for (int i = 0; i < types.Length; i++)
@@ -176,7 +176,7 @@ namespace MediawikiTranslator.Models.Monsters
 		{
 			if (statuses.Any())
 			{
-				dynamic[] statusStars = JsonConvert.DeserializeObject<dynamic[]>(File.ReadAllText($@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWI\Monster Data\statusStars.json"))!;
+				dynamic[] statusStars = JsonConvert.DeserializeObject<dynamic[]>(Utilities.ReadAllText($@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWI\Monster Data\statusStars.json"))!;
 				StatusEffectiveness poison = statuses.First(x => x.Type == StatusType.Poison);
 				dynamic? thisStar = statusStars.FirstOrDefault(x => x.Name == name);
 				thisStar ??= new

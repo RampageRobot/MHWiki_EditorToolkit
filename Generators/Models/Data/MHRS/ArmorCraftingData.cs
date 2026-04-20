@@ -13,7 +13,7 @@ namespace MediawikiTranslator.Models.Data.MHRS
 		public static ArmorCraftingDataParam[] GetCraftingData()
 		{
 			Items[] allItems = Items.Fetch();
-			ArmorCraftingDataParam[] allArmor = FromJson(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHRS\natives\stm\data\define\player\armor\armorproductdata.user.2.json")).SnowDataArmorBaseUserCraftingData.Param;
+			ArmorCraftingDataParam[] allArmor = FromJson(Utilities.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHRS\natives\stm\data\define\player\armor\armorproductdata.user.2.json")).SnowDataArmorBaseUserCraftingData.Param;
 			foreach (ArmorCraftingDataParam armor in allArmor)
 			{
 				for (int i = 0; i < armor.Item.Length; i++)

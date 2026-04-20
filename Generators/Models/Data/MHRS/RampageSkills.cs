@@ -12,7 +12,7 @@ namespace MediawikiTranslator.Models.Data.MHRS
 
 		public static RampageSkillsParam[] GetRampageSkills()
 		{
-			RampageSkillsParam[] allSkills = FromJson(File.ReadAllText(@"")).SnowDataPlHyakuryuSkillBaseUserData.Param;
+			RampageSkillsParam[] allSkills = FromJson(Utilities.ReadAllText(@"")).SnowDataPlHyakuryuSkillBaseUserData.Param;
 			foreach (RampageSkillsParam skill in allSkills)
 			{
 				string key = GetSkillId(skill.Id!.Value);

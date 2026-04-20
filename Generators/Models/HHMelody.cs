@@ -12,8 +12,8 @@ namespace MediawikiTranslator.Models
 
 		public static HHMelody[] Fetch()
 		{
-			Dictionary<string, string> melodyIcons = JsonConvert.DeserializeObject<Dictionary<string, string>>(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\melodyIcons.json"))!;
-			dynamic[] melodyDescs = JsonConvert.DeserializeObject<dynamic[]>(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\hhMelodyDescs.json"))!;
+			Dictionary<string, string> melodyIcons = JsonConvert.DeserializeObject<Dictionary<string, string>>(Utilities.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\melodyIcons.json"))!;
+			dynamic[] melodyDescs = JsonConvert.DeserializeObject<dynamic[]>(Utilities.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\hhMelodyDescs.json"))!;
 			List<HHMelody> allMelodies = [];
 			List<Tuple<string, string[]>> mhwildsMelodies = Generators.Weapon.GetHHMelodies("MHWilds");
 			allMelodies.AddRange(mhwildsMelodies.Select(x => {

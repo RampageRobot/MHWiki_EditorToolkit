@@ -61,7 +61,7 @@ namespace MediawikiTranslator.Models.Data.MHWI
 	public enum Category { Ammo, Item, None };
 	public partial class ItemCrafting
 	{
-		public static ItemCrafting[] Fetch() => JsonConvert.DeserializeObject<ItemCrafting[]>(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWI\mhwi item crafting.json"), MediawikiTranslator.Models.Data.MHWI.Converter.Settings);
+		public static ItemCrafting[] Fetch() => JsonConvert.DeserializeObject<ItemCrafting[]>(Utilities.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWI\mhwi item crafting.json"), MediawikiTranslator.Models.Data.MHWI.Converter.Settings);
 	}
 
 	public static class Serialize

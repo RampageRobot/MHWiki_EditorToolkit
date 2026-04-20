@@ -589,7 +589,7 @@ namespace MediawikiTranslator.Models.Data.MHWI
 	public partial class Items
 	{
 		public static Items[] FromJson(string json) => JsonConvert.DeserializeObject<Wrapper>(json, MediawikiTranslator.Models.Data.MHWI.Converter.Settings).Data[1].List;
-		public static Items[] Fetch() => FromJson(File.ReadAllText("D:\\MH_Data Repo\\MH_Data\\Parsed Files\\MHWI\\JSONData\\chunk\\common\\item\\itemData.itm.json"));
+		public static Items[] Fetch() => FromJson(Utilities.ReadAllText("D:\\MH_Data Repo\\MH_Data\\Parsed Files\\MHWI\\JSONData\\chunk\\common\\item\\itemData.itm.json"));
 	}
 
 	internal static class Converter

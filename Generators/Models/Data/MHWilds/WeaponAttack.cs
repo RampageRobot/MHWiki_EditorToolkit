@@ -101,7 +101,7 @@ namespace MediawikiTranslator.Models.Data.MHWilds
 		{
 			if (!Cache.TryGetValue(wp, out ActionGuideData[]? value))
 			{
-				ActionGuideData[] ret = [.. JsonConvert.DeserializeObject<JArray>(File.ReadAllText($@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\dtlnor rips\MHWs-in-json-main\natives\STM\GameDesign\Common\Player\ActionGuide\ActionGuideData_Wp{wp:D2}.user.3.json"))!.First()
+				ActionGuideData[] ret = [.. JsonConvert.DeserializeObject<JArray>(Utilities.ReadAllText($@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\dtlnor rips\MHWs-in-json-main\natives\STM\GameDesign\Common\Player\ActionGuide\ActionGuideData_Wp{wp:D2}.user.3.json"))!.First()
 					.Value<JObject>($"app.user_data.ActionGuideData_Wp{wp:D2}")!.Value<JArray>("_Values")!
 					.Select(x => JsonConvert.DeserializeObject<ActionGuideData>(x.Value<JToken>($"app.user_data.ActionGuideData_Wp{wp:D2}.cData")!.ToString()))!];
 				foreach (ActionGuideData agd in ret)
@@ -151,7 +151,7 @@ namespace MediawikiTranslator.Models.Data.MHWilds
 			if (!Cache.TryGetValue(wp, out ActionGuideData_Name[]? value))
 			{
 				ActionGuideDataMsg[] msgs = ActionGuideDataMsg.Fetch(wp, ActionGuideDataMsgType.Name);
-				ActionGuideData_Name[] vals = [.. JsonConvert.DeserializeObject<JArray>(File.ReadAllText($@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\dtlnor rips\MHWs-in-json-main\natives\STM\GameDesign\Common\Player\ActionGuide\ActionGuideData_Wp{wp:D2}Name.user.3.json"))!.First()
+				ActionGuideData_Name[] vals = [.. JsonConvert.DeserializeObject<JArray>(Utilities.ReadAllText($@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\dtlnor rips\MHWs-in-json-main\natives\STM\GameDesign\Common\Player\ActionGuide\ActionGuideData_Wp{wp:D2}Name.user.3.json"))!.First()
 					.Value<JObject>($"app.user_data.ActionGuideData_Wp{wp:D2}Name")!.Value<JArray>("_Values")!
 					.Select(x => JsonConvert.DeserializeObject<ActionGuideData_Name>(x.Value<JToken>($"app.user_data.ActionGuideData_Wp{wp:D2}Name.cData")!.ToString())!)];
 				foreach (ActionGuideData_Name agdn in vals)
@@ -199,7 +199,7 @@ namespace MediawikiTranslator.Models.Data.MHWilds
 
 		public static ActionGuideDataMsg[] Fetch(int wp, ActionGuideDataMsgType type)
 		{
-			return [.. JsonConvert.DeserializeObject<JObject>(File.ReadAllText($@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\dtlnor rips\MHWs-in-json-main\natives\STM\GameDesign\Text\Excel_Action\ActionGuideData{(type == ActionGuideDataMsgType.Name ? "Name" : "Combo")}Text_Wp{wp:D2}.msg.23.json"))!.Value<JArray>("entries")!.Select(x => JsonConvert.DeserializeObject<ActionGuideDataMsg>(x.Value<JToken>()!.ToString()))!];
+			return [.. JsonConvert.DeserializeObject<JObject>(Utilities.ReadAllText($@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\dtlnor rips\MHWs-in-json-main\natives\STM\GameDesign\Text\Excel_Action\ActionGuideData{(type == ActionGuideDataMsgType.Name ? "Name" : "Combo")}Text_Wp{wp:D2}.msg.23.json"))!.Value<JArray>("entries")!.Select(x => JsonConvert.DeserializeObject<ActionGuideDataMsg>(x.Value<JToken>()!.ToString()))!];
 		}
 	}
 
@@ -261,7 +261,7 @@ namespace MediawikiTranslator.Models.Data.MHWilds
 		{
 			if (!Cache.TryGetValue(wp, out ActionGuideData_ComboDetail[]? value))
 			{
-				ActionGuideData_ComboDetail[] ret = [.. JsonConvert.DeserializeObject<JArray>(File.ReadAllText($@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\dtlnor rips\MHWs-in-json-main\natives\STM\GameDesign\Common\Player\ActionGuide\ActionGuideData_Wp{wp:D2}ComboDetail.user.3.json"))!.First().Value<JObject>($"app.user_data.ActionGuideData_Wp{wp:D2}ComboDetail")!.Value<JArray>("_Values")!.Select(x => JsonConvert.DeserializeObject<ActionGuideData_ComboDetail>(x.Value<JToken>($"app.user_data.ActionGuideData_Wp{wp:D2}ComboDetail.cData")!.ToString()!)!)];
+				ActionGuideData_ComboDetail[] ret = [.. JsonConvert.DeserializeObject<JArray>(Utilities.ReadAllText($@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\dtlnor rips\MHWs-in-json-main\natives\STM\GameDesign\Common\Player\ActionGuide\ActionGuideData_Wp{wp:D2}ComboDetail.user.3.json"))!.First().Value<JObject>($"app.user_data.ActionGuideData_Wp{wp:D2}ComboDetail")!.Value<JArray>("_Values")!.Select(x => JsonConvert.DeserializeObject<ActionGuideData_ComboDetail>(x.Value<JToken>($"app.user_data.ActionGuideData_Wp{wp:D2}ComboDetail.cData")!.ToString()!)!)];
 				foreach (ActionGuideData_ComboDetail agd in ret)
 				{
 					agd.AGD_Combo = ActionGuideData_Combo.Fetch(wp, agd.ComboId);
@@ -297,7 +297,7 @@ namespace MediawikiTranslator.Models.Data.MHWilds
 			if (!Cache.TryGetValue(wp, out ActionGuideData_Combo[]? value))
 			{
 				ActionGuideDataMsg[] msgs = ActionGuideDataMsg.Fetch(wp, ActionGuideDataMsgType.Combo);
-				ActionGuideData_Combo[] vals = [.. JsonConvert.DeserializeObject<JArray>(File.ReadAllText($@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\dtlnor rips\MHWs-in-json-main\natives\STM\GameDesign\Common\Player\ActionGuide\ActionGuideData_Wp{wp:D2}Combo.user.3.json"))!.First().Value<JObject>($"app.user_data.ActionGuideData_Wp{wp:D2}Combo")!.Value<JArray>("_Values")!.Select(x => JsonConvert.DeserializeObject<ActionGuideData_Combo>(x.Value<JToken>($"app.user_data.ActionGuideData_Wp{wp:D2}Combo.cData")!.ToString())!)];
+				ActionGuideData_Combo[] vals = [.. JsonConvert.DeserializeObject<JArray>(Utilities.ReadAllText($@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\dtlnor rips\MHWs-in-json-main\natives\STM\GameDesign\Common\Player\ActionGuide\ActionGuideData_Wp{wp:D2}Combo.user.3.json"))!.First().Value<JObject>($"app.user_data.ActionGuideData_Wp{wp:D2}Combo")!.Value<JArray>("_Values")!.Select(x => JsonConvert.DeserializeObject<ActionGuideData_Combo>(x.Value<JToken>($"app.user_data.ActionGuideData_Wp{wp:D2}Combo.cData")!.ToString())!)];
 				foreach (ActionGuideData_Combo agdn in vals)
 				{
 					agdn.Name = msgs.First(x => x.Guid == agdn.ComboName).Content![1];

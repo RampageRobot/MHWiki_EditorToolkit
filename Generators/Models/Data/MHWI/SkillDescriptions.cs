@@ -40,7 +40,7 @@ namespace MediawikiTranslator.Models.Data.MHWI
 
 		public static SkillDescriptions[] GetSkillDescriptions()
 		{
-			return FromJson(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Raw Data\MHWI\chunk\common\equip\skills.json")).Where(x => x.SkillName != "Unavailable" && x.SkillId!.Value > 0).ToArray();
+			return FromJson(Utilities.ReadAllText(@"D:\MH_Data Repo\MH_Data\Raw Data\MHWI\chunk\common\equip\skills.json")).Where(x => x.SkillName != "Unavailable" && x.SkillId!.Value > 0).ToArray();
 		}
 
 		public static void GetDecorationsBySkill()
@@ -81,15 +81,15 @@ namespace MediawikiTranslator.Models.Data.MHWI
 
 		public static void WriteSimplifiedSkills()
 		{
-			Models.Data.MHWI.Skills[] mhwiSkills = Models.Data.MHWI.Skills.FromJson(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWI\mhwi skills.json"));
-			SkillsExtraInfo[] mhwiSkillsExtraInfo = SkillsExtraInfo.FromJson(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWI\mhwi skills extra info.json"));
+			Models.Data.MHWI.Skills[] mhwiSkills = Models.Data.MHWI.Skills.FromJson(Utilities.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWI\mhwi skills.json"));
+			SkillsExtraInfo[] mhwiSkillsExtraInfo = SkillsExtraInfo.FromJson(Utilities.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWI\mhwi skills extra info.json"));
 			File.WriteAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWI\mhwi_skills_simplified.json", Newtonsoft.Json.JsonConvert.SerializeObject(SkillDescriptions.GetSimplifiedSkills().OrderBy(x => x.Name), Newtonsoft.Json.Formatting.Indented));
 		}
 
 		public static SimplifiedSkill[] GetSimplifiedSkills()
 		{
 			Skills[] allBaseSkills = Skills.GetSkills();
-			SetSkills[] setSkills = SetSkills.FromJson(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Raw Data\MHWI\chunk\common\equip\setskills.json"));
+			SetSkills[] setSkills = SetSkills.FromJson(Utilities.ReadAllText(@"D:\MH_Data Repo\MH_Data\Raw Data\MHWI\chunk\common\equip\setskills.json"));
 			Dictionary<int, string> colors = MediawikiTranslator.Generators.Items.GetMHWIWikiColors();
 			SkillDescriptions[] allSkillDescriptions = [.. SkillDescriptions.GetSkillDescriptions().OrderBy(x => x.SkillName).ThenBy(x => x.Level)];
 			Dictionary<long, SimplifiedSkill> simpSkills = [];

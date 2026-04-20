@@ -10,7 +10,7 @@ namespace MediawikiTranslator.Models.Data.MHRS
 		public SnowDataPlEquipSkillBaseUserData SnowDataPlEquipSkillBaseUserData { get; set; }
 		public static SkillsParam[] GetSkills()
 		{
-			SkillsParam[] ret = FromJson(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHRS\natives\stm\data\define\player\skill\plequipskill\plequipskillbasedata.user.2.json")).SnowDataPlEquipSkillBaseUserData.Param;
+			SkillsParam[] ret = FromJson(Utilities.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHRS\natives\stm\data\define\player\skill\plequipskill\plequipskillbasedata.user.2.json")).SnowDataPlEquipSkillBaseUserData.Param;
 			foreach (SkillsParam param in ret)
 			{
 				string skillId = param.Id!.Substring(param.Id!.LastIndexOf('_') + 1);

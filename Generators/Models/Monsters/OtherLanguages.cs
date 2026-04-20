@@ -10,7 +10,7 @@ namespace MediawikiTranslator.Models.Monsters
         {
             if (File.Exists($@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWI\Monster Data\{monsterName}\OtherLanguages.json"))
             {
-                Languages = JsonConvert.DeserializeObject<Dictionary<string, string>>(File.ReadAllText($@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWI\Monster Data\{monsterName}\OtherLanguages.json"))!;
+                Languages = JsonConvert.DeserializeObject<Dictionary<string, string>>(Utilities.ReadAllText($@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWI\Monster Data\{monsterName}\OtherLanguages.json"))!;
             }
         }
 
