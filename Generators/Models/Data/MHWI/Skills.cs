@@ -67,7 +67,7 @@ namespace MediawikiTranslator.Models.Data.MHWI
 
 		public static Skills[] GetSkills()
 		{
-			return FromJson(Utilities.ReadAllText(@"D:\MH_Data Repo\MH_Data\Raw Data\MHWI\chunk\common\equip\skillbase.json"));
+			return FromJson(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Raw Data\MHWI\chunk\common\equip\skillbase.json"));
 		}
 	}
 

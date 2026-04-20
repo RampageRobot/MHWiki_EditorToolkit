@@ -9,7 +9,7 @@ namespace MediawikiTranslator.Models.Data.MHRS
 	public class HitZoneValues
 	{
 		private static DataList[] _bossData = MonsterListBossData.Fetch().SnowDataMonsterListMonsterListBossData!.DataList!;
-		private static JObject _hunterNoteMenuMsg = JsonConvert.DeserializeObject<JObject>(Utilities.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHRS\natives\stm\message\hunternote\hn_hunternote_menu.msg.539100710.json"))!.Value<JObject>("msgs")!;
+		private static JObject _hunterNoteMenuMsg = JsonConvert.DeserializeObject<JObject>(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHRS\natives\stm\message\hunternote\hn_hunternote_menu.msg.539100710.json"))!.Value<JObject>("msgs")!;
 
 		public static void Temp()
 		{
@@ -22,7 +22,7 @@ namespace MediawikiTranslator.Models.Data.MHRS
 					hzvs.Add(id, GetWebToolkitData(id));
 				}
 			}
-			Dictionary<string, MonsterData> srcDict = JsonConvert.DeserializeObject<Dictionary<string, MonsterData>>(Utilities.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\monsterData.json"))!;
+			Dictionary<string, MonsterData> srcDict = JsonConvert.DeserializeObject<Dictionary<string, MonsterData>>(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\monsterData.json"))!;
 			StringBuilder sb = new();
 			sb.AppendLine("Monster ID\tMonster Name\tPart Name\tIs Phase?");
 			foreach (KeyValuePair<string, DamageEffectiveness[]> val in hzvs.Where(x => x.Value.Any(y => y.IsPhase)))
@@ -219,8 +219,8 @@ namespace MediawikiTranslator.Models.Data.MHRS
 							}
 							phaseCntr++;
 						}
-						catch (Exception)
-                        {
+						catch (Exception e)
+						{
 							Debugger.Break();
 							return [];
 						}
@@ -229,8 +229,8 @@ namespace MediawikiTranslator.Models.Data.MHRS
 				}
 				return [.. ret];
 			}
-			catch (Exception)
-            {
+			catch (Exception e)
+			{
 				Debugger.Break();
 				return [];
 			}
@@ -247,7 +247,7 @@ namespace MediawikiTranslator.Models.Data.MHRS
 			string[] idParts = monsterId.Split('_');
 			string species = idParts[0];
 			string sub = idParts[1];
-			return JsonConvert.DeserializeObject<MeatData>(Utilities.ReadAllText($@"D:\MH_Data Repo\MH_Data\Parsed Files\MHRS\natives\stm\enemy\{species}\{sub}\user_data\{species}_{sub}_meat_data.user.2.json"))!;
+			return JsonConvert.DeserializeObject<MeatData>(File.ReadAllText($@"D:\MH_Data Repo\MH_Data\Parsed Files\MHRS\natives\stm\enemy\{species}\{sub}\user_data\{species}_{sub}_meat_data.user.2.json"))!;
 		}
 	}
 

@@ -20,7 +20,7 @@ namespace MediawikiTranslator.Models.Monsters
 		{
 			if (game == Games.MHWI)
 			{
-				Dictionary<string, dynamic[]> partData = JsonConvert.DeserializeObject<Dictionary<string, dynamic[]>>(Utilities.ReadAllText($@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWI\Monster Data\crownInfo.json"))!;
+				Dictionary<string, dynamic[]> partData = JsonConvert.DeserializeObject<Dictionary<string, dynamic[]>>(File.ReadAllText($@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWI\Monster Data\crownInfo.json"))!;
 				dynamic? monsterSize = partData["Monsters"].FirstOrDefault(x => GetMonsterId(name) == (int)x.Monster_Id && x.Monster_Id_button == $"{GetMonsterId(name)}: {name}");
 				if (monsterSize != null)
 				{
@@ -32,8 +32,8 @@ namespace MediawikiTranslator.Models.Monsters
 			}
 			else if (game == Games.MHRise || game == Games.MHRS)
 			{
-				Dictionary<string, string> riseMonsterIds = JsonConvert.DeserializeObject<Dictionary<string, string>>(Utilities.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHRS\monsterIds.json"))!;
-				JArray sizeList = JsonConvert.DeserializeObject<JObject>(Utilities.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHRS\natives\stm\enemy\user_data\system_enemy_sizelist_data.user.2.json"))!.Value<JObject>("snow.enemy.SystemEnemySizeListData")!.Value<JArray>("_SizeInfoList")!;
+				Dictionary<string, string> riseMonsterIds = JsonConvert.DeserializeObject<Dictionary<string, string>>(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHRS\monsterIds.json"))!;
+				JArray sizeList = JsonConvert.DeserializeObject<JObject>(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHRS\natives\stm\enemy\user_data\system_enemy_sizelist_data.user.2.json"))!.Value<JObject>("snow.enemy.SystemEnemySizeListData")!.Value<JArray>("_SizeInfoList")!;
 				JToken crownObj = sizeList.First(x => x.Value<string>("_EmType") == riseMonsterIds[name]);
 				Base = crownObj.Value<float>("_BaseSize");
 				SmallLimit = crownObj.Value<float>("_SmallBorder");
@@ -43,7 +43,7 @@ namespace MediawikiTranslator.Models.Monsters
 			else if (game == Games.MHWilds)
 			{
 				MonsterId monsterId = Monster.WildsMonsterIds.First(x => x.Name == name);
-				JArray partData = (JArray)JsonConvert.DeserializeObject<dynamic>(Utilities.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\dtlnor rips\MHWs-in-json-main\natives\STM\GameDesign\Enemy\CommonData\Data\EmCommonSize.user.3.json"))![0]["app.user_data.EmParamSize"]._EnemySizeTbl;
+				JArray partData = (JArray)JsonConvert.DeserializeObject<dynamic>(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\dtlnor rips\MHWs-in-json-main\natives\STM\GameDesign\Enemy\CommonData\Data\EmCommonSize.user.3.json"))![0]["app.user_data.EmParamSize"]._EnemySizeTbl;
 				foreach (JObject crownJObj in partData)
 				{
 					dynamic crownObj = crownJObj.ToObject<dynamic>()!["app.user_data.EmParamSize.cSizeData"];

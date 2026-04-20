@@ -35,7 +35,7 @@ namespace MediawikiTranslator.Models.Monsters
 
 		public static LargeMonsterPage[] GetAll(Games game)
 		{
-			Dictionary<string, MonsterData> srcDict = JsonConvert.DeserializeObject<Dictionary<string, MonsterData>>(Utilities.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\monsterData.json"))!;
+			Dictionary<string, MonsterData> srcDict = JsonConvert.DeserializeObject<Dictionary<string, MonsterData>>(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\monsterData.json"))!;
 			return [.. srcDict.Where(x => x.Value.LargeMonster && x.Value.GameAppearances.Any(y => y.GameAcronym == game.ToAcronymString()))
 				.Select(x => new LargeMonsterPage(x.Key, game, MonsterSize.Large))];
 		}

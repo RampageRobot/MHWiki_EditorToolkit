@@ -7,11 +7,10 @@
     <Nullable>enable</Nullable>
     <Configurations>Debug;Release;Site</Configurations>
     <Platforms>AnyCPU;x86</Platforms>
-    <UserSecretsId>d1e3595b-ea17-4d80-8dfa-81cd8e6640fd</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="System.Configuration.ConfigurationManager" Version="10.0.6" />
+    <PackageReference Include="System.Configuration.ConfigurationManager" Version="9.0.7" />
   </ItemGroup>
 
   <ItemGroup>

@@ -70,11 +70,11 @@ namespace MediawikiTranslator.Models.Data.MHWilds
 		public List<ItemCrafting> Combinations { get; set; }
 		public List<ItemSource> Sources { get; set; } = [];
 		public List<ItemEquipment> Equipment { get; set; } = [];
-		private static Dictionary<string, Dictionary<string, double[]>> MapAreaPoints = JsonConvert.DeserializeObject<Dictionary<string, Dictionary<string, double[]>>>(Utilities.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\map_area_points.json"));
+		private static Dictionary<string, Dictionary<string, double[]>> MapAreaPoints = JsonConvert.DeserializeObject<Dictionary<string, Dictionary<string, double[]>>>(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\map_area_points.json"));
 
 		public static string PoogieItemsFetch()
 		{
-			JArray poogieItems = JsonConvert.DeserializeObject<JArray>(Utilities.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\dtlnor rips\MHWs-in-json-main\natives\STM\GameDesign\Facility\PugeeItemData.user.3.json")).First().Value<JObject>("app.user_data.PugeeItemData").Value<JArray>("_Values");
+			JArray poogieItems = JsonConvert.DeserializeObject<JArray>(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\dtlnor rips\MHWs-in-json-main\natives\STM\GameDesign\Facility\PugeeItemData.user.3.json")).First().Value<JObject>("app.user_data.PugeeItemData").Value<JArray>("_Values");
 			Items[] items = Fetch();
 			return JsonConvert.SerializeObject(poogieItems.Select(x =>
 			{
@@ -88,7 +88,7 @@ namespace MediawikiTranslator.Models.Data.MHWilds
 						Rate = poogObj.Value<int>("_Rate")
 					};
 				}
-				catch (Exception)
+				catch (Exception e)
 				{
 					Debugger.Break();
 					return new { ItemName = "", Rate = 0 };
@@ -103,11 +103,11 @@ namespace MediawikiTranslator.Models.Data.MHWilds
 				.Select(x => x.Name)
 				.Distinct()
 				.ToDictionary(x => x, x => Drops.Fetch(Games.MHWilds, x));
-			JArray gimmickData = JsonConvert.DeserializeObject<JArray>(Utilities.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\gimmickdata.json"));
-			JArray missionRewardData = JsonConvert.DeserializeObject<JArray>(Utilities.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\dtlnor rips\MHWs-in-json-main\natives\STM\GameDesign\Mission\_UserData\_Reward\MissionRewardData.user.3.json")).First().Value<JObject>("app.user_data.MissionRewardData").Value<JArray>("_Values");
-			JArray commonRewardData = JsonConvert.DeserializeObject<JArray>(Utilities.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\dtlnor rips\MHWs-in-json-main\natives\STM\GameDesign\Mission\_UserData\_Reward\CommonRewardData.user.3.json")).First().Value<JObject>("app.user_data.QuestGeneralRewardData").Value<JArray>("_Values");
-			JArray questRewardSetting = JsonConvert.DeserializeObject<JArray>(Utilities.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\dtlnor rips\MHWs-in-json-main\natives\STM\GameDesign\Mission\_UserData\_Reward\QuestRewardSetting.user.3.json")).First().Value<JObject>("app.user_data.QuestRewardSetting").Value<JArray>("_Values");
-			JArray questResultData = JsonConvert.DeserializeObject<JArray>(Utilities.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\dtlnor rips\MHWs-in-json-main\natives\STM\GameDesign\GUI\GUI070000\GUI070001\QuestResultData.user.3.json")).First().Value<JObject>("app.user_data.QuestResultData").Value<JArray>("_QuestResultItems");
+			JArray gimmickData = JsonConvert.DeserializeObject<JArray>(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\gimmickdata.json"));
+			JArray missionRewardData = JsonConvert.DeserializeObject<JArray>(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\dtlnor rips\MHWs-in-json-main\natives\STM\GameDesign\Mission\_UserData\_Reward\MissionRewardData.user.3.json")).First().Value<JObject>("app.user_data.MissionRewardData").Value<JArray>("_Values");
+			JArray commonRewardData = JsonConvert.DeserializeObject<JArray>(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\dtlnor rips\MHWs-in-json-main\natives\STM\GameDesign\Mission\_UserData\_Reward\CommonRewardData.user.3.json")).First().Value<JObject>("app.user_data.QuestGeneralRewardData").Value<JArray>("_Values");
+			JArray questRewardSetting = JsonConvert.DeserializeObject<JArray>(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\dtlnor rips\MHWs-in-json-main\natives\STM\GameDesign\Mission\_UserData\_Reward\QuestRewardSetting.user.3.json")).First().Value<JObject>("app.user_data.QuestRewardSetting").Value<JArray>("_Values");
+			JArray questResultData = JsonConvert.DeserializeObject<JArray>(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\dtlnor rips\MHWs-in-json-main\natives\STM\GameDesign\GUI\GUI070000\GUI070001\QuestResultData.user.3.json")).First().Value<JObject>("app.user_data.QuestResultData").Value<JArray>("_QuestResultItems");
 			Dictionary<string, Tuple<Items, int, int>[]> questRewards = [];
 			foreach (DirectoryInfo folder in Directory.EnumerateDirectories(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\dtlnor rips\MHWs-in-json-main\natives\STM\GameDesign\Mission").Select(x => new DirectoryInfo(x)).Where(x => x.Name.StartsWith("Mission")))
 			{
@@ -122,7 +122,7 @@ namespace MediawikiTranslator.Models.Data.MHWilds
 					{
 						if (string.IsNullOrEmpty(missionName))
 						{
-							missionName = JsonConvert.DeserializeObject<JObject>(Utilities.ReadAllText($@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\dtlnor rips\MHWs-in-json-main\natives\STM\GameDesign\Text\Mission\{rewardMissionId.Substring(rewardMissionId.IndexOf("]") + 1).Replace("_", "")}.msg.23.json")).Value<JArray>("entries").Select(x => x.Value<JArray>("content")[1].ToObject<string>()).First();
+							missionName = JsonConvert.DeserializeObject<JObject>(File.ReadAllText($@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\dtlnor rips\MHWs-in-json-main\natives\STM\GameDesign\Text\Mission\{rewardMissionId.Substring(rewardMissionId.IndexOf("]") + 1).Replace("_", "")}.msg.23.json")).Value<JArray>("entries").Select(x => x.Value<JArray>("content")[1].ToObject<string>()).First();
 						}
 						commonTableId = reward.Value<int>("_commonRewardTableId");
 					}
@@ -154,7 +154,7 @@ namespace MediawikiTranslator.Models.Data.MHWilds
 					string missionId = mission.Value<JObject>("_MissonId").Value<JObject>("app.MissionIDList.ID_Serializable").Value<string>("_Value");
 					if (string.IsNullOrEmpty(missionName))
 					{
-						missionName = JsonConvert.DeserializeObject<JObject>(Utilities.ReadAllText($@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\dtlnor rips\MHWs-in-json-main\natives\STM\GameDesign\Text\Mission\{missionId.Substring(missionId.IndexOf("]") + 1).Replace("_", "")}.msg.23.json")).Value<JArray>("entries").Select(x => x.Value<JArray>("content")[1].ToObject<string>()).First();
+						missionName = JsonConvert.DeserializeObject<JObject>(File.ReadAllText($@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\dtlnor rips\MHWs-in-json-main\natives\STM\GameDesign\Text\Mission\{missionId.Substring(missionId.IndexOf("]") + 1).Replace("_", "")}.msg.23.json")).Value<JArray>("entries").Select(x => x.Value<JArray>("content")[1].ToObject<string>()).First();
 					}
 					int index = 0;
 					foreach (JObject questItem in mission.Value<JArray>("_ItemId"))
@@ -201,10 +201,10 @@ namespace MediawikiTranslator.Models.Data.MHWilds
 			}
 			MHWilds.Weapon[] allWeapons = MHWilds.Weapon.GetAllWeapons();
 			MHWilds.Armor allArmor = MHWilds.Armor.GetArmors()[0];
-			JArray craftingItems = JsonConvert.DeserializeObject<JArray>(Utilities.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\dtlnor rips\MHWs-in-json-main\natives\STM\GameDesign\Common\Item\ItemRecipe.user.3.json")).First().Value<JObject>("app.user_data.cItemRecipe").Value<JArray>("_Values");
-			JObject[] itemData = JsonConvert.DeserializeObject<JArray>(Utilities.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\dtlnor rips\MHWs-in-json-main\natives\STM\GameDesign\Common\Item\itemData.user.3.json")).First().Value<JObject>("app.user_data.ItemData").Value<JArray>("_Values").Select(x => x.Value<JObject>("app.user_data.ItemData.cData")).ToArray();
-			JArray itemMsgs = JsonConvert.DeserializeObject<JObject>(Utilities.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\dtlnor rips\MHWs-in-json-main\natives\STM\GameDesign\Text\Excel_Data\Item.msg.23.json")).Value<JArray>("entries");
-			JArray armorRecipes = JsonConvert.DeserializeObject<JArray>(Utilities.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\dtlnor rips\MHWs-in-json-main\natives\STM\GameDesign\Common\Equip\ArmorRecipeData.user.3.json")).First().Value<JObject>("app.user_data.ArmorRecipeData").Value<JArray>("_Values");
+			JArray craftingItems = JsonConvert.DeserializeObject<JArray>(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\dtlnor rips\MHWs-in-json-main\natives\STM\GameDesign\Common\Item\ItemRecipe.user.3.json")).First().Value<JObject>("app.user_data.cItemRecipe").Value<JArray>("_Values");
+			JObject[] itemData = JsonConvert.DeserializeObject<JArray>(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\dtlnor rips\MHWs-in-json-main\natives\STM\GameDesign\Common\Item\itemData.user.3.json")).First().Value<JObject>("app.user_data.ItemData").Value<JArray>("_Values").Select(x => x.Value<JObject>("app.user_data.ItemData.cData")).ToArray();
+			JArray itemMsgs = JsonConvert.DeserializeObject<JObject>(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\dtlnor rips\MHWs-in-json-main\natives\STM\GameDesign\Text\Excel_Data\Item.msg.23.json")).Value<JArray>("entries");
+			JArray armorRecipes = JsonConvert.DeserializeObject<JArray>(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\dtlnor rips\MHWs-in-json-main\natives\STM\GameDesign\Common\Equip\ArmorRecipeData.user.3.json")).First().Value<JObject>("app.user_data.ArmorRecipeData").Value<JArray>("_Values");
 			Dictionary<string, string> stageDict = new Dictionary<string, string>()
 			{
 				{ "ST101", "Windward Plains" },
@@ -395,14 +395,14 @@ namespace MediawikiTranslator.Models.Data.MHWilds
 		{
 			string[] unreleasedItems = [];
 			List<Items> ret = [];
-			JArray rawItems = JsonConvert.DeserializeObject<JArray>(Utilities.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\dtlnor rips\MHWs-in-json-main\natives\STM\GameDesign\Common\Item\itemData.user.3.json"))!.First().Value<JObject>("app.user_data.ItemData").Value<JArray>("_Values");
-			JArray rawItemCrafting = JsonConvert.DeserializeObject<JArray>(Utilities.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\dtlnor rips\MHWs-in-json-main\natives\STM\GameDesign\Common\Item\ItemRecipe.user.3.json"))!.First().Value<JObject>("app.user_data.cItemRecipe").Value<JArray>("_Values");
-			JArray itemNames = JsonConvert.DeserializeObject<JObject>(Utilities.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\dtlnor rips\MHWs-in-json-main\natives\STM\GameDesign\Text\Excel_Data\Item.msg.23.json"))!.Value<JArray>("entries");
-			Dictionary<string, string> refItemMsgs = JsonConvert.DeserializeObject<JObject>(Utilities.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\dtlnor rips\MHWs-in-json-main\natives\STM\GameDesign\Text\Reference\RefItem.msg.23.json")).Value<JArray>("entries").Where(x => x.Value<string>("name").StartsWith("RefItem_0017"))
+			JArray rawItems = JsonConvert.DeserializeObject<JArray>(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\dtlnor rips\MHWs-in-json-main\natives\STM\GameDesign\Common\Item\itemData.user.3.json"))!.First().Value<JObject>("app.user_data.ItemData").Value<JArray>("_Values");
+			JArray rawItemCrafting = JsonConvert.DeserializeObject<JArray>(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\dtlnor rips\MHWs-in-json-main\natives\STM\GameDesign\Common\Item\ItemRecipe.user.3.json"))!.First().Value<JObject>("app.user_data.cItemRecipe").Value<JArray>("_Values");
+			JArray itemNames = JsonConvert.DeserializeObject<JObject>(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\dtlnor rips\MHWs-in-json-main\natives\STM\GameDesign\Text\Excel_Data\Item.msg.23.json"))!.Value<JArray>("entries");
+			Dictionary<string, string> refItemMsgs = JsonConvert.DeserializeObject<JObject>(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\dtlnor rips\MHWs-in-json-main\natives\STM\GameDesign\Text\Reference\RefItem.msg.23.json")).Value<JArray>("entries").Where(x => x.Value<string>("name").StartsWith("RefItem_0017"))
 				.ToDictionary(x => Convert.ToInt32(string.Join("", x.Value<string>("name").Replace("RefItem_0017", "").Substring(x.Value<string>("name").Replace("RefItem_0017", "").IndexOf("_") + 1).ToUpper().Where(char.IsDigit))).ToString(), x => x.Value<JArray>("content")[1].Value<string>());
-			Items[] temp = JsonConvert.DeserializeObject<Items[]>(Utilities.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\items.json"))!;
-			Dictionary<string, string> colorDefs = JsonConvert.DeserializeObject<Dictionary<string, string>>(Utilities.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\colorDict.json"));
-			Dictionary<string, string> iconDefs = JsonConvert.DeserializeObject<Dictionary<string, string>>(Utilities.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\iconDict.json"));
+			Items[] temp = JsonConvert.DeserializeObject<Items[]>(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\items.json"))!;
+			Dictionary<string, string> colorDefs = JsonConvert.DeserializeObject<Dictionary<string, string>>(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\colorDict.json"));
+			Dictionary<string, string> iconDefs = JsonConvert.DeserializeObject<Dictionary<string, string>>(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\iconDict.json"));
 			foreach (JObject rawItem_Container in rawItems)
 			{
 				JObject rawItem = rawItem_Container.Value<JObject>("app.user_data.ItemData.cData");
@@ -431,7 +431,7 @@ namespace MediawikiTranslator.Models.Data.MHWilds
 							};
 							ret.Add(item);
 						}
-						catch (Exception)
+						catch (Exception _)
 						{
 							Debugger.Break();
 						}

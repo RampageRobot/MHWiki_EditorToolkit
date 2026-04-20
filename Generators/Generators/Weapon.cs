@@ -11,8 +11,8 @@ namespace MediawikiTranslator.Generators
 	{
 		private static Dictionary<Tuple<string, string>, string[]> WeaponRenderFileNames { get; set; } = [];
 		private static Models.Data.MHWI.Items[] _mhwiItems = Models.Data.MHWI.Items.Fetch();
-		private static dynamic[] MelodyDescs = JsonConvert.DeserializeObject<dynamic[]>(Utilities.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\hhMelodyDescs.json"))!;
-		private static dynamic[] HighFreqNames = JsonConvert.DeserializeObject<dynamic[]>(Utilities.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\highFreqNames.json"))!;
+		private static dynamic[] MelodyDescs = JsonConvert.DeserializeObject<dynamic[]>(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\hhMelodyDescs.json"))!;
+		private static dynamic[] HighFreqNames = JsonConvert.DeserializeObject<dynamic[]>(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\highFreqNames.json"))!;
 		private static async Task<string> Generate(WebToolkitData weapon, WebToolkitData[] src, Monster[]? gameMonsters = null)
 		{
 			return await Task.Run(() =>
@@ -49,7 +49,7 @@ namespace MediawikiTranslator.Generators
 				else
 				{
 					DirectoryInfo weaponRenders = new($@"D:\MH_Data Repo\MH_Data\Guest\Image Editor Files\SOURCE\MHWilds Images\MHWilds Renders\MHWilds Weapon Renders\Base Game\{weaponNames.Item1}");
-					Dictionary<string, string> files = JsonConvert.DeserializeObject<Dictionary<string, string>>(Utilities.ReadAllText(Path.Combine(weaponRenders.FullName, "dict.json")))!;
+					Dictionary<string, string> files = JsonConvert.DeserializeObject<Dictionary<string, string>>(File.ReadAllText(Path.Combine(weaponRenders.FullName, "dict.json")))!;
 					files.TryGetValue(weapon.Name!, out match);
 				}
 				string tree = weapon.Tree!.Replace("Unavailable", (weapon.Name!.Contains("Safi's") ? "Safi Tree" : "Kulve Taroth Tree"));
@@ -270,7 +270,7 @@ The {weapon.Name} is {(weapon.Type == "IG" ? "an" : "a")} [[{weaponNames.Item1} 
 				if (weapon.Type == "HH" && weapon.Game != "MHRS")
 				{
 					List<Tuple<string, string[]>> melodies = GetHHMelodies(weapon.Game!);
-					Dictionary<string, string> melodyIcons = JsonConvert.DeserializeObject<Dictionary<string, string>>(Utilities.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\melodyIcons.json"))!;
+					Dictionary<string, string> melodyIcons = JsonConvert.DeserializeObject<Dictionary<string, string>>(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\melodyIcons.json"))!;
 					ret.AppendLine(@"==Melodies==
 {| class=""wikitable"" id=""tblMelodies"" style=""margin-left:auto; margin-right:auto; text-align:center;""
 ! style=""min-width:100px;""|Sequence !! Melody !! Effect
@@ -800,7 +800,7 @@ The {weapon.Name} is {(weapon.Type == "IG" ? "an" : "a")} [[{weaponNames.Item1} 
 				game = "MHRS";
 				rarityUnder = 8;
 			}
-			Dictionary<string, MonsterData> monsterAppearances = JsonConvert.DeserializeObject<Dictionary<string, MonsterData>>(Utilities.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\monsterData.json"))!;
+			Dictionary<string, MonsterData> monsterAppearances = JsonConvert.DeserializeObject<Dictionary<string, MonsterData>>(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\monsterData.json"))!;
 			Monster[]? monsterList = null;
 			WebToolkitData[] src = [];
 			if (game == "MHWI" || game == "MHWorld")

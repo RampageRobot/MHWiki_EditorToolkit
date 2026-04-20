@@ -12,8 +12,8 @@ namespace MediawikiTranslator.Models.Data.MHWilds
 
         public static MealSkills[] GetMealSkills()
         {
-            JArray skillNames = JsonConvert.DeserializeObject<JObject>(Utilities.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\dtlnor rips\MHWs-in-json-main\natives\STM\GameDesign\Text\Excel_Equip\MealSkill.msg.23.json"))!.Value<JArray>("entries")!;
-            return [..JsonConvert.DeserializeObject<JArray>(Utilities.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\dtlnor rips\MHWs-in-json-main\natives\STM\GameDesign\Common\Facility\MealSkillData.user.3.json"))![0]
+            JArray skillNames = JsonConvert.DeserializeObject<JObject>(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\dtlnor rips\MHWs-in-json-main\natives\STM\GameDesign\Text\Excel_Equip\MealSkill.msg.23.json"))!.Value<JArray>("entries")!;
+            return [..JsonConvert.DeserializeObject<JArray>(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\dtlnor rips\MHWs-in-json-main\natives\STM\GameDesign\Common\Facility\MealSkillData.user.3.json"))![0]
                 .Value<JObject>("app.user_data.MealSkillData")!
                 .Value<JArray>("_Values")!
 				.Select(x => x.Value<JObject>("app.user_data.MealSkillData.cData")!)

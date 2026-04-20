@@ -21,7 +21,7 @@ namespace MediawikiTranslator.Models.Data.MHRS
 	{
 		public static Items[] Fetch()
 		{
-			Items[] items = [.. RawItems.FromJson(Utilities.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHRS\natives\stm\data\system\contentsidsystem\item\normal\itemdata.user.2.json")).SnowDataItemUserData.Param.Where(x => x.IconColor != "ITEM_ICON_COLOR_00")];
+			Items[] items = [.. RawItems.FromJson(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHRS\natives\stm\data\system\contentsidsystem\item\normal\itemdata.user.2.json")).SnowDataItemUserData.Param.Where(x => x.IconColor != "ITEM_ICON_COLOR_00")];
 			foreach (Items item in items)
 			{
 				item.JPName = CommonMsgs.GetMsg("I_" + item.Id.Substring(item.Id.LastIndexOf("_") + 1) + "_Name", 0);

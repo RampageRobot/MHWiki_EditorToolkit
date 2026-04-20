@@ -21,7 +21,7 @@ namespace MediawikiTranslator.Models.Monsters
         {
             if (game == Games.MHWI || game == Games.MHWorld)
             {
-				Dictionary<string, Quests> questInfo = JsonConvert.DeserializeObject<Dictionary<string, Quests>>(Utilities.ReadAllText($@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWI\Monster Data\questInfo.json"))!;
+				Dictionary<string, Quests> questInfo = JsonConvert.DeserializeObject<Dictionary<string, Quests>>(File.ReadAllText($@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWI\Monster Data\questInfo.json"))!;
                 if (game == Games.MHWorld)
                 {
                     questInfo = questInfo.Where(x => x.Value.Rank != "Master Rank").ToDictionary(x => x.Key, x => x.Value);
@@ -66,7 +66,7 @@ namespace MediawikiTranslator.Models.Monsters
 
 		public static string Format(Quests[] quests, string monsterName)
         {
-            Dictionary<string, string>[] objInfo = JsonConvert.DeserializeObject<Dictionary<string, string>[]>(Utilities.ReadAllText($@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWI\Monster DataquestObjectiveTypes.json"))!;
+            Dictionary<string, string>[] objInfo = JsonConvert.DeserializeObject<Dictionary<string, string>[]>(File.ReadAllText($@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWI\Monster DataquestObjectiveTypes.json"))!;
             StringBuilder sb = new();
             sb.AppendLine(@"==Quests Targeting This Monster==
 {| class=""wikitable mobile-sm sortable"" style=""text-align:center;margin:auto""

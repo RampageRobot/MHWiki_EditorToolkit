@@ -89,7 +89,7 @@ namespace MediawikiTranslator.Models.Data.MHRS
 			string[] idParts = monsterId.Split('_');
 			string species = idParts[0];
 			string sub = idParts[1];
-			return JsonConvert.DeserializeObject<DataTune>(Utilities.ReadAllText($@"D:\MH_Data Repo\MH_Data\Parsed Files\MHRS\natives\stm\enemy\{species}\{sub}\user_data\{species}_{sub}_datatune.user.2.json"))!;
+			return JsonConvert.DeserializeObject<DataTune>(File.ReadAllText($@"D:\MH_Data Repo\MH_Data\Parsed Files\MHRS\natives\stm\enemy\{species}\{sub}\user_data\{species}_{sub}_datatune.user.2.json"))!;
 		}
 	}
 
@@ -330,7 +330,7 @@ namespace MediawikiTranslator.Models.Data.MHRS
 		public SnowDataMonsterListMonsterListBossData? SnowDataMonsterListMonsterListBossData { get; set; }
 		public static MonsterListBossData Fetch()
 		{
-			return JsonConvert.DeserializeObject<MonsterListBossData>(Utilities.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHRS\natives\stm\data\define\common\hunternote\monsterlistbossdata_mr.user.2.json"))!;
+			return JsonConvert.DeserializeObject<MonsterListBossData>(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHRS\natives\stm\data\define\common\hunternote\monsterlistbossdata_mr.user.2.json"))!;
 		}
 	}
 

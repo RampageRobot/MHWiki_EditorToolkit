@@ -25,8 +25,8 @@ namespace MediawikiTranslator.Models.Monsters
 	public class Drops
 	{
 		private static readonly Data.MHWilds.Items[] MhwildsItems = Data.MHWilds.Items.Fetch();
-		private static readonly Dictionary<string, Dictionary<string, object>> WildsMonsterMasterlist = JsonConvert.DeserializeObject<Dictionary<string, Dictionary<string, object>>>(Utilities.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\enemies.json"))!;
-		private static Dictionary<string, object> WildsPartNames = JsonConvert.DeserializeObject<Dictionary<string, object>>(Utilities.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\dtlnor rips\MHWs-in-json-main\natives\STM\GameDesign\Text\Excel_Data\EnemyPartsTypeName.msg.23.json"))!;
+		private static readonly Dictionary<string, Dictionary<string, object>> WildsMonsterMasterlist = JsonConvert.DeserializeObject<Dictionary<string, Dictionary<string, object>>>(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\enemies.json"))!;
+		private static Dictionary<string, object> WildsPartNames = JsonConvert.DeserializeObject<Dictionary<string, object>>(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\dtlnor rips\MHWs-in-json-main\natives\STM\GameDesign\Text\Excel_Data\EnemyPartsTypeName.msg.23.json"))!;
 
 		public static string Format(string monsterName, int[] availableRanks, string[] partNames, string game = "MHWI")
 		{
@@ -36,9 +36,9 @@ namespace MediawikiTranslator.Models.Monsters
 				{
 					if (File.Exists($@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWI\Monster Data\{monsterName}\Drops.json"))
 					{
-						dynamic[] baseObj = [.. ((JArray)JsonConvert.DeserializeObject<dynamic>(Utilities.ReadAllText($@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWI\Monster Data\{monsterName}\Drops.json"))!.data)];
+						dynamic[] baseObj = [.. ((JArray)JsonConvert.DeserializeObject<dynamic>(File.ReadAllText($@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWI\Monster Data\{monsterName}\Drops.json"))!.data)];
 						dynamic[] dropsFile = [.. (JArray)baseObj.First(x => x.GridName == "Entries").list];
-						BremInfo[] bremFile = JsonConvert.DeserializeObject<BremInfo[]>(Utilities.ReadAllText($@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWI\Monster Data\{monsterName}\BremRewards.json"))!;
+						BremInfo[] bremFile = JsonConvert.DeserializeObject<BremInfo[]>(File.ReadAllText($@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWI\Monster Data\{monsterName}\BremRewards.json"))!;
 						Items[] allItems = Items.Fetch();
 						List<WebToolkitData> dropsFormatted = [];
 						foreach (BremRank rank in Enum.GetValues<BremRank>())
@@ -134,18 +134,18 @@ namespace MediawikiTranslator.Models.Monsters
 						monsterParts.Add(part.Key, partName);
 					}
 					List<WebToolkitData> dropsFormatted = [];
-					DropFileValue[] dropFile = WildsDropFile.FromJson(Utilities.ReadAllText($@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\dtlnor rips\MHWs-in-json-main\natives\STM\GameDesign\Common\Enemy\{monsterId.Id}.user.3.json")).First().AppUserDataEnemyRewardData.Values;
+					DropFileValue[] dropFile = WildsDropFile.FromJson(File.ReadAllText($@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\dtlnor rips\MHWs-in-json-main\natives\STM\GameDesign\Common\Enemy\{monsterId.Id}.user.3.json")).First().AppUserDataEnemyRewardData.Values;
 					dynamic[] partsLostArray = [];
 					string partsLostFile = $@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\dtlnor rips\MHWs-in-json-main\natives\STM\GameDesign\Enemy\{monsterFolder}\{subspeciesFolder}\Data\{monsterFolder}_{subspeciesFolder}_Param_PartsLost.user.3.json";
 					if (File.Exists(partsLostFile))
 					{
-						partsLostArray = ((JArray)JsonConvert.DeserializeObject<dynamic>(Utilities.ReadAllText(partsLostFile))![0]["app.user_data.EmParamPartsLost"]._PartsLostArray["ace.cInstanceGuidArray`1<app.user_data.EmParamPartsLost.cPartsLost>"]._DataArray).ToObject<dynamic[]>()!;
+						partsLostArray = ((JArray)JsonConvert.DeserializeObject<dynamic>(File.ReadAllText(partsLostFile))![0]["app.user_data.EmParamPartsLost"]._PartsLostArray["ace.cInstanceGuidArray`1<app.user_data.EmParamPartsLost.cPartsLost>"]._DataArray).ToObject<dynamic[]>()!;
 					}
 					dynamic[] partsBreakArray = [];
 					string partsBreakFile = $@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\dtlnor rips\MHWs-in-json-main\natives\STM\GameDesign\Enemy\{monsterFolder}\{subspeciesFolder}\Data\{monsterFolder}_{subspeciesFolder}_Param_PartsBreakReward.user.3.json";
 					if (File.Exists(partsBreakFile))
 					{
-						partsBreakArray = ((JArray)JsonConvert.DeserializeObject<dynamic>(Utilities.ReadAllText(partsBreakFile))![0]["app.user_data.EmParamPartsBreakReward"]._PartsBreakArray).ToObject<dynamic[]>()!; ;
+						partsBreakArray = ((JArray)JsonConvert.DeserializeObject<dynamic>(File.ReadAllText(partsBreakFile))![0]["app.user_data.EmParamPartsBreakReward"]._PartsBreakArray).ToObject<dynamic[]>()!; ;
 					}
 					string type = "[0]INVALID";
 					foreach (DropFileValue table in dropFile)
@@ -443,21 +443,21 @@ namespace MediawikiTranslator.Models.Monsters
 					}
 					monsterParts.Add(part.Key, partName);
 				}
-				DropFileValue[] dropFile = WildsDropFile.FromJson(Utilities.ReadAllText($@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\dtlnor rips\MHWs-in-json-main\natives\STM\GameDesign\Common\Enemy\{monsterId.Id}.user.3.json")).First().AppUserDataEnemyRewardData.Values;
+				DropFileValue[] dropFile = WildsDropFile.FromJson(File.ReadAllText($@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\dtlnor rips\MHWs-in-json-main\natives\STM\GameDesign\Common\Enemy\{monsterId.Id}.user.3.json")).First().AppUserDataEnemyRewardData.Values;
 				dynamic[] partsLostArray = [];
 				string partsLostFile = $@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\dtlnor rips\MHWs-in-json-main\natives\STM\GameDesign\Enemy\{monsterFolder}\{subspeciesFolder}\Data\{monsterFolder}_{subspeciesFolder}_Param_PartsLost.user.3.json";
 				if (File.Exists(partsLostFile))
 				{
-					partsLostArray = ((JArray)JsonConvert.DeserializeObject<dynamic>(Utilities.ReadAllText(partsLostFile))![0]["app.user_data.EmParamPartsLost"]._PartsLostArray["ace.cInstanceGuidArray`1<app.user_data.EmParamPartsLost.cPartsLost>"]._DataArray).ToObject<dynamic[]>()!;
+					partsLostArray = ((JArray)JsonConvert.DeserializeObject<dynamic>(File.ReadAllText(partsLostFile))![0]["app.user_data.EmParamPartsLost"]._PartsLostArray["ace.cInstanceGuidArray`1<app.user_data.EmParamPartsLost.cPartsLost>"]._DataArray).ToObject<dynamic[]>()!;
 				}
 				dynamic[] partsBreakArray = [];
 				string partsBreakFile = $@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\dtlnor rips\MHWs-in-json-main\natives\STM\GameDesign\Enemy\{monsterFolder}\{subspeciesFolder}\Data\{monsterFolder}_{subspeciesFolder}_Param_PartsBreakReward.user.3.json";
 				if (File.Exists(partsBreakFile))
 				{
-					partsBreakArray = ((JArray)JsonConvert.DeserializeObject<dynamic>(Utilities.ReadAllText(partsBreakFile))![0]["app.user_data.EmParamPartsBreakReward"]._PartsBreakArray).ToObject<dynamic[]>()!; ;
+					partsBreakArray = ((JArray)JsonConvert.DeserializeObject<dynamic>(File.ReadAllText(partsBreakFile))![0]["app.user_data.EmParamPartsBreakReward"]._PartsBreakArray).ToObject<dynamic[]>()!; ;
 				}
-				JArray commonRewardData = JsonConvert.DeserializeObject<JArray>(Utilities.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\dtlnor rips\MHWs-in-json-main\natives\STM\GameDesign\Mission\_UserData\_Reward\CommonRewardData.user.3.json"))!.First().Value<JObject>("app.user_data.QuestGeneralRewardData")!.Value<JArray>("_Values")!;
-				JArray exEnemies = JsonConvert.DeserializeObject<JArray>(Utilities.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\dtlnor rips\MHWs-in-json-main\natives\STM\GameDesign\Environment\UserData\ExFieldPattern\ExFieldPattern_Default\ExFieldParam_EnemyData.user.3.json"))!.First().Value<JObject>("app.user_data.ExFieldParam_EnemyData")!.Value<JArray>("_ExEnemies")!;
+				JArray commonRewardData = JsonConvert.DeserializeObject<JArray>(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\dtlnor rips\MHWs-in-json-main\natives\STM\GameDesign\Mission\_UserData\_Reward\CommonRewardData.user.3.json"))!.First().Value<JObject>("app.user_data.QuestGeneralRewardData")!.Value<JArray>("_Values")!;
+				JArray exEnemies = JsonConvert.DeserializeObject<JArray>(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\dtlnor rips\MHWs-in-json-main\natives\STM\GameDesign\Environment\UserData\ExFieldPattern\ExFieldPattern_Default\ExFieldParam_EnemyData.user.3.json"))!.First().Value<JObject>("app.user_data.ExFieldParam_EnemyData")!.Value<JArray>("_ExEnemies")!;
 				foreach (JObject exEnemyObj in exEnemies)
 				{
 					JObject exEnemy = exEnemyObj.Value<JObject>("app.user_data.ExFieldParam_EnemyData.cExEmGlobalParam")!;
@@ -732,9 +732,9 @@ namespace MediawikiTranslator.Models.Monsters
 			{
 				if (File.Exists($@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWI\Monster Data\{monsterName}\Drops.json"))
 				{
-					dynamic[] baseObj = [.. ((JArray)JsonConvert.DeserializeObject<dynamic>(Utilities.ReadAllText($@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWI\Monster Data\{monsterName}\Drops.json"))!.data)];
+					dynamic[] baseObj = [.. ((JArray)JsonConvert.DeserializeObject<dynamic>(File.ReadAllText($@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWI\Monster Data\{monsterName}\Drops.json"))!.data)];
 					dynamic[] dropsFile = [.. (JArray)baseObj.First(x => x.GridName == "Entries").list];
-					BremInfo[] bremFile = JsonConvert.DeserializeObject<BremInfo[]>(Utilities.ReadAllText($@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWI\Monster Data\{monsterName}\BremRewards.json"))!;
+					BremInfo[] bremFile = JsonConvert.DeserializeObject<BremInfo[]>(File.ReadAllText($@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWI\Monster Data\{monsterName}\BremRewards.json"))!;
 					Items[] allItems = Items.Fetch();
 					foreach (BremRank rank in Enum.GetValues<BremRank>())
 					{

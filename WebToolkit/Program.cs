@@ -1,6 +1,3 @@
-using MediawikiTranslator;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 
@@ -10,7 +7,13 @@ namespace WebToolkit
     {
         public static void Main(string[] args)
         {
-			Utilities.SetCredentials();
+			if (File.Exists(@"D:\Wiki Files\wikicredentials.txt"))
+			{
+				string[] lines = File.ReadAllLines(@"D:\Wiki Files\wikicredentials.txt");
+				System.Configuration.ConfigurationManager.AppSettings.Set("WikiUsername", lines[0]);
+				System.Configuration.ConfigurationManager.AppSettings.Set("WikiPassword", lines[1]);
+				System.Configuration.ConfigurationManager.AppSettings.Set("DesktopPath", lines[2]);
+			}
 			var builder = WebApplication.CreateBuilder(args);
 			// Add services to the container.
 			builder.Services.AddRazorPages();

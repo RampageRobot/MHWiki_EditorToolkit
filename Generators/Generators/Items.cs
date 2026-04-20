@@ -99,20 +99,20 @@ namespace MediawikiTranslator.Generators
 	public class ItemCrafting
 	{
 		public int Number { get; set; }
-		public string? Result { get; set; }
-		public string? MaterialA { get; set; }
-		public string? MaterialB { get; set; }
+		public string Result { get; set; }
+		public string MaterialA { get; set; }
+		public string MaterialB { get; set; }
 	}
 
 	public class ItemEquipment
 	{
-		public string? EquipmentName { get; set; }
-		public string? EquipmentType { get; set; }
+		public string EquipmentName { get; set; }
+		public string EquipmentType { get; set; }
 	}
 
 	public class ItemSource
 	{
-		public string? Stage { get; set; }
+		public string Stage { get; set; }
 		public int Zone { get; set; }
 		public string MonsterName { get; set; } = string.Empty;
 		public string QuestName { get; set; } = string.Empty;
@@ -120,7 +120,7 @@ namespace MediawikiTranslator.Generators
 		public int Probability { get; set; }
 		public int QuantityRare { get; set; }
 		public int ProbabilityRare { get; set; }
-		public string? Rank { get; set; }
-		public string? Circumstance { get; set; }
+		public string Rank { get; set; }
+		public string Circumstance { get; set; }
 	}
 }

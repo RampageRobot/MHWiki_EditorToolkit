@@ -3725,7 +3725,7 @@ namespace MediawikiTranslator.Models.Data.MHWI
 		public static BlademasterData[] GetBlademasterData()
 		{
 			SharpnessData[] allSharpness = SharpnessData.GetSharpnessData();
-			BlademasterData[] data = FromJson(Utilities.ReadAllText(@"D:\MH_Data Repo\MH_Data\Raw Data\MHWI\chunk\common\equip\blademasterdata.json"));
+			BlademasterData[] data = FromJson(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Raw Data\MHWI\chunk\common\equip\blademasterdata.json"));
 			foreach (BlademasterData obj in data)
 			{
 				obj.Sharpness = allSharpness.First(x => x.Id == obj.SharpnessId!.Value);

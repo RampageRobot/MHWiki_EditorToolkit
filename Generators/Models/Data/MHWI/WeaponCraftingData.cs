@@ -117,7 +117,7 @@ namespace MediawikiTranslator.Models.Data.MHWI
 
 		public static WeaponCraftingData[] GetCraftingData()
 		{
-			return FromJson(Utilities.ReadAllText(@"D:\MH_Data Repo\MH_Data\Raw Data\MHWI\chunk\common\equip\weaponcrafting.json"));
+			return FromJson(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Raw Data\MHWI\chunk\common\equip\weaponcrafting.json"));
 		}
 	}
 

@@ -161,7 +161,7 @@ namespace MediawikiTranslator.Models.Data.MHWI
 		public static ArmorSets.WebToolkitData[] GetWebToolkitData(string game, int? rarityUnder = null)
 		{
 			Armor[] src = GetArmors();
-			SkillsExtraInfo[] extraInfo = SkillsExtraInfo.FromJson(Utilities.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWI\mhwi skills extra info.json"));
+			SkillsExtraInfo[] extraInfo = SkillsExtraInfo.FromJson(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWI\mhwi skills extra info.json"));
 			List<ArmorSets.WebToolkitData> ret = [];
 			Dictionary<int, string> colors = MediawikiTranslator.Generators.Items.GetMHWIWikiColors();
 			//21 is layered armor, anything higher is a placeholder
@@ -300,7 +300,7 @@ namespace MediawikiTranslator.Models.Data.MHWI
 
 		public static Armor[] GetArmors()
 		{
-			Armor[] allArmor = FromJson(Utilities.ReadAllText(@"D:\MH_Data Repo\MH_Data\Raw Data\MHWI\chunk\common\equip\armor.json"));
+			Armor[] allArmor = FromJson(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Raw Data\MHWI\chunk\common\equip\armor.json"));
 			SkillDescriptions[] skillDescriptions = SkillDescriptions.GetSkillDescriptions();
 			SetSkills[] setSkills = MHWI.SetSkills.GetSetBonusDescriptions();
 			ArmorCraftingData[] craftingData = MHWI.ArmorCraftingData.GetArmorCraftingData();

@@ -20,7 +20,7 @@ namespace MediawikiTranslator.Models.Data.MHWilds
 		{
 			Skill[] allSkills = Skill.GetSkills();
 			JArray decoNames = Utilities.GetWildsMessages(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\dtlnor rips\MHWs-in-json-main\natives\STM\GameDesign\Text\Excel_Equip\Accessory.msg.23.json");
-            JObject[] accessoryData = [..JsonConvert.DeserializeObject<JArray>(Utilities.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\dtlnor rips\MHWs-in-json-main\natives\STM\GameDesign\Common\Equip\AccessoryData.user.3.json"))![0].Value<JObject>("app.user_data.AccessoryData")!.Value<JArray>("_Values")!.Select(x => x.Value<JObject>("app.user_data.AccessoryData.cData"))!];
+            JObject[] accessoryData = [..JsonConvert.DeserializeObject<JArray>(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\dtlnor rips\MHWs-in-json-main\natives\STM\GameDesign\Common\Equip\AccessoryData.user.3.json"))![0].Value<JObject>("app.user_data.AccessoryData")!.Value<JArray>("_Values")!.Select(x => x.Value<JObject>("app.user_data.AccessoryData.cData"))!];
 			List<Decoration> ret = [];
 			Dictionary<string, string> colorDict = new() {
 				{ "[4]I_PINK", "Pink" },

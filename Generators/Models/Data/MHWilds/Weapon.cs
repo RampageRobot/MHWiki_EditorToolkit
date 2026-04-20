@@ -116,12 +116,12 @@ namespace MediawikiTranslator.Models.Data.MHWilds
 					string wepTreeFile = $@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\dtlnor rips\MHWs-in-json-main\natives\STM\GameDesign\Common\Weapon\{wepType}Tree.user.3.json";
 					if (!WeaponObjs.ContainsKey(wepType))
 					{
-						WeaponObjs.Add(wepType, [.. JsonConvert.DeserializeObject<JArray>(Utilities.ReadAllText(wepFile))!.First().Value<JObject>("app.user_data.WeaponData")!.Value<JArray>("_Values")!.Select(x => x.Value<JObject>("app.user_data.WeaponData.cData"))!]);
-						WeaponNames.Add(wepType, [.. JsonConvert.DeserializeObject<JObject>(Utilities.ReadAllText(wepNameFile))!.Value<JArray>("entries")!]);
+						WeaponObjs.Add(wepType, [.. JsonConvert.DeserializeObject<JArray>(File.ReadAllText(wepFile))!.First().Value<JObject>("app.user_data.WeaponData")!.Value<JArray>("_Values")!.Select(x => x.Value<JObject>("app.user_data.WeaponData.cData"))!]);
+						WeaponNames.Add(wepType, [.. JsonConvert.DeserializeObject<JObject>(File.ReadAllText(wepNameFile))!.Value<JArray>("entries")!]);
 						if (!onlyNames)
 						{
-							WeaponRecipes.Add(wepType, [.. JsonConvert.DeserializeObject<JArray>(Utilities.ReadAllText(wepRecipeFile))!.First().Value<JObject>("app.user_data.WeaponRecipeData")!.Value<JArray>("_Values")!.Select(x => x.Value<JObject>("app.user_data.WeaponRecipeData.cData"))!]);
-							WeaponTrees.Add(wepType, JsonConvert.DeserializeObject<JArray>(Utilities.ReadAllText(wepTreeFile))!.First().Value<JObject>("app.user_data.WeaponTree")!);
+							WeaponRecipes.Add(wepType, [.. JsonConvert.DeserializeObject<JArray>(File.ReadAllText(wepRecipeFile))!.First().Value<JObject>("app.user_data.WeaponRecipeData")!.Value<JArray>("_Values")!.Select(x => x.Value<JObject>("app.user_data.WeaponRecipeData.cData"))!]);
+							WeaponTrees.Add(wepType, JsonConvert.DeserializeObject<JArray>(File.ReadAllText(wepTreeFile))!.First().Value<JObject>("app.user_data.WeaponTree")!);
 						}
 					}
 				}
@@ -287,7 +287,7 @@ namespace MediawikiTranslator.Models.Data.MHWilds
 									}
 									cntr++;
 								}
-								JObject[] noteSets = JsonConvert.DeserializeObject<JArray>(Utilities.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\dtlnor rips\MHWs-in-json-main\natives\STM\GameDesign\Player\ActionData\Wp05\UserData\Wp05MusicSkillToneTable.user.3.json"))!.First().Value<JObject>("app.Wp05MusicSkillToneTable")!.Value<JArray>("_Datas")!.Select(x => x.Value<JObject>("app.Wp05MusicSkillToneTable.cData")!)!.ToArray();
+								JObject[] noteSets = JsonConvert.DeserializeObject<JArray>(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\dtlnor rips\MHWs-in-json-main\natives\STM\GameDesign\Player\ActionData\Wp05\UserData\Wp05MusicSkillToneTable.user.3.json"))!.First().Value<JObject>("app.Wp05MusicSkillToneTable")!.Value<JArray>("_Datas")!.Select(x => x.Value<JObject>("app.Wp05MusicSkillToneTable.cData")!)!.ToArray();
 								if (newWeapon.Type == "HH")
 								{
 									List<char> notesList = [];
@@ -828,8 +828,8 @@ namespace MediawikiTranslator.Models.Data.MHWilds
 				}
 				return [.. src];
 			}
-			catch (Exception)
-            {
+			catch (Exception ex)
+			{
 				Debugger.Break();
 				return [];
 			}
@@ -874,9 +874,9 @@ namespace MediawikiTranslator.Models.Data.MHWilds
 				string weaponType = GetWeaponName(weapon.Type!);
 				if (!weaponTreeData.ContainsKey(weaponType))
 				{
-					weaponTreeData.Add(weaponType, JsonConvert.DeserializeObject<dynamic>(Utilities.ReadAllText($@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\dtlnor rips\MHWs-in-json-main\natives\STM\GameDesign\Common\Weapon\{GetWeaponInternalName(weapon.Type!)}Tree.user.3.json"))![0]["app.user_data.WeaponTree"]);
-					weaponData.Add(weaponType, ((JArray)JsonConvert.DeserializeObject<dynamic[]>(Utilities.ReadAllText($@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\dtlnor rips\MHWs-in-json-main\natives\STM\GameDesign\Common\Weapon\{GetWeaponInternalName(weapon.Type!)}.user.3.json"))![0]["app.user_data.WeaponData"]._Values).ToObject<dynamic[]>()!);
-					weaponNames.Add(weaponType, ((JArray)JsonConvert.DeserializeObject<dynamic>(Utilities.ReadAllText($@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\dtlnor rips\MHWs-in-json-main\natives\STM\GameDesign\Text\Excel_Equip\{GetWeaponInternalName(weapon.Type!)}.msg.23.json"))!.entries).ToObject<dynamic[]>()!);
+					weaponTreeData.Add(weaponType, JsonConvert.DeserializeObject<dynamic>(File.ReadAllText($@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\dtlnor rips\MHWs-in-json-main\natives\STM\GameDesign\Common\Weapon\{GetWeaponInternalName(weapon.Type!)}Tree.user.3.json"))![0]["app.user_data.WeaponTree"]);
+					weaponData.Add(weaponType, ((JArray)JsonConvert.DeserializeObject<dynamic[]>(File.ReadAllText($@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\dtlnor rips\MHWs-in-json-main\natives\STM\GameDesign\Common\Weapon\{GetWeaponInternalName(weapon.Type!)}.user.3.json"))![0]["app.user_data.WeaponData"]._Values).ToObject<dynamic[]>()!);
+					weaponNames.Add(weaponType, ((JArray)JsonConvert.DeserializeObject<dynamic>(File.ReadAllText($@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\dtlnor rips\MHWs-in-json-main\natives\STM\GameDesign\Text\Excel_Equip\{GetWeaponInternalName(weapon.Type!)}.msg.23.json"))!.entries).ToObject<dynamic[]>()!);
 				}
 				string weaponGuid = weaponNames[weaponType].First(x => x.content[1].ToString() == weapon.Name).guid.ToString();
 				dynamic wepData = weaponData[weaponType].First(x => x["app.user_data.WeaponData.cData"]._Name.ToString() == weaponGuid);
@@ -1145,22 +1145,22 @@ namespace MediawikiTranslator.Models.Data.MHWilds
 	{
 		public static readonly string[] AmmoTypes = ["Normal Ammo", "Pierce Ammo", "Spread Ammo", "Sticky Ammo", "Cluster Bomb", "Slicing Ammo", "Wyvern Ammo", "Flaming Ammo", "Water Ammo", "Thunder Ammo", "Freeze Ammo", "Dragon Ammo", "Poison Ammo", "Paralysis Ammo", "Sleep Ammo", "Demon Ammo", "Armor Ammo", "Recover Ammo", "Exhaust Ammo", "Tranq Ammo"];
 		public static readonly string[] GunnerWeapons = ["Bow", "LightBowgun", "HeavyBowgun"];
-		public static readonly dynamic[] HeavyBowgunNames = ((JArray)JsonConvert.DeserializeObject<dynamic>(Utilities.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\dtlnor rips\MHWs-in-json-main\natives\STM\GameDesign\Text\Excel_Equip\HeavyBowgun.msg.23.json"))!.entries!).ToObject<dynamic[]>()!;
-		public static readonly dynamic[] HeavyBowguns = ((JArray)JsonConvert.DeserializeObject<JArray>(Utilities.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\dtlnor rips\MHWs-in-json-main\natives\STM\GameDesign\Common\Weapon\HeavyBowgun.user.3.json"))![0].ToObject<dynamic>()!["app.user_data.WeaponData"]._Values).ToObject<dynamic[]>()!;
-		public static readonly dynamic[] LightBowgunNames = ((JArray)JsonConvert.DeserializeObject<dynamic>(Utilities.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\dtlnor rips\MHWs-in-json-main\natives\STM\GameDesign\Text\Excel_Equip\LightBowgun.msg.23.json"))!.entries!).ToObject<dynamic[]>()!;
-		public static readonly dynamic[] LightBowguns = ((JArray)JsonConvert.DeserializeObject<JArray>(Utilities.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\dtlnor rips\MHWs-in-json-main\natives\STM\GameDesign\Common\Weapon\LightBowgun.user.3.json"))![0].ToObject<dynamic>()!["app.user_data.WeaponData"]._Values).ToObject<dynamic[]>()!;
+		public static readonly dynamic[] HeavyBowgunNames = ((JArray)JsonConvert.DeserializeObject<dynamic>(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\dtlnor rips\MHWs-in-json-main\natives\STM\GameDesign\Text\Excel_Equip\HeavyBowgun.msg.23.json"))!.entries!).ToObject<dynamic[]>()!;
+		public static readonly dynamic[] HeavyBowguns = ((JArray)JsonConvert.DeserializeObject<JArray>(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\dtlnor rips\MHWs-in-json-main\natives\STM\GameDesign\Common\Weapon\HeavyBowgun.user.3.json"))![0].ToObject<dynamic>()!["app.user_data.WeaponData"]._Values).ToObject<dynamic[]>()!;
+		public static readonly dynamic[] LightBowgunNames = ((JArray)JsonConvert.DeserializeObject<dynamic>(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\dtlnor rips\MHWs-in-json-main\natives\STM\GameDesign\Text\Excel_Equip\LightBowgun.msg.23.json"))!.entries!).ToObject<dynamic[]>()!;
+		public static readonly dynamic[] LightBowguns = ((JArray)JsonConvert.DeserializeObject<JArray>(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\dtlnor rips\MHWs-in-json-main\natives\STM\GameDesign\Common\Weapon\LightBowgun.user.3.json"))![0].ToObject<dynamic>()!["app.user_data.WeaponData"]._Values).ToObject<dynamic[]>()!;
 		public static readonly Items[] MHWildsItems = Items.Fetch();
-		public static readonly Dictionary<string, string>[] SeriesNameIdPairs = JsonConvert.DeserializeObject<Dictionary<string, string>[]>(Utilities.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\seriesNamePairs.json"))!;
-		public static readonly dynamic[] SeriesNames = ((JArray)JsonConvert.DeserializeObject<dynamic>(Utilities.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\dtlnor rips\MHWs-in-json-main\natives\STM\GameDesign\Text\Excel_Equip\WeaponSeries.msg.23.json"))!.entries!).ToObject<dynamic[]>()!;
-		public static readonly dynamic SharpnessVals = JsonConvert.DeserializeObject<dynamic>(Utilities.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\weaponSharpness.json"))!;
-		public static readonly dynamic[] SkillDict = JsonConvert.DeserializeObject<dynamic[]>(Utilities.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\skillDict.json"))!;
+		public static readonly Dictionary<string, string>[] SeriesNameIdPairs = JsonConvert.DeserializeObject<Dictionary<string, string>[]>(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\seriesNamePairs.json"))!;
+		public static readonly dynamic[] SeriesNames = ((JArray)JsonConvert.DeserializeObject<dynamic>(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\dtlnor rips\MHWs-in-json-main\natives\STM\GameDesign\Text\Excel_Equip\WeaponSeries.msg.23.json"))!.entries!).ToObject<dynamic[]>()!;
+		public static readonly dynamic SharpnessVals = JsonConvert.DeserializeObject<dynamic>(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\weaponSharpness.json"))!;
+		public static readonly dynamic[] SkillDict = JsonConvert.DeserializeObject<dynamic[]>(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\skillDict.json"))!;
 		public static readonly Skill[] Skills = Skill.GetSkills();
 		public static Dictionary<string, JArray> WeaponNames = new();
 		public static Dictionary<string, JObject[]> WeaponObjs = new();
 		public static Dictionary<string, JObject> WeaponTrees = new();
 		public static Dictionary<string, JObject[]> WeaponRecipes = new();
-		public static JArray WeaponSeriesNames = JsonConvert.DeserializeObject<JObject>(Utilities.ReadAllText("D:\\MH_Data Repo\\MH_Data\\Parsed Files\\MHWilds\\dtlnor rips\\MHWs-in-json-main\\natives\\STM\\GameDesign\\Text\\Excel_Equip\\WeaponSeries.msg.23.json"))!.Value<JArray>("entries")!;
-		public static JArray WeaponSeriesData = JsonConvert.DeserializeObject<JArray>(Utilities.ReadAllText("D:\\MH_Data Repo\\MH_Data\\Parsed Files\\MHWilds\\dtlnor rips\\MHWs-in-json-main\\natives\\STM\\GameDesign\\Common\\Equip\\WeaponSeriesData.user.3.json"))!.First()!.Value<JObject>("app.user_data.WeaponSeriesData")!.Value<JArray>("_Values")!;
+		public static JArray WeaponSeriesNames = JsonConvert.DeserializeObject<JObject>(File.ReadAllText("D:\\MH_Data Repo\\MH_Data\\Parsed Files\\MHWilds\\dtlnor rips\\MHWs-in-json-main\\natives\\STM\\GameDesign\\Text\\Excel_Equip\\WeaponSeries.msg.23.json"))!.Value<JArray>("entries")!;
+		public static JArray WeaponSeriesData = JsonConvert.DeserializeObject<JArray>(File.ReadAllText("D:\\MH_Data Repo\\MH_Data\\Parsed Files\\MHWilds\\dtlnor rips\\MHWs-in-json-main\\natives\\STM\\GameDesign\\Common\\Equip\\WeaponSeriesData.user.3.json"))!.First()!.Value<JObject>("app.user_data.WeaponSeriesData")!.Value<JArray>("_Values")!;
 	}
 
 	public class WildsShellTable

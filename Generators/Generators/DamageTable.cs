@@ -20,7 +20,7 @@ namespace MediawikiTranslator.Generators
                 string partsPath = Path.Combine(activePath.FullName, dir.Name + "_00_Param_Parts.user.3.json");
                 if (File.Exists(partsPath))
                 {
-                    SourceData data = SourceData.FromJson(Utilities.ReadAllText(partsPath));
+                    SourceData data = SourceData.FromJson(File.ReadAllText(partsPath));
                     string table = HitZoneValues.Format(ToHZV(data));
                     Directory.CreateDirectory(destPath);
                     File.WriteAllText(Path.Combine(destPath, Path.GetFileNameWithoutExtension(partsPath) + ".txt"), table);
@@ -32,8 +32,8 @@ namespace MediawikiTranslator.Generators
         {
             if (!string.IsNullOrEmpty(partsType))
             {
-                PartsData partData = PartsData.FromJson(Utilities.ReadAllText("D:\\MH_Data Repo\\MH_Data\\Parsed Files\\MHWilds\\dtlnor rips\\MHWs-in-json-main\\natives\\STM\\GameDesign\\Common\\Enemy\\EnemyPartsTypeData.user.3.json"))[0];
-				JArray partNames = JsonConvert.DeserializeObject<JObject>(Utilities.ReadAllText("D:\\MH_Data Repo\\MH_Data\\Parsed Files\\MHWilds\\dtlnor rips\\MHWs-in-json-main\\natives\\STM\\GameDesign\\Text\\Excel_Data\\EnemyPartsTypeName.msg.23.json"))!.Value<JArray>("entries")!;
+                PartsData partData = PartsData.FromJson(File.ReadAllText("D:\\MH_Data Repo\\MH_Data\\Parsed Files\\MHWilds\\dtlnor rips\\MHWs-in-json-main\\natives\\STM\\GameDesign\\Common\\Enemy\\EnemyPartsTypeData.user.3.json"))[0];
+				JArray partNames = JsonConvert.DeserializeObject<JObject>(File.ReadAllText("D:\\MH_Data Repo\\MH_Data\\Parsed Files\\MHWilds\\dtlnor rips\\MHWs-in-json-main\\natives\\STM\\GameDesign\\Text\\Excel_Data\\EnemyPartsTypeName.msg.23.json"))!.Value<JArray>("entries")!;
                 return partNames.First(x => x.Value<string>("guid") == partData.AppUserDataEnemyPartsTypeData?.Values.First(x => x.AppUserDataEnemyPartsTypeDataCData?.EmPartsType == partsType).AppUserDataEnemyPartsTypeDataCData?.EmPartsName.ToString()).Value<JArray>("content")![1].Value<string>()!;
             }
             else

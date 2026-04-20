@@ -31,7 +31,7 @@ namespace MediawikiTranslator.Models.Data.MHWI
 
 		public static Dictionary<string, ShellTable[]> GetShellTables()
 		{
-			return FromJson(Utilities.ReadAllText(@"D:\MH_Data Repo\MH_Data\Raw Data\MHWI\chunk\common\equip\shelltable.json"));
+			return FromJson(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Raw Data\MHWI\chunk\common\equip\shelltable.json"));
 		}
 	}
 

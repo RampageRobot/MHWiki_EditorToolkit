@@ -21,7 +21,7 @@ namespace MediawikiTranslator.Models.Monsters
 
 		private static readonly Dictionary<string, dynamic> QuestInfo = Utilities.GetMHWIQuestInfo();
 
-		public static MonsterId[] WildsMonsterIds = JsonConvert.DeserializeObject<MonsterId[]>(Utilities.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\monsterIds.json"))!;
+		public static MonsterId[] WildsMonsterIds = JsonConvert.DeserializeObject<MonsterId[]>(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\monsterIds.json"))!;
 
 		public string Format()
 		{
@@ -88,7 +88,7 @@ namespace MediawikiTranslator.Models.Monsters
 		public string IDNum { get; set; } = string.Empty;
 		public string IDFix { get; set; } = string.Empty;
 		public string IDBit { get; set; } = string.Empty;
-		public string Name { get; set; } = string.Empty;
+		public string? Name { get; set; } = string.Empty;
 		public string? BossIcon { get; set; } = string.Empty;
 		public string? ZakoIcon { get; set; } = string.Empty;
 		public string? ExtraName { get; set; } = string.Empty;

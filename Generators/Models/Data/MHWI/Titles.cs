@@ -17,7 +17,7 @@ namespace MediawikiTranslator.Models.Data.MHWI
 
 		public static Titles[] FetchAllTitles()
 		{
-			List<Titles> nouns = [..JsonConvert.DeserializeObject<List<Titles>>(Utilities.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWI\titles_1.json"))!
+			List<Titles> nouns = [..JsonConvert.DeserializeObject<List<Titles>>(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWI\titles_1.json"))!
 				.Where(x => x.UnlockType != "Unused").Select(x => new Titles()
 				{
 					Description = x.Description,
@@ -31,7 +31,7 @@ namespace MediawikiTranslator.Models.Data.MHWI
 					UnlockParam = x.UnlockParam,
 					UnlockType = x.UnlockType,
 				})];
-			nouns.AddRange(JsonConvert.DeserializeObject<List<Titles>>(Utilities.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWI\titles_2.json"))!.Where(x => x.UnlockType != "Unused").Select(x => new Titles()
+			nouns.AddRange(JsonConvert.DeserializeObject<List<Titles>>(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWI\titles_2.json"))!.Where(x => x.UnlockType != "Unused").Select(x => new Titles()
 			{
 				Description = x.Description,
 				Id = x.Id,

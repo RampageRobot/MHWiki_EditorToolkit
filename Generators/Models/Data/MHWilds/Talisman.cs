@@ -20,8 +20,8 @@ namespace MediawikiTranslator.Models.Data.MHWilds
 			Items[] allItems = Items.Fetch();
 			Skill[] allSkills = Skill.GetSkills();
 			JArray talismanNames = Utilities.GetWildsMessages(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\dtlnor rips\MHWs-in-json-main\natives\STM\GameDesign\Text\Excel_Equip\Amulet.msg.23.json");
-			JObject[] amuletData = [.. JsonConvert.DeserializeObject<JArray>(Utilities.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\dtlnor rips\MHWs-in-json-main\natives\STM\GameDesign\Common\Equip\AmuletData.user.3.json"))![0].Value<JObject>("app.user_data.AmuletData")!.Value<JArray>("_Values")!.Select(x => x.Value<JObject>("app.user_data.AmuletData.cData"))!];
-			JObject[] amuletRecipeData = [.. JsonConvert.DeserializeObject<JArray>(Utilities.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\dtlnor rips\MHWs-in-json-main\natives\STM\GameDesign\Common\Equip\AmuletRecipeData.user.3.json"))![0].Value<JObject>("app.user_data.AmuletRecipeData")!.Value<JArray>("_Values")!.Select(x => x.Value<JObject>("app.user_data.AmuletRecipeData.cData"))!];
+			JObject[] amuletData = [.. JsonConvert.DeserializeObject<JArray>(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\dtlnor rips\MHWs-in-json-main\natives\STM\GameDesign\Common\Equip\AmuletData.user.3.json"))![0].Value<JObject>("app.user_data.AmuletData")!.Value<JArray>("_Values")!.Select(x => x.Value<JObject>("app.user_data.AmuletData.cData"))!];
+			JObject[] amuletRecipeData = [.. JsonConvert.DeserializeObject<JArray>(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWilds\dtlnor rips\MHWs-in-json-main\natives\STM\GameDesign\Common\Equip\AmuletRecipeData.user.3.json"))![0].Value<JObject>("app.user_data.AmuletRecipeData")!.Value<JArray>("_Values")!.Select(x => x.Value<JObject>("app.user_data.AmuletRecipeData.cData"))!];
 			List<Talisman> ret = [];
 			foreach (JObject amulet in amuletData)
 			{

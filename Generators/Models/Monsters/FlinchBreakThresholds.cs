@@ -21,7 +21,7 @@ namespace MediawikiTranslator.Models.Monsters
 				string fileName = $@"D:\MH_Data Repo\MH_Data\Parsed Files\MHWI\Monster Data\{monsterName}\Parts.json";
 				if (File.Exists(fileName))
 				{
-					Dictionary<string, dynamic[]> partData = JsonConvert.DeserializeObject<Dictionary<string, dynamic[]>>(Utilities.ReadAllText(fileName))!;
+					Dictionary<string, dynamic[]> partData = JsonConvert.DeserializeObject<Dictionary<string, dynamic[]>>(File.ReadAllText(fileName))!;
 					foreach (dynamic dyn in partData["Flinches"])
 					{
 						ret.Add(new()

@@ -19,7 +19,7 @@ namespace MediawikiTranslator.Models.Data.MHRS
 
 		public static Dictionary<string, CommonMsgsMsg> GetMsgs()
 		{
-			CommonMsgs src = FromJson(Utilities.ReadAllText(@"D:\MH_Data Repo\MH_Data\Raw Data\MHRS\combined_msgs.json"));
+			CommonMsgs src = FromJson(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Raw Data\MHRS\combined_msgs.json"));
 			_msgs = src.Msgs;
 			_nameToUUID = src.NameToUuid;
 			return _msgs;

@@ -24,8 +24,8 @@ namespace MediawikiTranslator.Models.Data.MHRS
 			{
 				_MHRSItems = Utilities.GetMHRSItems();
 			}
-			QuestsRewardLotTablesParam[] lootTablesLrhr = FromJson(Utilities.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHRS\natives\stm\data\define\quest\system\questrewardsystem\rewardidlottabledata.user.2.json")).SnowDataRewardIdLotTableUserData.Param;
-			QuestsRewardLotTablesParam[] lootTablesMr = FromJson(Utilities.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHRS\natives\stm\data\define\quest\system\questrewardsystem\rewardidlottabledata_mr.user.2.json")).SnowDataRewardIdLotTableUserData.Param;
+			QuestsRewardLotTablesParam[] lootTablesLrhr = FromJson(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHRS\natives\stm\data\define\quest\system\questrewardsystem\rewardidlottabledata.user.2.json")).SnowDataRewardIdLotTableUserData.Param;
+			QuestsRewardLotTablesParam[] lootTablesMr = FromJson(File.ReadAllText(@"D:\MH_Data Repo\MH_Data\Parsed Files\MHRS\natives\stm\data\define\quest\system\questrewardsystem\rewardidlottabledata_mr.user.2.json")).SnowDataRewardIdLotTableUserData.Param;
 			_LootTables = new QuestsRewardLotTablesParam[lootTablesLrhr.Length + lootTablesMr.Length];
 			lootTablesLrhr.CopyTo(_LootTables, 0);
 			lootTablesMr.CopyTo(_LootTables, lootTablesLrhr.Length);
